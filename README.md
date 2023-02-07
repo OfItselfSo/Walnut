@@ -15,7 +15,7 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
-- **00.01.01** Commit ID:
+- **00.01.01** Commit ID: 9e5b761
     - Displays webcam images on the screen via Windows Media Foundation and, optionally, saves the stream to an mp4 file. Walnut also contains EmguCV library image recognition code imbedded 
     in a WMF Transform (operating in an independent thread) which can recognise
 rectangles of Red, Green and Blue color and mark them on the display with a black cross. Other code accesses the data in the recognition transform and displays the color and center of each rectangle
