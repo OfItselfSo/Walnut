@@ -16,7 +16,7 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
-- **00.02.01** Commit ID: 
+- **00.02.01** Commit ID: c6d0e6f
     - Contains all the functionality of v00.01.01 but also implements client software for the Beaglebone Black. The functionality of the 
     RemCon ([http://www.OfItselfSo.com/RemCon](RemCon) project has been incorporated into the Walnut Server and Client to provide a mechanism
     to exchange typed objects over a TCP/IP link in a server/client relationship. At the moment the typed object just consists of the screen coordinates and colors of 
