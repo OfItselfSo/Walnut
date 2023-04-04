@@ -81,7 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationImplicitSettings.cs" />
-    <Compile Include="ColoredRotatedRect.cs" />
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -133,6 +132,12 @@
     <PackageReference Include="Emgu.CV.UI">
       <Version>4.6.0.5131</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WalnutCommon\WalnutCommon.csproj">
+      <Project>{b75a6c94-200f-443f-bbca-945adeb5dac4}</Project>
+      <Name>WalnutCommon</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

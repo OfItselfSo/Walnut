@@ -54,9 +54,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.ctlTantaVideoPicker1 = new TantaCommon.ctlTantaVideoPicker();
             this.textBoxPickedVideoDeviceURL = new System.Windows.Forms.TextBox();
+            this.tabPageTransporter = new System.Windows.Forms.TabPage();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBoxDataTrace = new System.Windows.Forms.TextBox();
+            this.buttonSendData = new System.Windows.Forms.Button();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
+            this.tabPageTransporter.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControlMainFrm
@@ -66,6 +71,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControlMainFrm.Controls.Add(this.tabPageMain);
             this.tabControlMainFrm.Controls.Add(this.tabPageSetup);
+            this.tabControlMainFrm.Controls.Add(this.tabPageTransporter);
             this.tabControlMainFrm.Location = new System.Drawing.Point(2, 2);
             this.tabControlMainFrm.Name = "tabControlMainFrm";
             this.tabControlMainFrm.SelectedIndex = 0;
@@ -102,6 +108,7 @@
             // 
             // label8
             // 
+            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(665, 221);
             this.label8.Name = "label8";
@@ -111,6 +118,7 @@
             // 
             // textBoxFoundObjects
             // 
+            this.textBoxFoundObjects.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxFoundObjects.Location = new System.Drawing.Point(668, 237);
             this.textBoxFoundObjects.Multiline = true;
             this.textBoxFoundObjects.Name = "textBoxFoundObjects";
@@ -119,6 +127,7 @@
             // 
             // labelCount
             // 
+            this.labelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCount.AutoSize = true;
             this.labelCount.Location = new System.Drawing.Point(665, 391);
             this.labelCount.Name = "labelCount";
@@ -271,9 +280,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ctlTantaEVRStreamDisplay1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ctlTantaEVRStreamDisplay1.Location = new System.Drawing.Point(6, 3);
+            this.ctlTantaEVRStreamDisplay1.Location = new System.Drawing.Point(5, 10);
             this.ctlTantaEVRStreamDisplay1.Name = "ctlTantaEVRStreamDisplay1";
-            this.ctlTantaEVRStreamDisplay1.Size = new System.Drawing.Size(640, 480);
+            this.ctlTantaEVRStreamDisplay1.Size = new System.Drawing.Size(640, 476);
             this.ctlTantaEVRStreamDisplay1.TabIndex = 30;
             // 
             // buttonStartStopPlay
@@ -341,6 +350,54 @@
             this.textBoxPickedVideoDeviceURL.Size = new System.Drawing.Size(448, 20);
             this.textBoxPickedVideoDeviceURL.TabIndex = 30;
             // 
+            // tabPageTransporter
+            // 
+            this.tabPageTransporter.Controls.Add(this.label7);
+            this.tabPageTransporter.Controls.Add(this.textBoxDataTrace);
+            this.tabPageTransporter.Controls.Add(this.buttonSendData);
+            this.tabPageTransporter.Location = new System.Drawing.Point(4, 22);
+            this.tabPageTransporter.Name = "tabPageTransporter";
+            this.tabPageTransporter.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageTransporter.Size = new System.Drawing.Size(933, 498);
+            this.tabPageTransporter.TabIndex = 2;
+            this.tabPageTransporter.Text = "Transporter";
+            this.tabPageTransporter.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(48, 219);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(62, 13);
+            this.label7.TabIndex = 59;
+            this.label7.Text = "Diagnostics";
+            // 
+            // textBoxDataTrace
+            // 
+            this.textBoxDataTrace.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxDataTrace.Location = new System.Drawing.Point(51, 234);
+            this.textBoxDataTrace.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxDataTrace.Multiline = true;
+            this.textBoxDataTrace.Name = "textBoxDataTrace";
+            this.textBoxDataTrace.ReadOnly = true;
+            this.textBoxDataTrace.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxDataTrace.Size = new System.Drawing.Size(549, 132);
+            this.textBoxDataTrace.TabIndex = 57;
+            // 
+            // buttonSendData
+            // 
+            this.buttonSendData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonSendData.Location = new System.Drawing.Point(482, 156);
+            this.buttonSendData.Margin = new System.Windows.Forms.Padding(2);
+            this.buttonSendData.Name = "buttonSendData";
+            this.buttonSendData.Size = new System.Drawing.Size(115, 24);
+            this.buttonSendData.TabIndex = 56;
+            this.buttonSendData.Text = "Force Send Data";
+            this.buttonSendData.UseVisualStyleBackColor = true;
+            this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -348,6 +405,7 @@
             this.ClientSize = new System.Drawing.Size(955, 527);
             this.Controls.Add(this.tabControlMainFrm);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Location = new System.Drawing.Point(0, 0);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "frmMain";
@@ -359,6 +417,8 @@
             this.tabPageMain.PerformLayout();
             this.tabPageSetup.ResumeLayout(false);
             this.tabPageSetup.PerformLayout();
+            this.tabPageTransporter.ResumeLayout(false);
+            this.tabPageTransporter.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -390,6 +450,10 @@
         private System.Windows.Forms.Label labelCount;
         private System.Windows.Forms.TextBox textBoxFoundObjects;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TabPage tabPageTransporter;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox textBoxDataTrace;
+        private System.Windows.Forms.Button buttonSendData;
     }
 }
 

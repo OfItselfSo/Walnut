@@ -22,7 +22,7 @@ using Emgu.CV.Structure;
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 
-namespace Walnut
+namespace WalnutCommon
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -35,6 +35,7 @@ namespace Walnut
     /// 
     /// </summary>
 
+    [SerializableAttribute]
     public class ColoredRotatedRect
     {
         // this is a structure, a value type and will never be null

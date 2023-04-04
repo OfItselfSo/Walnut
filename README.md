@@ -1,7 +1,8 @@
 # Walnut
 The path planning and control software for the FPath project.
 
-Walnut is a Windows Media Foundation application with integrated image recognition functionality from the EmguCV library (a C# OpenCV Interface).
+Walnut is a Windows Media Foundation application with integrated image recognition functionality from the EmguCV library (a C# OpenCV Interface). It also incorporates the ability to send a typed
+object to remote software (WalnutClient) running on the Beaglebone Black via TCP/IP.
 
 The Prism6 application in the OfItselfSo Prism project [http://www.OfItselfSo.com/Prism](http://www.OfItselfSo.com/Prism) was used as the initial structure and has been much modified since then. 
 
@@ -14,6 +15,13 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
+
+- **00.02.01** Commit ID: 
+    - Contains all the functionality of v00.01.01 but also implements client software for the Beaglebone Black. The functionality of the 
+    RemCon ([http://www.OfItselfSo.com/RemCon](RemCon) project has been incorporated into the Walnut Server and Client to provide a mechanism
+    to exchange typed objects over a TCP/IP link in a server/client relationship. At the moment the typed object just consists of the screen coordinates and colors of 
+    rectangles picked up by the image recognition system of v00.01.01. Elements of the [http://www.OfItselfSo.com/Tilo](http://www.OfItselfSo.com/Tilo) project have been incorporated 
+    to provide eventual control over the FPath Waldos however this code is largely non-functional as yet.
 
 - **00.01.01** Commit ID: 9e5b761
     - Displays webcam images on the screen via Windows Media Foundation and, optionally, saves the stream to an mp4 file. Walnut also contains EmguCV library image recognition code imbedded 

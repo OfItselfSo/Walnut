@@ -17,6 +17,7 @@ using MediaFoundation.Alt;
 using MediaFoundation.EVR;
 using OISCommon;
 using TantaCommon;
+using WalnutCommon;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -61,10 +62,11 @@ namespace Walnut
     /// <summary>
     /// The main form for the application
     /// </summary>
-    public partial class frmMain : Form
+    public partial class frmMain : frmOISBase
     {
+        private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.01.01";
+        private const string APPLICATION_VERSION = "00.02.01";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -136,12 +138,17 @@ namespace Walnut
         BackgroundWorker codeWorker = null;
         private const int CODEWORKER_UPDATE_TIME_MSEC = 1000;
 
+        // this handles the data transport to and from the client 
+        private TCPDataTransporter dataTransporter = null;
+        //private bool inhibitAutoSend = false;
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
         public frmMain()
         {
+            bool retBOOL = false;
             HResult hr = 0;
 
             if (DesignMode == false)
@@ -150,18 +157,56 @@ namespace Walnut
                 // people can start from a link 
                 Directory.SetCurrentDirectory(Application.StartupPath);
 
+                // set up the Singleton g_Logger instance. Simply using it in a test
+                // creates it.
+                if (g_Logger == null)
+                {
+                    // did not work, nothing will start say so now in a generic way
+                    MessageBox.Show("Logger Class Failed to Initialize. Nothing will work well.");
+                    return;
+                }
+                // record this in the logger for everybodys use
+                g_Logger.ApplicationMainForm = this;
+                g_Logger.DefaultDialogBoxTitle = APPLICATION_NAME;
+                try
+                {
+                    // set the icon for this form and for all subsequent forms
+                    g_Logger.AppIcon = new Icon(GetType(), "App.ico");
+                    this.Icon = new Icon(GetType(), "App.ico");
+                }
+                catch (Exception)
+                {
+                }
+
                 // Register the global error handler as soon as we can in Main
                 // to make sure that we catch as many exceptions as possible
                 // this is a last resort. All execeptions should really be trapped
                 // and handled by the code.
                 OISGlobalExceptions ex1 = new OISGlobalExceptions();
                 Application.ThreadException += new ThreadExceptionEventHandler(ex1.OnThreadException);
+
+                // set the culture so our numbers convert consistently
+                System.Threading.Thread.CurrentThread.CurrentCulture = g_Logger.GetDefaultCulture();
+
             }
 
             InitializeComponent();
 
             if (DesignMode == false)
             {
+
+                // set up our logging
+                retBOOL = g_Logger.InitLogging(DEFAULTLOGDIR, APPLICATION_NAME, false);
+                if (retBOOL == false)
+                {
+                    // did not work, nothing will start say so now in a generic way
+                    MessageBox.Show("The log file failed to create. No log file will be recorded.");
+                }
+                // pump out the header
+                g_Logger.EmitStandardLogfileheader(APPLICATION_NAME);
+                LogMessage("");
+                LogMessage("Version: " + APPLICATION_VERSION);
+                LogMessage("");
 
                 // a bit of setup
                 buttonStartStopPlay.Text = START_CAPTURE;
@@ -219,6 +264,9 @@ namespace Walnut
         /// </summary>
         private void frmMain_Load(object sender, EventArgs e)
         {
+            // Set up the Waldo Controls
+            SetupWaldoControls();
+
             try
             {
                 // enumerate all video devices and display their formats
@@ -237,6 +285,24 @@ namespace Walnut
             TantaMFVideoFormatContainer videoFormatCont = ctlTantaVideoPicker1.ChooseCurrentFormatByFormat(DEFAULT_VIDEO_FORMAT, DEFAULT_VIDEO_FRAME_WIDTH, DEFAULT_VIDEO_FRAME_HEIGHT, DEFAULT_VIDEO_FRAMES_PER_SEC);
             // trigger the change event manually
             VideoFormatPickedHandler(this, videoFormatCont);
+
+            try
+            {
+                LogMessage("frmMain_Load Setting up the Data Transporter");
+
+                // set up our data transporter
+                dataTransporter = new TCPDataTransporter(TCPDataTransporterModeEnum.TCPDATATRANSPORT_SERVER, WalnutConstants.SERVER_TCPADDR, WalnutConstants.SERVER_PORT_NUMBER);
+                // set up the event so the data transporter can send us the data it recevies
+                dataTransporter.ServerClientDataEvent += ServerClientDataEventHandler;
+                LogMessage("frmMain_Load Data Transporter Setup complete");
+            }
+            catch (Exception ex)
+            {
+                LogMessage("frmMain_Load exception: " + ex.Message);
+                LogMessage("frmMain_Load exception: " + ex.StackTrace);
+                OISMessageBox("Exception setting up the data transporter: " + ex.Message);
+            }
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -265,6 +331,8 @@ namespace Walnut
             catch
             {
             }
+
+            ShutdownDataTransporter();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1730,6 +1798,225 @@ namespace Walnut
         }
 
         #endregion
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets up the controls on the form
+        /// </summary>
+        private void SetupWaldoControls()
+        {
+            SyncAllWaldoControlsToScreenState(false);
+
+        }
+
+ 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles presses on the buttonSendData button
+        /// </summary>
+        private void buttonSendData_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonSendData_Click");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // sends the data from the screen to the client
+            SendDataFromScreenToClient();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sends the data from the screen to the client
+        /// </summary>
+        private void SendDataFromScreenToClient()
+        {
+            if (dataTransporter == null)
+            {
+                LogMessage("SendDataFromScreenToClient, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("SendDataFromScreenToClient, Not connected");
+                return;
+            }
+
+            // get the server client data from the screen
+            ServerClientData scData = GetSCDataFromScreen("Data from server to client");
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the server client data from the screen and returns the populated
+        /// container
+        /// </summary>
+        /// <returns>a populated ServerClientData container</returns>
+        private ServerClientData GetSCDataFromScreen(string scDataText)
+        {
+            List<ColoredRotatedRect> rectList = null;
+
+            if (scDataText == null) scDataText = "Data from Server to Client";
+            ServerClientData scData = new ServerClientData(scDataText);
+
+            // check if we are recognizing
+            if (RecognitionTransform == null) return scData;
+            else rectList = RecognitionTransform.IdentifiedObjects;
+
+            // get the global enable
+            scData.RectList = rectList;
+
+            return scData;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles inbound data events.
+        /// 
+        /// NOTE: You are not on the Main Form Thread here.
+        /// </summary>
+        private void ServerClientDataEventHandler(object sender, ServerClientData scData)
+        {
+            if (scData == null)
+            {
+                LogMessage("ServerClientDataEventHandler scData==null");
+                return;
+            }
+
+            // Ok, you probably already know this but I'll note it here because this is so important
+            // You do NOT want to update any form controls from a thread that is not the forms main
+            // thread. Very odd, intermittent and hard to debug problems will result. Even if your 
+            // handler does not actually update any form controls do not do it! Sooner or later you 
+            // or someone else will make changes that calls something that eventually updates a
+            // form or control and then you will have introduced a really hard to find bug.
+
+            // So, we always use the InvokeRequired...Invoke sequence to get us back on the form thread
+            if (InvokeRequired == true)
+            {
+                // call ourselves again but this time be on the form thread.
+                Invoke(new TCPDataTransporter.ServerClientDataEvent_Delegate(ServerClientDataEventHandler), new object[] { sender, scData });
+                return;
+            }
+
+            // Now we KNOW we are on the main form thread.
+
+            // what type of data is it
+            if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
+            {
+                // it is user defined data, log it
+                LogMessage("ServerClientDataEventHandler dataStr=" + scData.DataStr);
+                // display it
+                AppendDataToTrace("IN: dataInt= dataStr=" + scData.DataStr);
+            }
+            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
+            {
+                // the remote side has connected
+                LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
+                // display it
+                AppendDataToTrace("IN: REMOTE_CONNECT");
+                // set the screen
+                SetScreenVisualsBasedOnConnectionState(true);
+            }
+            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
+            {
+                // the remote side has connected
+                LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
+                // display it
+                AppendDataToTrace("IN: REMOTE_DISCONNECT");
+                // set the screen
+                SetScreenVisualsBasedOnConnectionState(false);
+                // shut things down on our end
+                ShutdownDataTransporter();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Shutsdown the data transporter safely
+        /// </summary>
+        private void ShutdownDataTransporter()
+        {
+            // shutdown the data transporter
+            if (dataTransporter != null)
+            {
+                // are we connected? we want to tell the client to exit 
+                if (IsConnected() == true)
+                {
+                    // get the server client data from the screen
+                    ServerClientData scData = GetSCDataFromScreen("Client close down message");
+
+                    // display it
+                    AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+                    // send it
+                    dataTransporter.SendData(scData);
+                }
+
+                dataTransporter.Shutdown();
+                dataTransporter = null;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if we have a connection. 
+        /// </summary>
+        private bool IsConnected()
+        {
+            if (dataTransporter == null) return false;
+            if (dataTransporter.IsConnected() == false) return false;
+            if (buttonSendData.Enabled == false) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets up the screen visuals based on the connections state
+        /// </summary>
+        private void SetScreenVisualsBasedOnConnectionState(bool connectionState)
+        {
+            if (connectionState == true)
+            {
+                buttonSendData.Enabled = true;
+            }
+            else
+            {
+                buttonSendData.Enabled = false;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Appends data to our data trace
+        /// </summary>
+        private void AppendDataToTrace(string dataToAppend)
+        {
+            if ((dataToAppend == null) || (dataToAppend.Length == 0)) return;
+            textBoxDataTrace.Text = textBoxDataTrace.Text + "\r\n" + dataToAppend;
+        }
+
+ 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Synchronizes all waldo controls to the screen state
+        /// </summary>
+        /// <param name="enableState">if true they are all enabled, false they are not</param>
+        private void SyncAllWaldoControlsToScreenState(bool enableState)
+        {
+            // set them now
+        }
 
     }
 
