@@ -16,6 +16,11 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
+- **00.02.02** Commit ID: 
+    - Contains all the functionality of v00.02.01, but adds the ability of the WalnutClient to control stepper motors via a assembly language program running in the 
+    Programmable Realtime Units (PRU's) of the Beaglebone Black. As a test, the Walnut Server software can send control signals to activate a stepper motor. This 
+    functionality has largely been derived from the [http://www.OfItselfSo.com/Tilo](http://www.OfItselfSo.com/Tilo) project and is now fully operational.
+
 - **00.02.01** Commit ID: c6d0e6f
     - Contains all the functionality of v00.01.01 but also implements client software for the Beaglebone Black. The functionality of the 
     RemCon ([http://www.OfItselfSo.com/RemCon](RemCon) project has been incorporated into the Walnut Server and Client to provide a mechanism
