@@ -55,9 +55,11 @@
             this.ctlTantaVideoPicker1 = new TantaCommon.ctlTantaVideoPicker();
             this.textBoxPickedVideoDeviceURL = new System.Windows.Forms.TextBox();
             this.tabPageTransporter = new System.Windows.Forms.TabPage();
+            this.checkBoxTestStepper0 = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
+            this.checkBoxWaldosEnabled = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
@@ -352,6 +354,8 @@
             // 
             // tabPageTransporter
             // 
+            this.tabPageTransporter.Controls.Add(this.checkBoxWaldosEnabled);
+            this.tabPageTransporter.Controls.Add(this.checkBoxTestStepper0);
             this.tabPageTransporter.Controls.Add(this.label7);
             this.tabPageTransporter.Controls.Add(this.textBoxDataTrace);
             this.tabPageTransporter.Controls.Add(this.buttonSendData);
@@ -362,6 +366,17 @@
             this.tabPageTransporter.TabIndex = 2;
             this.tabPageTransporter.Text = "Transporter";
             this.tabPageTransporter.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxTestStepper0
+            // 
+            this.checkBoxTestStepper0.AutoSize = true;
+            this.checkBoxTestStepper0.Location = new System.Drawing.Point(51, 73);
+            this.checkBoxTestStepper0.Name = "checkBoxTestStepper0";
+            this.checkBoxTestStepper0.Size = new System.Drawing.Size(96, 17);
+            this.checkBoxTestStepper0.TabIndex = 60;
+            this.checkBoxTestStepper0.Text = "Test Stepper 0";
+            this.checkBoxTestStepper0.UseVisualStyleBackColor = true;
+            this.checkBoxTestStepper0.CheckedChanged += new System.EventHandler(this.checkBoxTestStepper0_CheckedChanged);
             // 
             // label7
             // 
@@ -397,6 +412,18 @@
             this.buttonSendData.Text = "Force Send Data";
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
+            // 
+            // checkBoxWaldosEnabled
+            // 
+            this.checkBoxWaldosEnabled.AutoSize = true;
+            this.checkBoxWaldosEnabled.Checked = true;
+            this.checkBoxWaldosEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxWaldosEnabled.Location = new System.Drawing.Point(51, 50);
+            this.checkBoxWaldosEnabled.Name = "checkBoxWaldosEnabled";
+            this.checkBoxWaldosEnabled.Size = new System.Drawing.Size(104, 17);
+            this.checkBoxWaldosEnabled.TabIndex = 61;
+            this.checkBoxWaldosEnabled.Text = "Waldos Enabled";
+            this.checkBoxWaldosEnabled.UseVisualStyleBackColor = true;
             // 
             // frmMain
             // 
@@ -454,6 +481,8 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxDataTrace;
         private System.Windows.Forms.Button buttonSendData;
+        private System.Windows.Forms.CheckBox checkBoxTestStepper0;
+        private System.Windows.Forms.CheckBox checkBoxWaldosEnabled;
     }
 }
 

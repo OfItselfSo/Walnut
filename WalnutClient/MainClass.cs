@@ -25,22 +25,22 @@ using WalnutCommon;
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// This application acts as a command line based client which runs on the Beaglebone
-/// Black. It is designed to interact with a PASM assembly language based program running on 
-/// PRU1 to control external devices. In practice this means using the i/o system to 
-/// control up to six stepper motors. PWMs and other I/O can also be used. 
+/// Black. It is designed to interact via TCP/IP with software running on a Windows PC.
 /// 
 /// The global control direction information is sent to this application by a Windows
 /// based Server (Walnut) in the form of an instantiated class (WalnutCommon.ServerClientData.cs)
+/// 
 /// If your main interest is the transfer of an instantiated object full of 
 /// information via TCP/IP then you should probably see the RemCon project
 /// http://www.OfItselfSo.com/RemCon which is a demonstrator project set up for that
-/// purpose. The WalnutCommon code in this application is directly derived from the 
-/// RemConCommon sample code. 
+/// purpose. The WalnutCommon code in this application is partly derived from the 
+/// RemConClient sample code. 
 /// 
-/// This application interacts with Windows based server software named Walnut.
-/// Both this client and the server are designed to interact with each other. There is 
-/// nothing "generic" about either of them. This is also true of the code which runs 
-/// in the PRU1 - it is specific to PRU1..
+/// If your main interest is the control of stepper motors in the PRU's of a 
+/// BeagleboneBlack then you should probably see the Tilo project
+/// http://www.OfItselfSo.com/Tilo which is a demonstrator project set up for that
+/// purpose. The WalnutCommon code in this application is partly derived from the 
+/// TiloClient sample code.
 /// 
 /// Ultimately, the purpose of this code is to output control signals for the FPath 
 /// Waldos. This PRU code for this functionality is present in the PRU1_Waldo_IO.p The 
@@ -68,7 +68,7 @@ using WalnutCommon;
 /// Pins used are necessarily hard coded into the PRU1_Waldo_IO.p program. A 
 /// suitable overlay is included with this source code repository in the DTS
 /// directory. See the readme.txt file in that directory and the comments in the 
-/// WalnutBBB-00A0.dts file for more information. There is information on configuring
+/// Waldo-00A0.dts file for more information. There is information on configuring
 /// the uEnv.txt file in the link below:
 /// http://www.ofitselfso.com/BeagleNotes/Beaglebone_Black_And_Device_Tree_Overlays.php
 /// 
@@ -78,11 +78,6 @@ using WalnutCommon;
 /// http://www.ofitselfso.com/BeagleNotes/Disabling_Video_On_The_Beaglebone_Black_And_Running_Headless.php
 /// http://www.ofitselfso.com/BeagleNotes/Disabling_The_EMMC_Memory_On_The_Beaglebone_Black.php
 /// 
-/// The PASMCode directory contains a selection of "test" PASM assembly files
-/// used to develop the PRU1_Waldo_IO.p code in this project. They have
-/// been left in the though that they may serve as simple examples of PASM code.
-/// The PASM assembler can be obtained online and a compiled version from
-/// https://github.com/OfItselfSo/PASM_Assembler
 
 namespace WalnutBBBClient
 {
@@ -107,12 +102,56 @@ namespace WalnutBBBClient
         // ### each data item is a uint (it is simpler that way)
         // ###
 
+        // this is what controls the PRU
+        private PRUDriver pruDriver = null;
+
+        // ###
+        // ### these are the offsets into the data store we pass into the PRU
+        // ### each data item is a uint (it is simpler that way)
+        // ###
+
+        // our semaphore flag is stored at this offset
+        private const uint SEMAPHORE_OFFSET = 0;
+        // the all steppers enabled flag is stored at this offset
+        private const uint WALDO_ENABLE_OFFSET = 4;
+
+        // STEP0
+        private const uint STEP0_ENABLED_OFFSET = 8;     // 0 disabled, 1 enabled
+        private const uint STEP0_FULLCOUNT = 12;         // this is the count we reset to when we toggle
+        private const uint STEP0_DIRSTATE = 16;          // this is the state of the direction pin
+
+        // STEP1
+        private const uint STEP1_ENABLED_OFFSET = 20;     // 1 disabled, 1 enabled
+        private const uint STEP1_FULLCOUNT = 24;          // this is the count we reset to when we toggle
+        private const uint STEP1_DIRSTATE = 28;           // this is the state of the direction pin
+
+        // STEP2
+        private const uint STEP2_ENABLED_OFFSET = 32;     // 1 disabled, 1 enabled
+        private const uint STEP2_FULLCOUNT = 36;          // this is the count we reset to when we toggle
+        private const uint STEP2_DIRSTATE = 40;           // this is the state of the direction pin
+
+        // STEP3
+        private const uint STEP3_ENABLED_OFFSET = 44;     // 1 disabled, 1 enabled
+        private const uint STEP3_FULLCOUNT = 48;          // this is the count we reset to when we toggle
+        private const uint STEP3_DIRSTATE = 52;           // this is the state of the direction pin
+
+        // STEP4
+        private const uint STEP4_ENABLED_OFFSET = 56;     // 1 disabled, 1 enabled
+        private const uint STEP4_FULLCOUNT = 60;          // this is the count we reset to when we toggle
+        private const uint STEP4_DIRSTATE = 64;           // this is the state of the direction pin
+
+        // STEP5
+        private const uint STEP5_ENABLED_OFFSET = 68;     // 1 disabled, 1 enabled
+        private const uint STEP5_FULLCOUNT = 72;          // this is the count we reset to when we toggle
+        private const uint STEP5_DIRSTATE = 76;           // this is the state of the direction pin
 
         // ###
         // ### this is the END of the data items, we need to allocate space for the 
         // ### above number of UINTS
         // ###
         private const int NUM_DATA_UINTS = 20;
+
+
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -173,8 +212,8 @@ namespace WalnutBBBClient
             // set up the event so the data transporter can send us the data it recevies
             dataTransporter.ServerClientDataEvent += ServerClientDataEventHandler;
 
-            // Start the Waldos
-            StartWaldosWithDefaults();
+            // Start the PRU
+            StartPRUWithDefaults(PRUEnum.PRU_1);
 
             // we sit and wait for the user to press return. The handler is dealing with the responses
             Console.WriteLine("Press <Return> to quit");
@@ -197,15 +236,16 @@ namespace WalnutBBBClient
                 return;
             }
 
+            LogMessage("ServerClientDataEventHandler: Data=" + scData.ToString());
+            Console.WriteLine("inbound data received:  Data=" + scData.ToString());
+
             // what type of data is it
             if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
             {
                 // user content
-                LogMessage("ServerClientDataEventHandler dataStr=" + scData.DataStr + ", Data=" + scData.ToString());
-                Console.WriteLine("inbound data received:  dataStr=" + scData.DataStr + ", Data=" + scData.ToString());
 
                 // send the data to the PRU
-                //SetWaldosFromServerClientData(scData);
+                SetWaldosFromServerClientData(scData);
 
                 // for the purposes of demonstration, send an ack now
                 if (dataTransporter == null)
@@ -222,14 +262,14 @@ namespace WalnutBBBClient
             else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
             {
                 // the remote side has connected
-                LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
-                Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
+                //LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
+              //  Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
             }
             else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
             {
                 // the remote side has connected
-                LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
-                Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
+               // LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
+               // Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
             }
         }
 
@@ -243,27 +283,86 @@ namespace WalnutBBBClient
         public void SetWaldosFromServerClientData(ServerClientData scData)
         {
             // sanity check
-            if(scData==null)
+            if (scData==null)
             {
                 LogMessage("SetWaldosFromServerClientData, scData==null");
                 return;
             }
-            Console.WriteLine("SetWaldosFromServerClientData Message Received");
+
+            //Console.WriteLine("SetWaldosFromServerClientData Message Received");
             LogMessage("SetWaldosFromServerClientData Message Received");
-            //LogMessage("SetWaldosFromServerClientData Message Received scData.PWM0_Enable=" + scData.PWM0_Enable.ToString() + ", scData.PWM0_PWMDutyCycle=" + scData.PWM0_PWMDutyCycle.ToString() + ", pwmPort0A.RunState=" + pwmPort0A.RunState.ToString());
+
+            // are we dealing with stepper0 data?
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEP0_DATA))
+            {
+                // write the waldo_enable flag
+                pruDriver.WritePRUDataUInt32(scData.Waldo_Enable, WALDO_ENABLE_OFFSET);
+
+                // write the STEP0 enable/disable flag
+                pruDriver.WritePRUDataUInt32(scData.Step0_Enable, STEP0_ENABLED_OFFSET);
+                // write the STEP0 fullcount value
+                pruDriver.WritePRUDataUInt32(scData.Step0_StepSpeed, STEP0_FULLCOUNT);
+                // write the STEP0 direction flag
+                pruDriver.WritePRUDataUInt32(scData.Step0_DirState, STEP0_DIRSTATE);
+                Console.WriteLine("scData.Waldo_Enable=" + scData.Waldo_Enable.ToString());
+                //Console.WriteLine("sscData.Step0_Enable=" + scData.Step0_Enable.ToString());
+                //Console.WriteLine("scData.Step0_StepSpeed=" + scData.Step0_StepSpeed.ToString());
+                //Console.WriteLine("scData.Step0_DirState=" + scData.Step0_DirState.ToString());
+
+                // write the semaphore. This must come last, the code running in the 
+                // PRU will see this change and set things up according to the
+                // other configuration items above
+                pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
+            }
+
+            // are we dealing with rectangle data
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
+            {
+            }
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Starts the Waldos
+        /// Starts the PRU with the  PRU1_StepperIO binary. Very specific to the 
+        /// data needs of the PRU1_StepperIO binary
+        /// 
+        /// In this function, the PASM binary to load is hard coded. It is designed
+        /// to monitor incoming data from the client and control step and dir pins
+        /// for up to six stepper motors.
         /// 
         /// </summary>
-        public void StartWaldosWithDefaults()
+        /// <param name="pruID">The pruID</param>
+        public void StartPRUWithDefaults(PRUEnum pruID)
         {
-            LogMessage("StartWaldosWithDefaults called");
 
+            // this is the array we use to pass in the data to the PRU. The
+            // single byte will act as a toggle flag. Because we are only
+            // transmitting a byte (an atomic value) we do not need to set
+            // up any complicated semaphore system.
 
-            LogMessage("StartWaldosWithDefaults Waldos now running.");
+            // The size of this array is the number of 
+            byte[] dataBytes = new byte[NUM_DATA_UINTS * sizeof(UInt32)];
+
+            // sanity checks
+            if (pruID == PRUEnum.PRU_NONE)
+            {
+                throw new Exception("No such PRU: " + pruID.ToString());
+            }
+            string binaryToRun = "./PRU1_Waldo_IO.bin";
+
+            // build the driver
+            pruDriver = new PRUDriver(pruID);
+
+            // initialize the dataBytes array. the PRU code expects to see a 
+            // zero semaphore, and enable flags when it starts
+            Array.Clear(dataBytes, 0, dataBytes.Length);
+
+            // run the binary, pass in our initial array
+            pruDriver.ExecutePRUProgram(binaryToRun, dataBytes);
+
+            Console.WriteLine("PRU now running.");
+            LogMessage("PRU now running.");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -291,7 +390,14 @@ namespace WalnutBBBClient
                 dataTransporter = null;
             }
 
-            // shutdown the Waldos
-         }
+            // shutdown the PRU driver
+            if (pruDriver != null)
+            {
+                pruDriver.PRUStop();
+                pruDriver.Dispose();
+                pruDriver = null;
+            }
+
+        }
     }
 }

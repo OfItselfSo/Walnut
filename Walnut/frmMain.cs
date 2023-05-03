@@ -39,20 +39,21 @@ using WalnutCommon;
 /// you may get errors. See the Program.cs file for details.
 
 /// The function of this app is to interact with a BeagleBone Black which is controlling a remote robotics system.
-/// This app performs the image recognition and path planning functions and communicates to the BBB which 
-/// handles the realtime stepper motor and robotic controls.
+/// This app performs the image recognition and high level path planning functions and communicates to the BBB which 
+/// handles the low level path planning and realtime stepper motor and robotic controls.
 /// 
 /// The image of the objects being operated on is streamed the screen.
 /// The screen can be recorded to disk.
-/// A transform injects logging and run information into the stream at the bottom each frame.
-/// A transform in this app identifies the contents of the image and generates positional data of the various 
+/// A WMF transform injects logging and run information into the stream at the bottom each frame.
+/// A WMF transform in this app identifies the contents of the image and generates positional data of the various 
 /// components. 
 /// The positional information is made available to the application and decisions regarding the path of the 
 /// robotic end effectors are made. 
 /// The end location of the path and way points are communicated to the BBB.
 /// The BBB moves the end effector to the location via the end points.
+/// Normally the speed and direction of stepper motors controlled by the BBB is left up to the code running on the 
+/// WalnutClient. However, this program can force a stepper to turn on at a specific speed and direction 
 ///
-
 
 
 namespace Walnut
@@ -131,16 +132,19 @@ namespace Walnut
         // these are settings the user does not explicitly configure such as form size
         // or some boolean screen control states
         private ApplicationImplicitSettings implictUserSettings = null;
-        //// these are settings the user configures such as file managers
+        //// these are settings the user configures 
         //private ApplicationExplicitSettings explictUserSettings = null;
 
-        // the worker that calculates the moves for the CNC operations
+        // the worker that recognises the screen data
         BackgroundWorker codeWorker = null;
         private const int CODEWORKER_UPDATE_TIME_MSEC = 1000;
 
         // this handles the data transport to and from the client 
         private TCPDataTransporter dataTransporter = null;
         //private bool inhibitAutoSend = false;
+
+        private const int DEFAULT_STEPPER_SPEED_HZ = 60;
+        private const int DEFAULT_STEPPER_DIR = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -264,8 +268,8 @@ namespace Walnut
         /// </summary>
         private void frmMain_Load(object sender, EventArgs e)
         {
-            // Set up the Waldo Controls
-            SetupWaldoControls();
+            // Set up the Walnut Controls
+            SetupWalnutControls();
 
             try
             {
@@ -1803,9 +1807,9 @@ namespace Walnut
         /// <summary>
         /// Sets up the controls on the form
         /// </summary>
-        private void SetupWaldoControls()
+        private void SetupWalnutControls()
         {
-            SyncAllWaldoControlsToScreenState(false);
+            SyncAllWalnutControlsToScreenState(false);
 
         }
 
@@ -1869,12 +1873,18 @@ namespace Walnut
         {
             List<ColoredRotatedRect> rectList = null;
 
-            if (scDataText == null) scDataText = "Data from Server to Client";
+            if (scDataText == null) scDataText = "Rect Data from Server to Client";
             ServerClientData scData = new ServerClientData(scDataText);
 
             // check if we are recognizing
             if (RecognitionTransform == null) return scData;
-            else rectList = RecognitionTransform.IdentifiedObjects;
+            else
+            {
+                rectList = RecognitionTransform.IdentifiedObjects;
+                // tell it we are carrying a rect list
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.RECT_DATA;
+                scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+            }
 
             // get the global enable
             scData.RectList = rectList;
@@ -2013,11 +2023,59 @@ namespace Walnut
         /// Synchronizes all waldo controls to the screen state
         /// </summary>
         /// <param name="enableState">if true they are all enabled, false they are not</param>
-        private void SyncAllWaldoControlsToScreenState(bool enableState)
+        private void SyncAllWalnutControlsToScreenState(bool enableState)
         {
             // set them now
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Toggles a stepper motor 0 on and off. Hard Coded mostly for testing
+        /// </summary>
+        private void checkBoxTestStepper0_CheckedChanged(object sender, EventArgs e)
+        {
+            LogMessage("checkBoxTestStepper0_CheckedChanged");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+
+            // set up some default speeds and dirs
+            scData.Step0_StepSpeed = Utils.ConvertHzToCycles(DEFAULT_STEPPER_SPEED_HZ);
+            scData.Step0_DirState = DEFAULT_STEPPER_DIR;
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked?1:0);
+
+            // set stepper 0 state according to the screen
+            if (checkBoxTestStepper0.Checked == true)
+            {
+                scData.Step0_Enable = 1;
+                scData.DataStr = "Toggle Stepper Motor 0 State On";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
+            }
+            else
+            {
+                scData.Step0_Enable = 0;
+                scData.DataStr = "Toggle Stepper Motor 0 State Off";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
+            }
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+        }
     }
 
 }

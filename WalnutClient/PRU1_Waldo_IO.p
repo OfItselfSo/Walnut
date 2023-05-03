@@ -15,10 +15,10 @@
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-///  PRU1_Waldo_IO.p - a PASM assembly language program, intended to run in
-///                     the Beaglebone Black PRU1. In this iteration we can 
-///                     send strictly defined waveforms and direction signals
-///                      to up to 6 stepper motors.
+///  PRU1_StepperIO.p - a PASM assembly language program, intended to run in
+///                     the Beaglebone Black PRU1 which will send strictly
+///                     defined waveforms and direction signals to up to 
+///                     6 stepper motors.
 ///
 ///                     This code uses almost all of the I/O capabilities of the
 ///                     PRU1 and it must be run in a headless environment due
