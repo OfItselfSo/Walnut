@@ -1,11 +1,9 @@
-﻿using System;
+﻿using BBBCSIO;
+using OISCommon;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Text;
-using System.Threading.Tasks;
-using OISCommon;
-using BBBCSIO;
+using System.Drawing;
 using WalnutCommon;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
@@ -79,20 +77,18 @@ using WalnutCommon;
 /// http://www.ofitselfso.com/BeagleNotes/Disabling_The_EMMC_Memory_On_The_Beaglebone_Black.php
 /// 
 
-namespace WalnutBBBClient
+namespace WalnutClient
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// The main class for the application, the data transport mechanism
-    /// for this class is derived from the RemCon project
-    /// http://www.ofitselfso.com/RemCon/RemCon.php
+    /// The main class for the application
     /// </summary>
     public class MainClass : OISObjBase
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
-        private const string APPLICATION_NAME = "WalnutBBBClient";
-        private const string APPLICATION_VERSION = "00.02.02";
+        private const string APPLICATION_NAME = "WalnutClient";
+        private const string APPLICATION_VERSION = "00.02.03";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
@@ -151,13 +147,22 @@ namespace WalnutBBBClient
         // ###
         private const int NUM_DATA_UINTS = 20;
 
+        // in this version the software only cares about two squares. These contain the
+        // discovered information regarding the squares
+        private MarkedObject redSquare = new MarkedObject();
+        private MarkedObject greenSquare = new MarkedObject();
 
+        // this is the behaviour. It gets instantiated at the class level because it is 
+        // NOT stateless. It remembers past red and green square coordinate values and
+        // the last outputs (speed and dir) it returned and makes decisions based on them
+        private Behaviour_MoveClose behaviourMoveClose = null;
+        private const uint MAX_STEPPER_SPEED = 200;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        public MainClass() 
+        public MainClass()
         {
             bool retBOOL = false;
 
@@ -179,7 +184,7 @@ namespace WalnutBBBClient
 
             // Register the global error handler as soon as we can in Main
             // to make sure that we catch as many exceptions as possible
-            // this is a last resort. All execeptions should really be trapped
+            // this is a last resort. All exceptions should really be trapped
             // and handled by the code.
             System.AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
@@ -201,7 +206,7 @@ namespace WalnutBBBClient
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Called out of the program main() function. This is where all of the 
-        /// application execution starts (other than the constructer above).
+        /// application execution starts (other than the constructor above).
         /// </summary>
         public void BeginProcessing()
         {
@@ -237,7 +242,7 @@ namespace WalnutBBBClient
             }
 
             LogMessage("ServerClientDataEventHandler: Data=" + scData.ToString());
-            Console.WriteLine("inbound data received:  Data=" + scData.ToString());
+            //  Console.WriteLine("inbound data received:  Data=" + scData.ToString());
 
             // what type of data is it
             if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
@@ -263,13 +268,13 @@ namespace WalnutBBBClient
             {
                 // the remote side has connected
                 //LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
-              //  Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
+                //  Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
             }
             else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
             {
-                // the remote side has connected
-               // LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
-               // Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
+                // the remote side has disconnected
+                // LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
+                // Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
             }
         }
 
@@ -283,7 +288,7 @@ namespace WalnutBBBClient
         public void SetWaldosFromServerClientData(ServerClientData scData)
         {
             // sanity check
-            if (scData==null)
+            if (scData == null)
             {
                 LogMessage("SetWaldosFromServerClientData, scData==null");
                 return;
@@ -292,7 +297,7 @@ namespace WalnutBBBClient
             //Console.WriteLine("SetWaldosFromServerClientData Message Received");
             LogMessage("SetWaldosFromServerClientData Message Received");
 
-            // are we dealing with stepper0 data?
+            // are we dealing with raw request stepper0 data?
             if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEP0_DATA))
             {
                 // write the waldo_enable flag
@@ -305,9 +310,6 @@ namespace WalnutBBBClient
                 // write the STEP0 direction flag
                 pruDriver.WritePRUDataUInt32(scData.Step0_DirState, STEP0_DIRSTATE);
                 Console.WriteLine("scData.Waldo_Enable=" + scData.Waldo_Enable.ToString());
-                //Console.WriteLine("sscData.Step0_Enable=" + scData.Step0_Enable.ToString());
-                //Console.WriteLine("scData.Step0_StepSpeed=" + scData.Step0_StepSpeed.ToString());
-                //Console.WriteLine("scData.Step0_DirState=" + scData.Step0_DirState.ToString());
 
                 // write the semaphore. This must come last, the code running in the 
                 // PRU will see this change and set things up according to the
@@ -315,10 +317,127 @@ namespace WalnutBBBClient
                 pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
             }
 
-            // are we dealing with rectangle data
+            // are we dealing with rectangle data, this is data that has come off
+            // the image recognition algorythm in the Walnut Server
             if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
             {
+                // sanity check
+                if (scData.RectList == null)
+                {
+                    Console.WriteLine("Null rectList with content flag RECT_DATA");
+                    LogMessage("SetWaldosFromServerClientData, Null rectList with content flag RECT_DATA");
+                    return;
+                }
+                // this is the action at the moment, we have the centerpoint of the squares and the 
+                // known color of the centerpoint. We have to set this information in objects
+                // so we can use it
+                IdentifySquaresByColor(scData.RectList);
+                // now we move the red square to the green square. This is a stated goal
+                MoveRedToGreen();
             }
+            // are we dealing with a flag
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
+            {
+                if (scData.UserFlag.HasFlag(UserDataFlagEnum.MARK_FLAG))
+                {
+                    Console.WriteLine("MARK_FLAG");
+                    LogMessage("SetWaldosFromServerClientData, MARK_FLAG");
+                }
+                if (scData.UserFlag.HasFlag(UserDataFlagEnum.EXIT_FLAG))
+                {
+                    Console.WriteLine("EXIT_FLAG");
+                    LogMessage("SetWaldosFromServerClientData, EXIT_FLAG");
+                    ShutDown();
+                    // force a quit
+                    Environment.Exit(0);
+                }
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// A Waldo action to identify squares by color. At the moment we just use
+        /// the first one we find.
+        /// 
+        /// </summary>
+        /// <param name="rectList">The list of rectangles</param>
+        private void IdentifySquaresByColor(List<ColoredRotatedRect> rectList)
+        {
+            // run through the list to find the first red square
+            foreach (ColoredRotatedRect rectObj in rectList)
+            {
+                if (rectObj.RectColor != KnownColor.Red) continue;
+                redSquare.SetCenterLocation(rectObj.Center);
+                break;
+            }
+            // run through the list to find the first green square
+            foreach (ColoredRotatedRect rectObj in rectList)
+            {
+                if (rectObj.RectColor != KnownColor.Green) continue;
+                greenSquare.SetCenterLocation(rectObj.Center);
+                break;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// A Waldo action to move the red rectangle as close to the green rectangle
+        /// as possible. We invoke the Behaviour_MoveClose() behaviour in order to
+        /// help us do this
+        /// 
+        /// </summary>
+        private void MoveRedToGreen()
+        {
+            uint outSpeed = 0;
+            uint outDirection = 0;
+
+            // this is a test action. The Red square is assumed to be on a rotating 
+            // turntable and the green square is stationary. We will turn the table
+            // so that the red square is as close to the green square as possible and 
+            // then stop.
+
+            if (redSquare.IsValid() == false)
+            {
+                Console.WriteLine("No Red Square Data");
+                return;
+            }
+            if (greenSquare.IsValid() == false)
+            {
+                Console.WriteLine("No Green Square Data");
+                return;
+            }
+
+            // note the center locations will have been rounded to the nearest int
+            // when stored in the Marked Object. There will be no decimals here
+            PointF redCenter = redSquare.CenterLocation;
+            PointF greenCenter = greenSquare.CenterLocation;
+
+            float redCenterX = redCenter.X;
+            float redCenterY = redCenter.Y;
+            float greenCenterX = greenCenter.X;
+            float greenCenterY = greenCenter.Y;
+
+            // do we have both, if not do nothing, the motor could still be 
+            // turning at this point but we deal with so much noise we cannot 
+            // stop every time there is dodgy data
+            if (redCenterX < 0) return;
+            if (redCenterY < 0) return;
+            if (greenCenterX < 0) return;
+            if (greenCenterY < 0) return;
+
+            // set up our behaviour if we need to
+            if (behaviourMoveClose == null) behaviourMoveClose = new Behaviour_MoveClose(MAX_STEPPER_SPEED);
+            // get the result 
+            int retVal = behaviourMoveClose.GetOutput(greenCenter, redCenter, out outSpeed, out outDirection);
+
+            // write the STEP0 enable/disable flag
+            pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
+            // write the STEP0 speed value
+            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles((uint)outSpeed), STEP0_FULLCOUNT);
+            // write the direction state
+            pruDriver.WritePRUDataUInt32(outDirection, STEP0_DIRSTATE);
+            pruDriver.WritePRUDataUInt32(1, STEP0_ENABLED_OFFSET);
+            pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
 
         }
 
@@ -400,4 +519,5 @@ namespace WalnutBBBClient
 
         }
     }
+
 }

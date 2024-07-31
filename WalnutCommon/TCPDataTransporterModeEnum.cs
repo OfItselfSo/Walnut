@@ -20,10 +20,6 @@ using System.Threading.Tasks;
 /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// 
-/// NOTE: this class and the entire WalnutCommon project is shared with the client which runs on the Beaglebone Black. If your primary
-/// interest is in working out how a Typed object is sent between a Server and Client (and back) to transmit complex data you should
-/// have a look at the RemCon demonstrator project at http://www.OfItselfSo.com/RemCon which is devoted to that topic. This class 
-/// is directly derived from that project.
 
 namespace WalnutCommon
 {

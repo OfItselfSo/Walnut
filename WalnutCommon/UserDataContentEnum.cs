@@ -35,8 +35,8 @@ namespace WalnutCommon
     /// 
     /// NOTE that we use the [SerializableAttribute] so that it can be 
     /// included as a field in the ServerClientData class. This is
-    /// probably not necssary for an enum, but classes in general
-    /// should use it or the erverClientData class will not be serializable
+    /// probably not necessary for an enum, but classes in general
+    /// should use it or the serverClientData class will not be serializable
     /// </summary>
     [SerializableAttribute]
     [Flags]
@@ -44,6 +44,7 @@ namespace WalnutCommon
     {   NO_DATA =0,                // there is no data content
         RECT_DATA = 1,              // rectangle data  is present in the ServerClientData
         STEP0_DATA = 2,             // step0 data is present in the ServerClientData
+        FLAG_DATA = 4,             // flags are present in the ServerClientData
 
     }
 }

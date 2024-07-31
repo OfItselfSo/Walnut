@@ -25,20 +25,20 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An enum to define the data content of the Server Client Data object.
+    /// An enum to define the type of flag data in the Server Client Data object.
+    /// Only valid when ServerClientDataContentEnum == FLAG_DATA
     /// 
     /// NOTE that we use the [SerializableAttribute] so that it can be 
     /// included as a field in the ServerClientData class. This is
-    /// probably not necssary for an enum, but classes in general
-    /// should use it or the erverClientData class will not be serializable
+    /// probably not necessary for an enum, but classes in general
+    /// should use it or the serverClientData class will not be serializable
     /// </summary>
     [SerializableAttribute]
-    public enum ServerClientDataContentEnum
-    {
-        NO_DATA,                // there is no data content
-        REMOTE_CONNECT,         // the remote has connected
-        REMOTE_DISCONNECT,      // the remote is disconnecting
-        USER_DATA               // the data is user provided content
+    [Flags]
+    public enum UserDataFlagEnum
+    {   NO_FLAG =0,                // there is no flag content
+        MARK_FLAG = 1,             // the client should mark the log and console output
+        EXIT_FLAG = 2,             // the client should exit
 
     }
 }

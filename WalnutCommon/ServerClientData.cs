@@ -45,6 +45,8 @@ namespace WalnutCommon
 
         // this is the what the user data means only valid if dataContent == USER_DATA
         UserDataContentEnum userDataContent = UserDataContentEnum.NO_DATA;
+        // this is the user flag data only valid if dataContent == USER_FLAG
+        UserDataFlagEnum userFlag = UserDataFlagEnum.NO_FLAG;
 
         private List<ColoredRotatedRect> rectList = null;
 
@@ -154,6 +156,25 @@ namespace WalnutCommon
             set
             {
                 userDataContent = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the user data flag. This is the flag data as opposed
+        /// to what the whole class means (DataContent). Only valid if DataContent == USER_FLAG
+        /// 
+        /// Note: you are dealing with [Flags]
+        /// </summary>
+        public UserDataFlagEnum UserFlag
+        {
+            get
+            {
+                return userFlag;
+            }
+            set
+            {
+                userFlag = value;
             }
         }
 
@@ -502,8 +523,19 @@ namespace WalnutCommon
                 }
                 if (UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
                 {
-                    if(RectList==null) sb.Append(", RectList=null");
+                    if (RectList == null) sb.Append(", RectList=null");
                     else sb.Append(", RectCount=" + RectList.Count.ToString());
+                }
+                if (UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
+                {
+                    if (UserFlag.HasFlag(UserDataFlagEnum.MARK_FLAG))
+                    {
+                        sb.Append(", MARK_FLAG");
+                    }
+                    if (UserFlag.HasFlag(UserDataFlagEnum.EXIT_FLAG))
+                    {
+                        sb.Append(", EXIT_FLAG");
+                    }
                 }
             }
             return sb.ToString();

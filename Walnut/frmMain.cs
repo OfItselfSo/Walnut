@@ -35,25 +35,49 @@ using WalnutCommon;
 /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
-/// SUPER IMPORTANT NOTE: You MUST use the [MTAThread] to decorate your entry point method. If you use the default [STAThread] 
-/// you may get errors. See the Program.cs file for details.
-
-/// The function of this app is to interact with a BeagleBone Black which is controlling a remote robotics system.
+/// The function of this app is to interact with a BeagleBone Black (BBB) which is controlling a remote robotics system.
 /// This app performs the image recognition and high level path planning functions and communicates to the BBB which 
 /// handles the low level path planning and realtime stepper motor and robotic controls.
 /// 
 /// The image of the objects being operated on is streamed the screen.
+/// 
 /// The screen can be recorded to disk.
-/// A WMF transform injects logging and run information into the stream at the bottom each frame.
-/// A WMF transform in this app identifies the contents of the image and generates positional data of the various 
-/// components. 
+/// 
+/// A Windows Media Foundation (WMF) transform injects logging and run information into the stream at the bottom each frame.
+/// 
+/// A WMF transform in this app makes calls to EmguCV code to identify the contents of the image 
+/// and generate positional data of the various components. 
+/// 
 /// The positional information is made available to the application and decisions regarding the path of the 
-/// robotic end effectors are made. 
-/// The end location of the path and way points are communicated to the BBB.
+/// robotic end effectors can be made. 
+/// 
+/// The end location of the path and way points are communicated to the BBB. Alternately, the coordinates of 
+/// various image recognised components are communicated to the BBB and it knows what to do with them
+/// 
 /// The BBB moves the end effector to the location via the end points.
+/// 
 /// Normally the speed and direction of stepper motors controlled by the BBB is left up to the code running on the 
 /// WalnutClient. However, this program can force a stepper to turn on at a specific speed and direction 
 ///
+/// If your main interest is the transfer of an instantiated object full of 
+/// information via TCP/IP then you should probably see the RemCon project
+/// http://www.OfItselfSo.com/RemCon which is a demonstrator project set up for that
+/// purpose. The Walnut Server code in this application is partly derived from the 
+/// RemConClient sample code. 
+///
+/// If your main interest is the use of Windows Media Foundation to intercept a video stream and 
+/// modify it and make it available for processing then you should probably see the Tanta project
+/// http://www.OfItselfSo.com/Tanta which is a demonstrator project set up for this
+/// purpose. The Walnut Server code in this application is partly derived from the 
+/// Tanta sample code. 
+
+/// SUPER IMPORTANT NOTE: You MUST use the [MTAThread] to decorate your entry point method. If you use the default [STAThread] 
+/// you may get errors - WMF requires this. See the Program.cs file for details.
+
+/// If your main interest is the use of EmguCV to process a video stream for image recognition
+/// then you should probably see the Prism project http://www.OfItselfSo.com/Prism which is a demonstrator 
+/// project set up for this purpose. The Walnut Server code in this application is partly derived from the 
+/// Prism sample code. 
 
 
 namespace Walnut
@@ -67,7 +91,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.02";
+        private const string APPLICATION_VERSION = "00.02.03";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -137,14 +161,21 @@ namespace Walnut
 
         // the worker that recognises the screen data
         BackgroundWorker codeWorker = null;
-        private const int CODEWORKER_UPDATE_TIME_MSEC = 1000;
+        //private const int CODEWORKER_UPDATE_TIME_MSEC = 1000;
+        private const int CODEWORKER_UPDATE_TIME_MSEC = 50;
 
         // this handles the data transport to and from the client 
         private TCPDataTransporter dataTransporter = null;
         //private bool inhibitAutoSend = false;
 
-        private const int DEFAULT_STEPPER_SPEED_HZ = 60;
+        //private const int DEFAULT_STEPPER_SPEED_HZ = 60;
+        private const int DEFAULT_STEPPER_SPEED_HZ = 200;
         private const int DEFAULT_STEPPER_DIR = 0;
+
+        // used for diagnostics message speed testing
+        DateTime diagnosticStartTime = DateTime.Now;
+        int diagnosticMessageCount = 0;
+        const int MAX_DIAGNOSTIC_MESSAGE_COUNT = 100;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -213,7 +244,7 @@ namespace Walnut
                 LogMessage("");
 
                 // a bit of setup
-                buttonStartStopPlay.Text = START_CAPTURE;
+                buttonStartStopCapture.Text = START_CAPTURE;
                 textBoxPickedVideoDeviceURL.Text = DEFAULT_SOURCE_DEVICE;
                 buttonRecordingOnOff.Text = RECORDING_IS_OFF;
                 SyncScreenControlsToCaptureState(false, null);
@@ -360,15 +391,15 @@ namespace Walnut
         {
             get
             {
-                if (textBoxCaptureFileName.Text == null) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_DIRNAME;
-                if (textBoxCaptureFileName.Text.Length==0) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_DIRNAME;
+                if (textBoxCaptureFileName.Text == null) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_FILENAME;
+                if (textBoxCaptureFileName.Text.Length==0) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_FILENAME;
                 return textBoxCaptureFileName.Text;
             }
             set
             {
                 textBoxCaptureFileName.Text = value;
-                if (textBoxCaptureFileName.Text == null) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_DIRNAME;
-                if (textBoxCaptureFileName.Text.Length == 0) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_DIRNAME;
+                if (textBoxCaptureFileName.Text == null) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_FILENAME;
+                if (textBoxCaptureFileName.Text.Length == 0) textBoxCaptureFileName.Text = DEFAULT_CAPTURE_FILENAME;
             }
         }
 
@@ -380,15 +411,15 @@ namespace Walnut
         {
             get
             {
-                if (textBoxCaptureDirName.Text == null) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_FILENAME;
-                if (textBoxCaptureDirName.Text.Length == 0) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_FILENAME;
+                if (textBoxCaptureDirName.Text == null) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_DIRNAME;
+                if (textBoxCaptureDirName.Text.Length == 0) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_DIRNAME;
                 return textBoxCaptureDirName.Text;
             }
             set
             {
                 textBoxCaptureDirName.Text = value;
-                if (textBoxCaptureDirName.Text == null) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_FILENAME;
-                if (textBoxCaptureDirName.Text.Length == 0) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_FILENAME;
+                if (textBoxCaptureDirName.Text == null) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_DIRNAME;
+                if (textBoxCaptureDirName.Text.Length == 0) textBoxCaptureDirName.Text = DEFAULT_CAPTURE_DIRNAME;
             }
         }
 
@@ -588,12 +619,12 @@ namespace Walnut
         /// refactoring that could be done.
         /// 
         /// </summary>
-        private void buttonStartStopPlay_Click(object sender, EventArgs e)
+        private void buttonStartStopCapture_Click(object sender, EventArgs e)
         {
             // this code toggles both the start and stop capture. Since the
             // STOP code is much simpler we test for it first. We use the 
             // text on the button to detect if we are capturing or not. 
-            if (buttonStartStopPlay.Text == STOP_CAPTURE)
+            if (buttonStartStopCapture.Text == STOP_CAPTURE)
             {
                 // do everything to close all media devices
                 // the MF itself is still active.
@@ -678,9 +709,11 @@ namespace Walnut
                 textBoxCaptureFileName.Enabled = true;
                 labelOutputFileName.Enabled = true;
                 ctlTantaVideoPicker1.Enabled = true;
-                buttonStartStopPlay.Text = START_CAPTURE;
+                buttonStartStopCapture.Text = START_CAPTURE;
                 buttonRecordingOnOff.Enabled = false;
                 buttonRecordingOnOff.Text = RECORDING_IS_OFF;
+                checkBoxTransmitToClient.Enabled = false;
+                checkBoxTransmitToClient.Checked = false;
             }
             else
             {
@@ -690,14 +723,29 @@ namespace Walnut
                 textBoxCaptureFileName.Enabled = false;
                 labelOutputFileName.Enabled = false;
                 ctlTantaVideoPicker1.Enabled = false;
-                buttonStartStopPlay.Text = STOP_CAPTURE;
+                buttonStartStopCapture.Text = STOP_CAPTURE;
                 buttonRecordingOnOff.Enabled = true;
                 buttonRecordingOnOff.Text = RECORDING_IS_OFF;
+                checkBoxTransmitToClient.Enabled = true;
             }
 
             if ((displayText != null) && (displayText.Length != 0))
             {
                 MessageBox.Show(displayText);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Indicates if it is ok to transmit data to the client
+        /// </summary>
+        private bool TransmitToClientEnabled
+        {
+            get
+            {
+                if(checkBoxTransmitToClient.Enabled == false) return false;
+                if(checkBoxTransmitToClient.Checked == false) return false;
+                return true;
             }
         }
 
@@ -990,6 +1038,9 @@ namespace Walnut
                 // do we have one?
                 if (RecognitionTransform != null)
                 {
+                    // set it up for (0,0) in lower left
+                    RecognitionTransform.WantOriginLowerLeft = true;
+
                     // yes, we do. Create a video Transform node for it
                     hr = MFExtern.MFCreateTopologyNode(MFTopologyType.TransformNode, out recognitionTransformNode);
                     if (hr != HResult.S_OK)
@@ -1578,7 +1629,6 @@ namespace Walnut
                 return 400;
             }
 
-
             // ask the sampleGrabberTransform to start recording
             sampleGrabberTransform.StartRecording(OutputFileNameAndPath, currentVideoMediaType, false);
             return 0;
@@ -1598,7 +1648,7 @@ namespace Walnut
             // ask the sampleGrabberTransform to start recording
             sampleGrabberTransform.StopRecording();
 
-            if (buttonStartStopPlay.Text == STOP_CAPTURE)
+            if (buttonStartStopCapture.Text == STOP_CAPTURE)
             {
 //                checkBoxTimeBaseRebase.Enabled = true;
             }
@@ -1755,13 +1805,45 @@ namespace Walnut
                 {
                     return;
                 }
-                // loop through and process each rectangle
-                foreach (ColoredRotatedRect rectObj in rectList)
+
+                // do we want to transmit this data to the client?
+                if(TransmitToClientEnabled==true)
                 {
-                    sb.AppendLine(rectObj.ToString());
+
+                    if (dataTransporter == null)
+                    {
+                        LogMessage("codeWorker_ProgressChanged, dataTransporter == null");
+                        return;
+                    }
+                    if (IsConnected() == false)
+                    {
+                        LogMessage("codeWorker_ProgressChanged, Not connected");
+                        return;
+                    }
+                    // create the data contaiiner
+                    ServerClientData scData = new ServerClientData("Rect Data from Server to Client");
+                    // tell it we are carrying a rect list
+                    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.RECT_DATA;
+                    scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+                    scData.RectList = rectList;
+
+                    // display it
+                    LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
+                    // send it
+                    dataTransporter.SendData(scData);
+
+                    // set diagnostics going
+                    if (diagnosticMessageCount == 0) diagnosticStartTime = DateTime.Now;
+                    if (diagnosticMessageCount >= MAX_DIAGNOSTIC_MESSAGE_COUNT)
+                    {
+                        TimeSpan timeItTook = DateTime.Now - diagnosticStartTime;
+                        this.textBoxStatus.Text = "Elapsed=" + timeItTook.TotalSeconds + ", avg/sec=" + diagnosticMessageCount / timeItTook.TotalSeconds;
+                        diagnosticMessageCount = 0;
+                        return;
+                    }
+                    diagnosticMessageCount++;
+
                 }
-                if (sb.Length == 0) sb.Append("No objects found.");
-                textBoxFoundObjects.Text = sb.ToString();
             }
         }
 
@@ -1861,6 +1943,7 @@ namespace Walnut
             AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2053,8 +2136,16 @@ namespace Walnut
             scData.UserDataContent = UserDataContentEnum.NO_DATA;
 
             // set up some default speeds and dirs
-            scData.Step0_StepSpeed = Utils.ConvertHzToCycles(DEFAULT_STEPPER_SPEED_HZ);
-            scData.Step0_DirState = DEFAULT_STEPPER_DIR;
+            scData.Step0_StepSpeed = Utils.ConvertHzToCycles(DEFAULT_STEPPER_SPEED_HZ/4);
+            if(checkBoxTestStepperDir.Checked==true)
+            {
+                scData.Step0_DirState = 1;
+            }
+            else
+            {
+                scData.Step0_DirState = 0;
+
+            }
             scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked?1:0);
 
             // set stepper 0 state according to the screen
@@ -2075,6 +2166,73 @@ namespace Walnut
             AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sends a mark request to the client. The client should mark the console
+        /// output and the log. Used for diagnostics
+        /// </summary>
+        private void buttonClientMark_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonClientMark_Click");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.FLAG_DATA;
+            scData.UserFlag = UserDataFlagEnum.MARK_FLAG;
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sends a shutdown request to the client. The client should mark the console
+        /// output and the log and then exit. 
+        /// </summary>
+        private void buttonClientExit_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonClientExit_Click");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.FLAG_DATA;
+            scData.UserFlag = UserDataFlagEnum.EXIT_FLAG;
+            scData.UserFlag = UserDataFlagEnum.EXIT_FLAG;
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
         }
     }
 

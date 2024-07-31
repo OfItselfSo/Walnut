@@ -31,6 +31,11 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.checkBoxTestStepper0 = new System.Windows.Forms.CheckBox();
+            this.buttonClientExit = new System.Windows.Forms.Button();
+            this.buttonClientMark = new System.Windows.Forms.Button();
+            this.textBoxStatus = new System.Windows.Forms.TextBox();
+            this.checkBoxTransmitToClient = new System.Windows.Forms.CheckBox();
             this.label8 = new System.Windows.Forms.Label();
             this.textBoxFoundObjects = new System.Windows.Forms.TextBox();
             this.labelCount = new System.Windows.Forms.Label();
@@ -48,18 +53,18 @@
             this.textBoxCaptureFileName = new System.Windows.Forms.TextBox();
             this.buttonRecordingOnOff = new System.Windows.Forms.Button();
             this.ctlTantaEVRStreamDisplay1 = new TantaCommon.ctlTantaEVRStreamDisplay();
-            this.buttonStartStopPlay = new System.Windows.Forms.Button();
+            this.buttonStartStopCapture = new System.Windows.Forms.Button();
             this.tabPageSetup = new System.Windows.Forms.TabPage();
             this.labelVideoCaptureDeviceName = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.ctlTantaVideoPicker1 = new TantaCommon.ctlTantaVideoPicker();
             this.textBoxPickedVideoDeviceURL = new System.Windows.Forms.TextBox();
             this.tabPageTransporter = new System.Windows.Forms.TabPage();
-            this.checkBoxTestStepper0 = new System.Windows.Forms.CheckBox();
+            this.checkBoxWaldosEnabled = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
-            this.checkBoxWaldosEnabled = new System.Windows.Forms.CheckBox();
+            this.checkBoxTestStepperDir = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
@@ -82,6 +87,12 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.checkBoxTestStepperDir);
+            this.tabPageMain.Controls.Add(this.checkBoxTestStepper0);
+            this.tabPageMain.Controls.Add(this.buttonClientExit);
+            this.tabPageMain.Controls.Add(this.buttonClientMark);
+            this.tabPageMain.Controls.Add(this.textBoxStatus);
+            this.tabPageMain.Controls.Add(this.checkBoxTransmitToClient);
             this.tabPageMain.Controls.Add(this.label8);
             this.tabPageMain.Controls.Add(this.textBoxFoundObjects);
             this.tabPageMain.Controls.Add(this.labelCount);
@@ -99,7 +110,7 @@
             this.tabPageMain.Controls.Add(this.textBoxCaptureFileName);
             this.tabPageMain.Controls.Add(this.buttonRecordingOnOff);
             this.tabPageMain.Controls.Add(this.ctlTantaEVRStreamDisplay1);
-            this.tabPageMain.Controls.Add(this.buttonStartStopPlay);
+            this.tabPageMain.Controls.Add(this.buttonStartStopCapture);
             this.tabPageMain.Location = new System.Drawing.Point(4, 22);
             this.tabPageMain.Name = "tabPageMain";
             this.tabPageMain.Padding = new System.Windows.Forms.Padding(3);
@@ -107,6 +118,55 @@
             this.tabPageMain.TabIndex = 0;
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxTestStepper0
+            // 
+            this.checkBoxTestStepper0.AutoSize = true;
+            this.checkBoxTestStepper0.Location = new System.Drawing.Point(679, 379);
+            this.checkBoxTestStepper0.Name = "checkBoxTestStepper0";
+            this.checkBoxTestStepper0.Size = new System.Drawing.Size(96, 17);
+            this.checkBoxTestStepper0.TabIndex = 61;
+            this.checkBoxTestStepper0.Text = "Test Stepper 0";
+            this.checkBoxTestStepper0.UseVisualStyleBackColor = true;
+            this.checkBoxTestStepper0.CheckedChanged += new System.EventHandler(this.checkBoxTestStepper0_CheckedChanged);
+            // 
+            // buttonClientExit
+            // 
+            this.buttonClientExit.Location = new System.Drawing.Point(874, 159);
+            this.buttonClientExit.Name = "buttonClientExit";
+            this.buttonClientExit.Size = new System.Drawing.Size(39, 19);
+            this.buttonClientExit.TabIndex = 51;
+            this.buttonClientExit.Text = "Exit";
+            this.buttonClientExit.UseVisualStyleBackColor = true;
+            this.buttonClientExit.Click += new System.EventHandler(this.buttonClientExit_Click);
+            // 
+            // buttonClientMark
+            // 
+            this.buttonClientMark.Location = new System.Drawing.Point(874, 139);
+            this.buttonClientMark.Name = "buttonClientMark";
+            this.buttonClientMark.Size = new System.Drawing.Size(39, 19);
+            this.buttonClientMark.TabIndex = 50;
+            this.buttonClientMark.Text = "Mark";
+            this.buttonClientMark.UseVisualStyleBackColor = true;
+            this.buttonClientMark.Click += new System.EventHandler(this.buttonClientMark_Click);
+            // 
+            // textBoxStatus
+            // 
+            this.textBoxStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxStatus.Location = new System.Drawing.Point(668, 466);
+            this.textBoxStatus.Name = "textBoxStatus";
+            this.textBoxStatus.Size = new System.Drawing.Size(231, 20);
+            this.textBoxStatus.TabIndex = 49;
+            // 
+            // checkBoxTransmitToClient
+            // 
+            this.checkBoxTransmitToClient.AutoSize = true;
+            this.checkBoxTransmitToClient.Location = new System.Drawing.Point(806, 151);
+            this.checkBoxTransmitToClient.Name = "checkBoxTransmitToClient";
+            this.checkBoxTransmitToClient.Size = new System.Drawing.Size(66, 17);
+            this.checkBoxTransmitToClient.TabIndex = 48;
+            this.checkBoxTransmitToClient.Text = "Transmit";
+            this.checkBoxTransmitToClient.UseVisualStyleBackColor = true;
             // 
             // label8
             // 
@@ -124,14 +184,14 @@
             this.textBoxFoundObjects.Location = new System.Drawing.Point(668, 237);
             this.textBoxFoundObjects.Multiline = true;
             this.textBoxFoundObjects.Name = "textBoxFoundObjects";
-            this.textBoxFoundObjects.Size = new System.Drawing.Size(231, 135);
+            this.textBoxFoundObjects.Size = new System.Drawing.Size(231, 56);
             this.textBoxFoundObjects.TabIndex = 46;
             // 
             // labelCount
             // 
             this.labelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCount.AutoSize = true;
-            this.labelCount.Location = new System.Drawing.Point(665, 391);
+            this.labelCount.Location = new System.Drawing.Point(665, 296);
             this.labelCount.Name = "labelCount";
             this.labelCount.Size = new System.Drawing.Size(100, 13);
             this.labelCount.TabIndex = 45;
@@ -287,17 +347,17 @@
             this.ctlTantaEVRStreamDisplay1.Size = new System.Drawing.Size(640, 476);
             this.ctlTantaEVRStreamDisplay1.TabIndex = 30;
             // 
-            // buttonStartStopPlay
+            // buttonStartStopCapture
             // 
-            this.buttonStartStopPlay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonStartStopPlay.Location = new System.Drawing.Point(668, 144);
-            this.buttonStartStopPlay.Margin = new System.Windows.Forms.Padding(2);
-            this.buttonStartStopPlay.Name = "buttonStartStopPlay";
-            this.buttonStartStopPlay.Size = new System.Drawing.Size(128, 29);
-            this.buttonStartStopPlay.TabIndex = 29;
-            this.buttonStartStopPlay.Text = "Start Capture";
-            this.buttonStartStopPlay.UseVisualStyleBackColor = true;
-            this.buttonStartStopPlay.Click += new System.EventHandler(this.buttonStartStopPlay_Click);
+            this.buttonStartStopCapture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonStartStopCapture.Location = new System.Drawing.Point(668, 144);
+            this.buttonStartStopCapture.Margin = new System.Windows.Forms.Padding(2);
+            this.buttonStartStopCapture.Name = "buttonStartStopCapture";
+            this.buttonStartStopCapture.Size = new System.Drawing.Size(128, 29);
+            this.buttonStartStopCapture.TabIndex = 29;
+            this.buttonStartStopCapture.Text = "Start Capture";
+            this.buttonStartStopCapture.UseVisualStyleBackColor = true;
+            this.buttonStartStopCapture.Click += new System.EventHandler(this.buttonStartStopCapture_Click);
             // 
             // tabPageSetup
             // 
@@ -355,7 +415,6 @@
             // tabPageTransporter
             // 
             this.tabPageTransporter.Controls.Add(this.checkBoxWaldosEnabled);
-            this.tabPageTransporter.Controls.Add(this.checkBoxTestStepper0);
             this.tabPageTransporter.Controls.Add(this.label7);
             this.tabPageTransporter.Controls.Add(this.textBoxDataTrace);
             this.tabPageTransporter.Controls.Add(this.buttonSendData);
@@ -367,16 +426,17 @@
             this.tabPageTransporter.Text = "Transporter";
             this.tabPageTransporter.UseVisualStyleBackColor = true;
             // 
-            // checkBoxTestStepper0
+            // checkBoxWaldosEnabled
             // 
-            this.checkBoxTestStepper0.AutoSize = true;
-            this.checkBoxTestStepper0.Location = new System.Drawing.Point(51, 73);
-            this.checkBoxTestStepper0.Name = "checkBoxTestStepper0";
-            this.checkBoxTestStepper0.Size = new System.Drawing.Size(96, 17);
-            this.checkBoxTestStepper0.TabIndex = 60;
-            this.checkBoxTestStepper0.Text = "Test Stepper 0";
-            this.checkBoxTestStepper0.UseVisualStyleBackColor = true;
-            this.checkBoxTestStepper0.CheckedChanged += new System.EventHandler(this.checkBoxTestStepper0_CheckedChanged);
+            this.checkBoxWaldosEnabled.AutoSize = true;
+            this.checkBoxWaldosEnabled.Checked = true;
+            this.checkBoxWaldosEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxWaldosEnabled.Location = new System.Drawing.Point(51, 50);
+            this.checkBoxWaldosEnabled.Name = "checkBoxWaldosEnabled";
+            this.checkBoxWaldosEnabled.Size = new System.Drawing.Size(104, 17);
+            this.checkBoxWaldosEnabled.TabIndex = 61;
+            this.checkBoxWaldosEnabled.Text = "Waldos Enabled";
+            this.checkBoxWaldosEnabled.UseVisualStyleBackColor = true;
             // 
             // label7
             // 
@@ -413,17 +473,15 @@
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
             // 
-            // checkBoxWaldosEnabled
+            // checkBoxTestStepperDir
             // 
-            this.checkBoxWaldosEnabled.AutoSize = true;
-            this.checkBoxWaldosEnabled.Checked = true;
-            this.checkBoxWaldosEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxWaldosEnabled.Location = new System.Drawing.Point(51, 50);
-            this.checkBoxWaldosEnabled.Name = "checkBoxWaldosEnabled";
-            this.checkBoxWaldosEnabled.Size = new System.Drawing.Size(104, 17);
-            this.checkBoxWaldosEnabled.TabIndex = 61;
-            this.checkBoxWaldosEnabled.Text = "Waldos Enabled";
-            this.checkBoxWaldosEnabled.UseVisualStyleBackColor = true;
+            this.checkBoxTestStepperDir.AutoSize = true;
+            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 379);
+            this.checkBoxTestStepperDir.Name = "checkBoxTestStepperDir";
+            this.checkBoxTestStepperDir.Size = new System.Drawing.Size(51, 17);
+            this.checkBoxTestStepperDir.TabIndex = 62;
+            this.checkBoxTestStepperDir.Text = "CCW";
+            this.checkBoxTestStepperDir.UseVisualStyleBackColor = true;
             // 
             // frmMain
             // 
@@ -458,7 +516,7 @@
         private System.Windows.Forms.TextBox textBoxCaptureFileName;
         private System.Windows.Forms.Button buttonRecordingOnOff;
         private TantaCommon.ctlTantaEVRStreamDisplay ctlTantaEVRStreamDisplay1;
-        private System.Windows.Forms.Button buttonStartStopPlay;
+        private System.Windows.Forms.Button buttonStartStopCapture;
         private System.Windows.Forms.TabPage tabPageSetup;
         private System.Windows.Forms.Label labelVideoCaptureDeviceName;
         private System.Windows.Forms.Label label1;
@@ -481,8 +539,13 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxDataTrace;
         private System.Windows.Forms.Button buttonSendData;
-        private System.Windows.Forms.CheckBox checkBoxTestStepper0;
         private System.Windows.Forms.CheckBox checkBoxWaldosEnabled;
+        private System.Windows.Forms.CheckBox checkBoxTransmitToClient;
+        private System.Windows.Forms.TextBox textBoxStatus;
+        private System.Windows.Forms.Button buttonClientExit;
+        private System.Windows.Forms.Button buttonClientMark;
+        private System.Windows.Forms.CheckBox checkBoxTestStepper0;
+        private System.Windows.Forms.CheckBox checkBoxTestStepperDir;
     }
 }
 

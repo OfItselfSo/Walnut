@@ -407,7 +407,10 @@ namespace Walnut
                     // creates the media sink internally. You could also use the more round-about 
                     // MFCreateSinkWriterFromMediaSink takes a pointer to a media sink that has already been created by
                     // the application. If you are using one of the built-in media sinks, the MFCreateSinkWriterFromURL 
-                    // function is preferable, because the caller does not need to configure the media sink. 
+                    // function is preferable, because the caller does not need to configure the media sink.
+
+                    LogMessage("Preparing to create SinkWriter on file: " + outputFileName.ToString());
+
                     hr = MFExtern.MFCreateSinkWriterFromURL(outputFileName, null, null, out workingWriter);
                     if (hr != HResult.S_OK)
                     {

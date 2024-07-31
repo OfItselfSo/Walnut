@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
+/// ¦                                                   TERMS OF USE) MIT License                                                  ¦
 /// +------------------------------------------------------------------------------------------------------------------------------¦
 /// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
 /// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
 /// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
+/// ¦is furnished to do so, subject to the following conditions)                                                                   ¦
 /// ¦                                                                                                                              ¦
 /// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
 /// ¦                                                                                                                              ¦
@@ -25,20 +25,22 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An enum to define the data content of the Server Client Data object.
+    /// An enum to define the octant name.
     /// 
-    /// NOTE that we use the [SerializableAttribute] so that it can be 
-    /// included as a field in the ServerClientData class. This is
-    /// probably not necssary for an enum, but classes in general
-    /// should use it or the erverClientData class will not be serializable
+    /// Note: The octant numbers start at the positive vertical Y axis and X and move around
+    /// clockwise consecutively.
+    /// 
     /// </summary>
-    [SerializableAttribute]
-    public enum ServerClientDataContentEnum
+    public enum OctantEnum
     {
-        NO_DATA,                // there is no data content
-        REMOTE_CONNECT,         // the remote has connected
-        REMOTE_DISCONNECT,      // the remote is disconnecting
-        USER_DATA               // the data is user provided content
-
+        OCT_UNKNOWN,// not known
+        OCT_0,      // Top Upper Right,
+        OCT_1,      // Bottomm Upper Right,
+        OCT_2,      // Top Lower Right,
+        OCT_3,      // Bottom Lower Right,
+        OCT_4,      // Bottom Lower Left
+        OCT_5,      // Top Lower Left
+        OCT_6,      // Bottom Upper Left
+        OCT_7,      // Top Upper Left
     }
 }

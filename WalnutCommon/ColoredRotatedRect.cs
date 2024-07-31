@@ -40,6 +40,7 @@ namespace WalnutCommon
     {
         // this is a structure, a value type and will never be null
         private RotatedRect rotRect = new RotatedRect();
+        private byte[] centerPixelBGRValue = new byte[3];
         // this is a C# enum, we default it to Black
         public static KnownColor DEFAULT_COLOR = KnownColor.Black;
         private KnownColor rectColor = DEFAULT_COLOR;
@@ -83,6 +84,24 @@ namespace WalnutCommon
         public ColoredRotatedRect(PointF center, SizeF size, float angle)
         {
             rotRect = new RotatedRect(center, size, angle);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the RGB color of the center pixel of the rectangle
+        /// </summary>
+        public byte[] CenterPixelBGRValue
+        {
+            get
+            { 
+                if(centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
+                return centerPixelBGRValue;
+            }
+            set
+            {
+                centerPixelBGRValue = value;
+                if (centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -153,7 +172,7 @@ namespace WalnutCommon
         /// </summary>
         public override string ToString()
         {
-            return RectColor.ToString() + ", " + Center.ToString();
+            return RectColor.ToString() + ", " + Center.ToString() + " (" + CenterPixelBGRValue[0].ToString() + "," + CenterPixelBGRValue[1].ToString() + "," + CenterPixelBGRValue[2].ToString() + ")";
         }
 
     }

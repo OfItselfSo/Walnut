@@ -83,6 +83,7 @@ namespace Walnut
         private int m_cbImageSize;              // Image size, in bytes.
         private int m_lStrideIfContiguous;
         private int m_FrameCount;               // only used to have something to write on the screen
+        private bool wantOriginLowerLeft = false; // if true put the origin in lower left. Default is upper left
 
         // only used to if we write the text onto the video buffer. This functionality is actually commented out
         // but someone might want it and this code has been left in to demonstrate how to create the components with out 
@@ -146,6 +147,13 @@ namespace Walnut
         /// The list of identified objects, can be null
         /// </summary>
         public List<ColoredRotatedRect> IdentifiedObjects { get => identifiedObjects; set => identifiedObjects = value; }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the flag to put the origin in the lower left, y increases upwards. 
+        /// Default is upper left, y increases downwards
+        /// </summary>
+        public bool WantOriginLowerLeft { get => wantOriginLowerLeft; set => wantOriginLowerLeft = value; }
 
         // ########################################################################
         // ##### TantaMFTBase_Sync Overrides, all child classes must implement these
@@ -279,6 +287,15 @@ namespace Walnut
                 // now that we have an output buffer, do the work to find the objects.
                 // Writing into outputMediaBuffer will write to the approprate location in the outputSample
                 identifiedObjects = DetectSquaresInBuffer(outputMediaBuffer); // much faster, can go at realtime, more or less any frame rate
+                if ((identifiedObjects!=null) && (WantOriginLowerLeft==true))
+                {
+                    // we need to convert the origin to a lower left (0,0) system. Essentially this means subracting the y coord from the 
+                    // image height
+                    foreach(ColoredRotatedRect rectObj in identifiedObjects)
+                    {
+                        rectObj.Center = new PointF(rectObj.Center.X, (m_imageHeightInPixels - rectObj.Center.Y));
+                    }
+                }
 
                 // Set status flags.
                 outputSampleDataStruct.dwStatus = MFTOutputDataBufferFlags.None;
@@ -627,6 +644,7 @@ namespace Walnut
                     // now find the squares. Note this sometimes picks up circles as well
 
                     squares = FindSquares(bitmapAsMat);
+                    squares = DeDuplicateSquares(squares, 2);
 
                     // lets draw some crosses on the center of each square of a specified color
                     foreach (ColoredRotatedRect squareCoord in squares)
@@ -635,21 +653,25 @@ namespace Walnut
                         int row = Convert.ToInt32(squareCoord.Center.Y);
                         int col = Convert.ToInt32(squareCoord.Center.X);
 
-                        // get the pixel values. Note that GetValues is an extension method on Mat() See MatExtension.cs
-                        byte[] pixelValue = bitmapAsMat.GetValues(row, col);
+                        // set the pixel values. Note that GetValues is an extension method on Mat() See MatExtension.cs
+                        squareCoord.CenterPixelBGRValue = bitmapAsMat.GetValues(row, col);
 
-                        if (IsBGRPixelInRange(pixelValue, RED_RANGE_LOW, RED_RANGE_HIGH) == true)
+                        squareCoord.RectColor = GetBGRPixelPrimaryColor(squareCoord.CenterPixelBGRValue);
+
+                        /* old way
+                        if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, RED_RANGE_LOW, RED_RANGE_HIGH) == true)
                         {
                             squareCoord.RectColor = KnownColor.Red;
                         }
-                        else if (IsBGRPixelInRange(pixelValue, GREEN_RANGE_LOW, GREEN_RANGE_HIGH) == false)
-                        {
-                            squareCoord.RectColor = KnownColor.Green;
-                        }
-                        else if (IsBGRPixelInRange(pixelValue, BLUE_RANGE_LOW, BLUE_RANGE_HIGH) == false)
+                        else if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, BLUE_RANGE_LOW, BLUE_RANGE_HIGH) == false)
                         {
                             squareCoord.RectColor = KnownColor.Blue;
                         }
+                        else if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, GREEN_RANGE_LOW, GREEN_RANGE_HIGH) == false)
+                        {
+                            squareCoord.RectColor = KnownColor.Green;
+                        }
+                        */
 
                         // if we identified a color
                         if (squareCoord.RectColor != ColoredRotatedRect.DEFAULT_COLOR)
@@ -687,6 +709,25 @@ namespace Walnut
             if (pixelValue[2] > bgrRangeHigh.V2) return false;
 
             return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get the primary color of a pixel, KnownColor.Black for error or unknown
+        /// </summary>
+        /// <param name="pixelValue">3 byte BGR pixel value</param>
+        /// <returns>true - in range, false - is not</returns>
+        public KnownColor GetBGRPixelPrimaryColor(byte[] pixelValue)
+        {
+            if (pixelValue == null) return KnownColor.Black;
+            if (pixelValue.Length != 3) return KnownColor.Black;
+
+            // trial mechanism - we simply choose the largest of the three BGR values
+            // and call it that color. 
+            if ((pixelValue[0] > pixelValue[1]) && (pixelValue[0] > pixelValue[2])) return KnownColor.Blue;
+            if ((pixelValue[1] > pixelValue[2]) && (pixelValue[1] > pixelValue[0])) return KnownColor.Green;
+            if ((pixelValue[2] > pixelValue[0]) && (pixelValue[2] > pixelValue[1])) return KnownColor.Red;
+            return KnownColor.Black;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -730,7 +771,7 @@ namespace Walnut
             // we return this
             List<ColoredRotatedRect> boxList = new List<ColoredRotatedRect>(); 
 
-            double cannyThreshold = 180; // was 180.0;
+            double cannyThreshold = 10; // was 180.0;
 
             using (Mat grayImage = new Mat())
             using (UMat cannyEdges = new UMat())
@@ -791,6 +832,48 @@ namespace Walnut
                 }
             }
             return boxList;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// De-Duplicates found squares in the list. Duplicates happen because of the 
+        /// fuzzy edges. 
+        /// 
+        /// Note: the algorythm here assumes duplicates will be sequential in the list
+        /// </summary>
+        /// <param name="minSeparationDistance">the minimum separation distance in pixels</param>
+        /// <param name="squares">a list of ColoredRotatedRect objects which may have duplicates</param>
+        /// <returns>a list of ColoredRotatedRect objects</returns>
+        public List<ColoredRotatedRect> DeDuplicateSquares(List<ColoredRotatedRect> squares, int minSeparationDistance) 
+        {
+            float lastCenterX = -1;
+            float lastCenterY = -1;
+            // calc this now for fast comparisions
+            int sepDistSquared = minSeparationDistance * minSeparationDistance;
+
+            List<ColoredRotatedRect> outList = new List<ColoredRotatedRect>();
+            if (squares == null) return outList;
+
+            // lets run through the list 
+            foreach (ColoredRotatedRect squareCoord in squares)
+            {
+                // yes, this is the right way around
+                float currentCenterX = squareCoord.Center.X;
+                float currentCenterY = squareCoord.Center.Y;
+                double distance = ( Math.Pow((currentCenterX - lastCenterX), 2) + Math.Pow((currentCenterY - lastCenterY), 2));
+                // record for next loop
+                lastCenterX = currentCenterX;
+                lastCenterY = currentCenterY;
+
+                // now test
+                if (distance > sepDistSquared)
+                {
+                    // we are two distinct rectangles, so copy it to the outList
+                    outList.Add(squareCoord);
+                }
+            }
+
+            return outList;
         }
 
 
