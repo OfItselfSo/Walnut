@@ -31,6 +31,13 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.groupBoxTestRect = new System.Windows.Forms.GroupBox();
+            this.radioButtonLocNone = new System.Windows.Forms.RadioButton();
+            this.radioButtonLoc4 = new System.Windows.Forms.RadioButton();
+            this.radioButtonLoc3 = new System.Windows.Forms.RadioButton();
+            this.radioButtonLoc2 = new System.Windows.Forms.RadioButton();
+            this.radioButtonLoc1 = new System.Windows.Forms.RadioButton();
+            this.checkBoxTestStepperDir = new System.Windows.Forms.CheckBox();
             this.checkBoxTestStepper0 = new System.Windows.Forms.CheckBox();
             this.buttonClientExit = new System.Windows.Forms.Button();
             this.buttonClientMark = new System.Windows.Forms.Button();
@@ -64,9 +71,10 @@
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
-            this.checkBoxTestStepperDir = new System.Windows.Forms.CheckBox();
+            this.checkBoxDrawImageOverlay = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
+            this.groupBoxTestRect.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
             this.tabPageTransporter.SuspendLayout();
             this.SuspendLayout();
@@ -87,6 +95,8 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.checkBoxDrawImageOverlay);
+            this.tabPageMain.Controls.Add(this.groupBoxTestRect);
             this.tabPageMain.Controls.Add(this.checkBoxTestStepperDir);
             this.tabPageMain.Controls.Add(this.checkBoxTestStepper0);
             this.tabPageMain.Controls.Add(this.buttonClientExit);
@@ -118,6 +128,87 @@
             this.tabPageMain.TabIndex = 0;
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxTestRect
+            // 
+            this.groupBoxTestRect.Controls.Add(this.radioButtonLocNone);
+            this.groupBoxTestRect.Controls.Add(this.radioButtonLoc4);
+            this.groupBoxTestRect.Controls.Add(this.radioButtonLoc3);
+            this.groupBoxTestRect.Controls.Add(this.radioButtonLoc2);
+            this.groupBoxTestRect.Controls.Add(this.radioButtonLoc1);
+            this.groupBoxTestRect.Location = new System.Drawing.Point(831, 313);
+            this.groupBoxTestRect.Name = "groupBoxTestRect";
+            this.groupBoxTestRect.Size = new System.Drawing.Size(92, 110);
+            this.groupBoxTestRect.TabIndex = 64;
+            this.groupBoxTestRect.TabStop = false;
+            this.groupBoxTestRect.Text = "DrawTestSQ";
+            // 
+            // radioButtonLocNone
+            // 
+            this.radioButtonLocNone.AutoSize = true;
+            this.radioButtonLocNone.Checked = true;
+            this.radioButtonLocNone.Location = new System.Drawing.Point(6, 19);
+            this.radioButtonLocNone.Name = "radioButtonLocNone";
+            this.radioButtonLocNone.Size = new System.Drawing.Size(51, 17);
+            this.radioButtonLocNone.TabIndex = 68;
+            this.radioButtonLocNone.TabStop = true;
+            this.radioButtonLocNone.Text = "None";
+            this.radioButtonLocNone.UseVisualStyleBackColor = true;
+            this.radioButtonLocNone.CheckedChanged += new System.EventHandler(this.radioButtonLocNone_CheckedChanged);
+            // 
+            // radioButtonLoc4
+            // 
+            this.radioButtonLoc4.AutoSize = true;
+            this.radioButtonLoc4.Location = new System.Drawing.Point(6, 87);
+            this.radioButtonLoc4.Name = "radioButtonLoc4";
+            this.radioButtonLoc4.Size = new System.Drawing.Size(49, 17);
+            this.radioButtonLoc4.TabIndex = 67;
+            this.radioButtonLoc4.Text = "Loc4";
+            this.radioButtonLoc4.UseVisualStyleBackColor = true;
+            this.radioButtonLoc4.CheckedChanged += new System.EventHandler(this.radioButtonLoc4_CheckedChanged);
+            // 
+            // radioButtonLoc3
+            // 
+            this.radioButtonLoc3.AutoSize = true;
+            this.radioButtonLoc3.Location = new System.Drawing.Point(6, 70);
+            this.radioButtonLoc3.Name = "radioButtonLoc3";
+            this.radioButtonLoc3.Size = new System.Drawing.Size(49, 17);
+            this.radioButtonLoc3.TabIndex = 66;
+            this.radioButtonLoc3.Text = "Loc3";
+            this.radioButtonLoc3.UseVisualStyleBackColor = true;
+            this.radioButtonLoc3.CheckedChanged += new System.EventHandler(this.radioButtonLoc3_CheckedChanged);
+            // 
+            // radioButtonLoc2
+            // 
+            this.radioButtonLoc2.AutoSize = true;
+            this.radioButtonLoc2.Location = new System.Drawing.Point(6, 53);
+            this.radioButtonLoc2.Name = "radioButtonLoc2";
+            this.radioButtonLoc2.Size = new System.Drawing.Size(49, 17);
+            this.radioButtonLoc2.TabIndex = 65;
+            this.radioButtonLoc2.Text = "Loc2";
+            this.radioButtonLoc2.UseVisualStyleBackColor = true;
+            this.radioButtonLoc2.CheckedChanged += new System.EventHandler(this.radioButtonLoc2_CheckedChanged);
+            // 
+            // radioButtonLoc1
+            // 
+            this.radioButtonLoc1.AutoSize = true;
+            this.radioButtonLoc1.Location = new System.Drawing.Point(6, 36);
+            this.radioButtonLoc1.Name = "radioButtonLoc1";
+            this.radioButtonLoc1.Size = new System.Drawing.Size(49, 17);
+            this.radioButtonLoc1.TabIndex = 64;
+            this.radioButtonLoc1.Text = "Loc1";
+            this.radioButtonLoc1.UseVisualStyleBackColor = true;
+            this.radioButtonLoc1.CheckedChanged += new System.EventHandler(this.radioButtonLoc1_CheckedChanged);
+            // 
+            // checkBoxTestStepperDir
+            // 
+            this.checkBoxTestStepperDir.AutoSize = true;
+            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 379);
+            this.checkBoxTestStepperDir.Name = "checkBoxTestStepperDir";
+            this.checkBoxTestStepperDir.Size = new System.Drawing.Size(51, 17);
+            this.checkBoxTestStepperDir.TabIndex = 62;
+            this.checkBoxTestStepperDir.Text = "CCW";
+            this.checkBoxTestStepperDir.UseVisualStyleBackColor = true;
             // 
             // checkBoxTestStepper0
             // 
@@ -473,15 +564,16 @@
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
             // 
-            // checkBoxTestStepperDir
+            // checkBoxDrawImageOverlay
             // 
-            this.checkBoxTestStepperDir.AutoSize = true;
-            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 379);
-            this.checkBoxTestStepperDir.Name = "checkBoxTestStepperDir";
-            this.checkBoxTestStepperDir.Size = new System.Drawing.Size(51, 17);
-            this.checkBoxTestStepperDir.TabIndex = 62;
-            this.checkBoxTestStepperDir.Text = "CCW";
-            this.checkBoxTestStepperDir.UseVisualStyleBackColor = true;
+            this.checkBoxDrawImageOverlay.AutoSize = true;
+            this.checkBoxDrawImageOverlay.Location = new System.Drawing.Point(837, 429);
+            this.checkBoxDrawImageOverlay.Name = "checkBoxDrawImageOverlay";
+            this.checkBoxDrawImageOverlay.Size = new System.Drawing.Size(94, 17);
+            this.checkBoxDrawImageOverlay.TabIndex = 65;
+            this.checkBoxDrawImageOverlay.Text = "Image Overlay";
+            this.checkBoxDrawImageOverlay.UseVisualStyleBackColor = true;
+            this.checkBoxDrawImageOverlay.CheckedChanged += new System.EventHandler(this.checkBoxDrawImageOverlay_CheckedChanged);
             // 
             // frmMain
             // 
@@ -500,6 +592,8 @@
             this.tabControlMainFrm.ResumeLayout(false);
             this.tabPageMain.ResumeLayout(false);
             this.tabPageMain.PerformLayout();
+            this.groupBoxTestRect.ResumeLayout(false);
+            this.groupBoxTestRect.PerformLayout();
             this.tabPageSetup.ResumeLayout(false);
             this.tabPageSetup.PerformLayout();
             this.tabPageTransporter.ResumeLayout(false);
@@ -546,6 +640,13 @@
         private System.Windows.Forms.Button buttonClientMark;
         private System.Windows.Forms.CheckBox checkBoxTestStepper0;
         private System.Windows.Forms.CheckBox checkBoxTestStepperDir;
+        private System.Windows.Forms.GroupBox groupBoxTestRect;
+        private System.Windows.Forms.RadioButton radioButtonLoc4;
+        private System.Windows.Forms.RadioButton radioButtonLoc3;
+        private System.Windows.Forms.RadioButton radioButtonLoc2;
+        private System.Windows.Forms.RadioButton radioButtonLoc1;
+        private System.Windows.Forms.RadioButton radioButtonLocNone;
+        private System.Windows.Forms.CheckBox checkBoxDrawImageOverlay;
     }
 }
 

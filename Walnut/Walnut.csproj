@@ -89,6 +89,7 @@
     </Compile>
     <Compile Include="MatExtensions.cs" />
     <Compile Include="MFTTantaSampleGrabber_Sync.cs" />
+    <Compile Include="MFTOverlayImage_Sync.cs" />
     <Compile Include="MFTWriteText_Sync.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

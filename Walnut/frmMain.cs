@@ -91,7 +91,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.03";
+        private const string APPLICATION_VERSION = "00.02.04";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -143,6 +143,9 @@ namespace Walnut
         // if we are using a text overlay transform (as a binary) this will be non-null
         protected IMFTransform textOverlayTransform = null;
 
+        // if we are using an image overlay transform (as a binary) this will be non-null
+        protected IMFTransform imageOverlayTransform = null;
+
         // if we are using an image recognition transform (as a binary) this will be non-null
         protected MFTDetectColoredSquares_Sync recognitionTransform = null;
 
@@ -176,6 +179,7 @@ namespace Walnut
         DateTime diagnosticStartTime = DateTime.Now;
         int diagnosticMessageCount = 0;
         const int MAX_DIAGNOSTIC_MESSAGE_COUNT = 100;
+        private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex002\circuit_transparent.png";
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -801,6 +805,7 @@ namespace Walnut
             IMFTopologyNode outputSinkNodeVideo = null;
             IMFTopologyNode sampleGrabberTransformNode = null;
             IMFTopologyNode textOverlayTransformNode = null;
+            IMFTopologyNode imageOverlayTransformNode = null;
             IMFTopologyNode recognitionTransformNode = null;
 
             // we sanity check the video source device 
@@ -1033,6 +1038,39 @@ namespace Walnut
                     }
                 }
 
+                // set the image overlay transform
+                ImageOverlayTransform = CreateImageOverlayTransform();
+                // do we have one?
+                if (ImageOverlayTransform != null)
+                {
+                    // yes, we do. Create a video Transform node for it
+                    hr = MFExtern.MFCreateTopologyNode(MFTopologyType.TransformNode, out imageOverlayTransformNode);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call to MFExtern.MFCreateTopologyNode failed. Err=" + hr.ToString());
+                    }
+                    if (imageOverlayTransformNode == null)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call to MFCreateTopologyNode(t) failed.  imageOverlayTransformNode == null");
+                    }
+
+                    // set the transform object (it is an IMFTransform) as an object on the transform node. Since it already exists as an
+                    // object the topology does not need a GUID or activator to create it
+                    hr = imageOverlayTransformNode.SetObject(ImageOverlayTransform);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call to pTransformNode.SetObject failed. Err=" + hr.ToString());
+                    }
+
+                    // set a few things on the VideoTransform now
+                    if ((ImageOverlayTransform is MFTWriteText_Sync) == true)
+                    {
+                        (ImageOverlayTransform as MFTWriteText_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                        // the run info gets the run number inserted if the user used the MARKER in the string
+                        (ImageOverlayTransform as MFTWriteText_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
+                    }
+                }
+
                 // set the image recognition transform
                 RecognitionTransform = CreateRGBAObjectDetectionTransform();
                 // do we have one?
@@ -1090,7 +1128,7 @@ namespace Walnut
                     throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(sampleGrabberTransformNode) failed. Err=" + hr.ToString());
                 }
 
-                // now we connect the nodes. The way we do this depends on wether we have a textOverlayTransformNode
+                // now we connect the nodes. The way we do this depends on whether we have certain node types
 
                 // inject the text overlay transform node into the topology
                 hr = topologyObj.AddNode(textOverlayTransformNode);
@@ -1105,6 +1143,29 @@ namespace Walnut
                     throw new Exception("PrepareSessionAndTopology call to  sourceVideoNode.ConnectOutput failed. Err=" + hr.ToString());
                 }
 
+                // record this, so we can chain the transforms properly. We always chain last to next
+                IMFTopologyNode lastTransformNode = textOverlayTransformNode;
+
+                // do we have an image overlay transform? 
+                if (ImageOverlayTransform != null)
+                {
+                    // yes, we do
+                    // inject the image overlay transform node into the topology
+                    hr = topologyObj.AddNode(imageOverlayTransformNode);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(imageOverlayTransformNode) failed. Err=" + hr.ToString());
+                    }
+                    // connect last transform node to the image overlay transform node
+                    hr = lastTransformNode.ConnectOutput(0, imageOverlayTransformNode, 0);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call(a) to lastTransformNode.ConnectOutput failed. Err=" + hr.ToString());
+                    }
+                    // record this
+                    lastTransformNode = imageOverlayTransformNode;
+                }
+
                 // do we have an image recognition transform? 
                 if (RecognitionTransform != null)
                 {
@@ -1114,29 +1175,24 @@ namespace Walnut
                     {
                         throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(recognitionTransformNode) failed. Err=" + hr.ToString());
                     }
-                    // connect text overlay transform node to the recognition transform node
-                    hr = textOverlayTransformNode.ConnectOutput(0, recognitionTransformNode, 0);
+                    // connect last transform node to the recognition transform node
+                    hr = lastTransformNode.ConnectOutput(0, recognitionTransformNode, 0);
                     if (hr != HResult.S_OK)
                     {
-                        throw new Exception("PrepareSessionAndTopology call(a) to  textOverlayTransformNode.ConnectOutput failed. Err=" + hr.ToString());
+                        throw new Exception("PrepareSessionAndTopology call(a) to  lastTransformNode.ConnectOutput failed. Err=" + hr.ToString());
                     }
 
-                    // now recognition transform node to sample grabber transform node
-                    hr = recognitionTransformNode.ConnectOutput(0, sampleGrabberTransformNode, 0);
-                    if (hr != HResult.S_OK)
-                    {
-                        throw new Exception("PrepareSessionAndTopology call to  recognitionTransformNode.ConnectOutput failed. Err=" + hr.ToString());
-                    }
+                    // record this
+                    lastTransformNode = recognitionTransformNode;
                 }
-                else
+
+                // now connect the last transform node to sample grabber transform node
+                hr = lastTransformNode.ConnectOutput(0, sampleGrabberTransformNode, 0);
+                if (hr != HResult.S_OK)
                 {
-                    // no we do not, just connect the text overlay node to the sink directly
-                    hr = textOverlayTransformNode.ConnectOutput(0, sampleGrabberTransformNode, 0);
-                    if (hr != HResult.S_OK)
-                    {
-                        throw new Exception("PrepareSessionAndTopology call(b) to  textOverlayTransformNode.ConnectOutput failed. Err=" + hr.ToString());
-                    }
+                    throw new Exception("PrepareSessionAndTopology call to lastTransformNode.ConnectOutput failed. Err=" + hr.ToString());
                 }
+
 
                 // the sample grabber always connects to the sink node. The samples are grabbed internally in that node 
                 // and copied off to a file (if necessary). Other than that it just acts as a regular pass through 
@@ -1200,6 +1256,10 @@ namespace Walnut
                 {
                     Marshal.ReleaseComObject(textOverlayTransformNode);
                 }
+                if (imageOverlayTransformNode != null)
+                {
+                    Marshal.ReleaseComObject(imageOverlayTransformNode);
+                }
                 if (recognitionTransformNode != null)
                 {
                     Marshal.ReleaseComObject(recognitionTransformNode);
@@ -1221,6 +1281,19 @@ namespace Walnut
         {
             // hard coded to this. 
             return new MFTWriteText_Sync(); 
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the image overlay transform. This is the transform that can overlay
+        /// an image (from a file) onto the image stream.
+        /// 
+        /// </summary>
+        /// <returns> the a text overlay transform object according to the display settings</returns>
+        private IMFTransform CreateImageOverlayTransform()
+        {
+            // hard coded to this. 
+            return new MFTOverlayImage_Sync();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1272,6 +1345,23 @@ namespace Walnut
             set
             {
                 textOverlayTransform = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the current image overlay transform object. Can be null
+        /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IMFTransform ImageOverlayTransform
+        {
+            get
+            {
+                return imageOverlayTransform;
+            }
+            set
+            {
+                imageOverlayTransform = value;
             }
         }
 
@@ -2232,6 +2322,78 @@ namespace Walnut
             AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
+
+        }
+
+        // detect changes on our draw square radio buttons, these are just temporary
+        // for testing
+        private void radioButtonLoc1_CheckedChanged(object sender, EventArgs e)
+        {
+            // some sanity checks
+            if (radioButtonLoc1.Checked == false) return;
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
+            // set the rectangle
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(120, 150));
+        }
+
+        private void radioButtonLoc2_CheckedChanged(object sender, EventArgs e)
+        {
+            // some sanity checks
+            if (radioButtonLoc2.Checked == false) return;
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
+            // set the rectangle
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(120, 300));
+
+        }
+
+        private void radioButtonLoc3_CheckedChanged(object sender, EventArgs e)
+        {
+            // some sanity checks
+            if (radioButtonLoc3.Checked == false) return;
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
+            // set the rectangle
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 300));
+
+        }
+
+        private void radioButtonLoc4_CheckedChanged(object sender, EventArgs e)
+        {
+            // some sanity checks
+            if (radioButtonLoc4.Checked == false) return;
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
+            // set the rectangle
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 130));
+
+        }
+
+        private void radioButtonLocNone_CheckedChanged(object sender, EventArgs e)
+        {
+            // some sanity checks
+            if (radioButtonLocNone.Checked == false) return;
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
+            // set the rectangle
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(-1, -1));
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draw on the image overlay
+        /// </summary>
+        private void checkBoxDrawImageOverlay_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxDrawImageOverlay.Checked == false )
+            {
+                (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(null);
+                return;
+            }
+            // set the overlay image - just hard coded for now
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(OVERLAY_IMAGE_FILENAME);
 
         }
     }
