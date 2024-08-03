@@ -16,6 +16,10 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
+- **00.02.04** Commit ID: d9a1b38
+    - This version builds on the results of the Walnut version created for FPath Experiment 001 and uses a virtual static target entity. Also introduced was the ability to overlay the webcam stream with a semi-transparent image. See the FPath_Ex002 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex002_VirtualTargets.php](http://www.ofitselfso.com/FPath/FPath_Ex002_VirtualTargets.php).
+    
 - **00.02.03** Commit ID: 4902917
     - This version of the Walnut Server/Client software supports FPath Experiment 001. The purpose of this experiment was to provide a workout and test of the software and hardware tool chain. 
     The actual experimental goal was to 
