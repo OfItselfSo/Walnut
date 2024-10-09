@@ -16,6 +16,10 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
+- **00.02.05** Commit ID: ae0b457
+    - This experiment uses and XY stage to demonstrate 2D control of DC Gear Motors via pulse width modulation. It is designed to identify red and green squares via image recognition and move the red square onto the position of the virtual green square.. See the FPath_Ex003 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex003_2DMotion.php](http://www.ofitselfso.com/FPath/FPath_Ex003_2DMotion.php).
+
 - **00.02.04** Commit ID: d9a1b38
     - This version builds on the results of the Walnut version created for FPath Experiment 001 and uses a virtual static target entity. Also introduced was the ability to overlay the webcam stream with a semi-transparent image. See the FPath_Ex002 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex002_VirtualTargets.php](http://www.ofitselfso.com/FPath/FPath_Ex002_VirtualTargets.php).
