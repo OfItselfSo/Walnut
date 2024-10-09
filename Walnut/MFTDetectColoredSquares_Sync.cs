@@ -91,7 +91,7 @@ namespace Walnut
         private static readonly SolidBrush m_transparentBrush = new SolidBrush(Color.FromArgb(96, 0, 0, 255));
         private Font m_fontOverlay;
         private Font m_transparentFont;
- 
+
         // this list of the guids of the media subtypes we support. The input format must be the same
         // as the output format 
         private readonly Guid[] m_MediaSubtypes = new Guid[] { MFMediaType.RGB32 };
@@ -103,18 +103,10 @@ namespace Walnut
         // these are used by EmguCV for the Circle detection and marking
         public const int CENTROID_CROSS_BAR_LEN = 10;
         public static Pen blackPen = new Pen(Color.Black, 1);
-        public static MCvScalar BLUE_RANGE_LOW = new MCvScalar(150, 0, 0);
-        public static MCvScalar BLUE_RANGE_HIGH = new MCvScalar(255, 150, 150);
-
-        public static MCvScalar GREEN_RANGE_LOW = new MCvScalar(0, 150, 0);
-        public static MCvScalar GREEN_RANGE_HIGH = new MCvScalar(150, 255, 150);
-
-        public static MCvScalar RED_RANGE_LOW = new MCvScalar(0, 0, 150);
-        public static MCvScalar RED_RANGE_HIGH = new MCvScalar(150, 150, 255);
-
-        public static MCvScalar SCALAR_BLUE = new MCvScalar(255, 0, 0);
-        public static MCvScalar SCALAR_RED = new MCvScalar(0, 0, 255);
-        public static MCvScalar SCALAR_TEST = new MCvScalar(100, 101, 102);
+  
+        // set this up to detect the colors
+        private const uint DEFAULT_GRAY_DETECTION_RANGE = 15;
+        private ColorDetector colorDetectorObj = new ColorDetector(DEFAULT_GRAY_DETECTION_RANGE);
 
         // anybody who is interested can pick this up and use it. It is always set to the lastest 
         // known value. The update rate is the framerate of the video - 10-30 fps
@@ -287,11 +279,11 @@ namespace Walnut
                 // now that we have an output buffer, do the work to find the objects.
                 // Writing into outputMediaBuffer will write to the approprate location in the outputSample
                 identifiedObjects = DetectSquaresInBuffer(outputMediaBuffer); // much faster, can go at realtime, more or less any frame rate
-                if ((identifiedObjects!=null) && (WantOriginLowerLeft==true))
+                if ((identifiedObjects != null) && (WantOriginLowerLeft == true))
                 {
                     // we need to convert the origin to a lower left (0,0) system. Essentially this means subracting the y coord from the 
                     // image height
-                    foreach(ColoredRotatedRect rectObj in identifiedObjects)
+                    foreach (ColoredRotatedRect rectObj in identifiedObjects)
                     {
                         rectObj.Center = new PointF(rectObj.Center.X, (m_imageHeightInPixels - rectObj.Center.Y));
                     }
@@ -314,7 +306,7 @@ namespace Walnut
                 // the act of setting it to null releases it because the property
                 // is coded that way
                 InputSample = null;
-            } 
+            }
 
             return HResult.S_OK;
         }
@@ -415,12 +407,12 @@ namespace Walnut
             fSize *= (m_imageWidthInPixels / 64.0f);
 
             // clean up
-            if (m_fontOverlay != null)  m_fontOverlay.Dispose();
+            if (m_fontOverlay != null) m_fontOverlay.Dispose();
 
             // create the font
             m_fontOverlay = new Font(
-                "Times New Roman", 
-                fSize, 
+                "Times New Roman",
+                fSize,
                 System.Drawing.FontStyle.Bold,
                 System.Drawing.GraphicsUnit.Point);
 
@@ -433,9 +425,9 @@ namespace Walnut
             if (m_transparentFont != null) m_transparentFont.Dispose();
 
             m_transparentFont = new Font(
-                "Tahoma", 
-                fSize, 
-                System.Drawing.FontStyle.Bold, 
+                "Tahoma",
+                fSize,
+                System.Drawing.FontStyle.Bold,
                 System.Drawing.GraphicsUnit.Point);
 
             // If the output type isn't set yet, we can pre-populate it, 
@@ -655,26 +647,14 @@ namespace Walnut
 
                         // set the pixel values. Note that GetValues is an extension method on Mat() See MatExtension.cs
                         squareCoord.CenterPixelBGRValue = bitmapAsMat.GetValues(row, col);
-
-                        squareCoord.RectColor = GetBGRPixelPrimaryColor(squareCoord.CenterPixelBGRValue);
-
-                        /* old way
-                        if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, RED_RANGE_LOW, RED_RANGE_HIGH) == true)
-                        {
-                            squareCoord.RectColor = KnownColor.Red;
-                        }
-                        else if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, BLUE_RANGE_LOW, BLUE_RANGE_HIGH) == false)
-                        {
-                            squareCoord.RectColor = KnownColor.Blue;
-                        }
-                        else if (IsBGRPixelInRange(squareCoord.CenterPixelBGRValue, GREEN_RANGE_LOW, GREEN_RANGE_HIGH) == false)
-                        {
-                            squareCoord.RectColor = KnownColor.Green;
-                        }
-                        */
+                        // is it gray? we ignore these
+                        if (colorDetectorObj.IsGray(squareCoord.CenterPixelBGRValue) == true) continue;
+                        // not gray, detect the color
+                        squareCoord.RectColor = colorDetectorObj.GetClosestKnownColor(squareCoord.CenterPixelBGRValue);
 
                         // if we identified a color
-                        if (squareCoord.RectColor != ColoredRotatedRect.DEFAULT_COLOR)
+                        // if (squareCoord.RectColor != ColoredRotatedRect.DEFAULT_COLOR)
+                        if ((squareCoord.RectColor == KnownColor.Red) || (squareCoord.RectColor == KnownColor.Blue) || (squareCoord.RectColor == KnownColor.Green))
                         {
                             // draw the cross
                             DrawCrossOnPoint(graphicsObj, new Point(Convert.ToInt32(squareCoord.Center.X), Convert.ToInt32(squareCoord.Center.Y)), CENTROID_CROSS_BAR_LEN, blackPen);
@@ -683,32 +663,9 @@ namespace Walnut
                     } // bottom of foreach
                 } // bottom of  using (Mat bitmapAsMat
             } // bottom of using (Graphics graphicsObj
-            
+
             // return what we got
             return squares;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Detect if a pixel is within a specified color range
-        /// </summary>
-        /// <param name="pixelValue">3 byte BGR pixel value</param>
-        /// <param name="bgrRangeLow">a struct containing the bgr value to test against</param>
-        /// <param name="bgrRangeHigh">a struct containing the bgr value to test against</param>
-        /// <returns>true - in range, false - is not</returns>
-        public bool IsBGRPixelInRange(byte[] pixelValue, MCvScalar bgrRangeLow, MCvScalar bgrRangeHigh)
-        {
-            if (pixelValue == null) return false;
-            if (pixelValue.Length != 3) return false;
-
-            if (pixelValue[0] < bgrRangeLow.V0) return false;
-            if (pixelValue[1] < bgrRangeLow.V1) return false;
-            if (pixelValue[2] < bgrRangeLow.V2) return false;
-            if (pixelValue[0] > bgrRangeHigh.V0) return false;
-            if (pixelValue[1] > bgrRangeHigh.V1) return false;
-            if (pixelValue[2] > bgrRangeHigh.V2) return false;
-
-            return true;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

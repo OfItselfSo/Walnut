@@ -2,30 +2,30 @@
 using System.Text;
 using System.Collections.Generic;
 
+/// +------------------------------------------------------------------------------------------------------------------------------+
+/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
+/// +------------------------------------------------------------------------------------------------------------------------------¦
+/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
+/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
+/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
+/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
+/// ¦                                                                                                                              ¦
+/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
+/// ¦                                                                                                                              ¦
+/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
+/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
+/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
+/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// +------------------------------------------------------------------------------------------------------------------------------+
+
+/// NOTE: this class and the entire WalnutCommon project is shared with the client which runs on the Beaglebone Black. If your primary
+/// interest is in working out how a Typed object is sent between a Server and Client (and back) to transmit complex data you should
+/// have a look at the RemCon demonstrator project at http://www.OfItselfSo.com/RemCon which is devoted to that topic. This class 
+/// is directly derived from that project. If your primary interest is in seeing how a C# program running on Windows can control 
+/// stepper motors see the Tilo project - it is specifically set up to demo that. http://www.OfItselfSo.com/Tilo
+
 namespace WalnutCommon
 {
-    /// +------------------------------------------------------------------------------------------------------------------------------+
-    /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-    /// +------------------------------------------------------------------------------------------------------------------------------¦
-    /// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-    /// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-    /// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-    /// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-    /// ¦                                                                                                                              ¦
-    /// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-    /// ¦                                                                                                                              ¦
-    /// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-    /// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-    /// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-    /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
-    /// +------------------------------------------------------------------------------------------------------------------------------+
-
-    /// NOTE: this class and the entire WalnutCommon project is shared with the client which runs on the Beaglebone Black. If your primary
-    /// interest is in working out how a Typed object is sent between a Server and Client (and back) to transmit complex data you should
-    /// have a look at the RemCon demonstrator project at http://www.OfItselfSo.com/RemCon which is devoted to that topic. This class 
-    /// is directly derived from that project. If your primary interest is in seeing how a C# program running on Windows can control 
-    /// stepper motors see the Tilo project - it is specifically set up to demo that. http://www.OfItselfSo.com/Tilo
-
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
@@ -50,12 +50,15 @@ namespace WalnutCommon
 
         private List<ColoredRotatedRect> rectList = null;
 
+        private List<SrcTgtData> srcTgtList = null;
+
         // NOTE: normally the decision of which steppers to run is at the 
         // discretion of the code in the WalnutClient. However the server 
         // can force a stepper on or off it it wishes
 
-        // this enables or disables all steppers
-        private uint allStep_Enable = 0;
+        // this enables or disables all steppers, pwms etc
+        private uint waldo_Enable = 0;
+
         // there is an enable, direction flag for each stepper and also a step speed value
         // each is treated as a 4 byte uint. This makes it easy for the client to dig it out
         // and give it to the PRU
@@ -77,6 +80,16 @@ namespace WalnutCommon
         private uint step5_Enable = 1;
         private uint step5_DirState = 1;
         private uint step5_StepSpeed = 1;
+
+        // there is an enable, direction flag for each PWM and also a percent value
+        // the percent can be between 0 and 100. Values over 100 are considered to be 100
+        private uint pwmA_Enable = 0;
+        private uint pwmA_DirState = 0;
+        private uint pwmA_PWMPercent= 0;
+
+        private uint pwmB_Enable = 0;
+        private uint pwmB_DirState = 0;
+        private uint pwmB_PWMPercent = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -198,17 +211,35 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the allStep_Enable data value. 
+        /// Gets/Sets the srcTgtList data value. Will never return null 
+        /// </summary>
+        public List<SrcTgtData> SrcTgtList
+        {
+            get
+            {
+                if (srcTgtList == null) srcTgtList = new List<SrcTgtData>();
+                return srcTgtList;
+            }
+            set
+            {
+                srcTgtList = value;
+                if (srcTgtList == null) srcTgtList = new List<SrcTgtData>();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the waldo_Enable data value. 
         /// </summary>
         public uint Waldo_Enable
         {
             get
             {
-                return allStep_Enable;
+                return waldo_Enable;
             }
             set
             {
-                allStep_Enable = value;
+                waldo_Enable = value;
             }
         }
 
@@ -500,6 +531,103 @@ namespace WalnutCommon
             }
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmA_Enable data value. 
+        /// </summary>
+        public uint PWMA_Enable
+        {
+            get
+            {
+                return pwmA_Enable;
+            }
+            set
+            {
+                pwmA_Enable = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmA_DirState data value. 
+        /// </summary>
+        public uint PWMA_DirState
+        {
+            get
+            {
+                return pwmA_DirState;
+            }
+            set
+            {
+                pwmA_DirState = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmA_PWMPercent data value. 
+        /// </summary>
+        public uint PWMA_PWMPercent
+        {
+            get
+            {
+                if (pwmA_PWMPercent > 100) return 100;
+                return pwmA_PWMPercent;
+            }
+            set
+            {
+                pwmA_PWMPercent = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmB_Enable data value. 
+        /// </summary>
+        public uint PWMB_Enable
+        {
+            get
+            {
+                return pwmB_Enable;
+            }
+            set
+            {
+                pwmB_Enable = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmB_DirState data value. 
+        /// </summary>
+        public uint PWMB_DirState
+        {
+            get
+            {
+                return pwmB_DirState;
+            }
+            set
+            {
+                pwmB_DirState = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwmB_PWMPercent data value. 
+        /// </summary>
+        public uint PWMB_PWMPercent
+        {
+            get
+            {
+                if (pwmB_PWMPercent > 100) return 100;
+                return pwmB_PWMPercent;
+            }
+            set
+            {
+                pwmB_PWMPercent = value;
+            }
+        }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -519,12 +647,21 @@ namespace WalnutCommon
                 // DataContent is a Flags enum so we can have multiple meanings
                 if (UserDataContent.HasFlag(UserDataContentEnum.STEP0_DATA))
                 {
-                    sb.Append(", Step0_Enable=" + Step0_Enable.ToString() + ", Step0_StepSpeed=" + Step0_StepSpeed.ToString() +", Step0_DirState=" + Step0_DirState.ToString());
+                    sb.Append(", Step0_Enable=" + Step0_Enable.ToString() + ", Step0_StepSpeed=" + Step0_StepSpeed.ToString() + ", Step0_DirState=" + Step0_DirState.ToString());
+                }
+                if (UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
+                {
+                    sb.Append(", PWMA_Enable=" + PWMA_Enable.ToString() + ", PWMA_PWMPercent=" + PWMA_PWMPercent.ToString() + ", PWMA_DirState=" + PWMA_DirState.ToString());
                 }
                 if (UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
                 {
                     if (RectList == null) sb.Append(", RectList=null");
                     else sb.Append(", RectCount=" + RectList.Count.ToString());
+                }
+                if (UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
+                {
+                    if (SrcTgtList == null) sb.Append(", SrcTgtList=null");
+                    else sb.Append(", SrcTgtCount=" + SrcTgtList.Count.ToString());
                 }
                 if (UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
                 {

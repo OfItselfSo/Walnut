@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Drawing;
 using WalnutCommon;
+using System.Threading;
+using System.Xml.Linq;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -88,18 +90,32 @@ namespace WalnutClient
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.04";
+        private const string APPLICATION_VERSION = "00.02.05";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
 
-        // ###
-        // ### these are the offsets into the data store we pass into the PRU
-        // ### each data item is a uint (it is simpler that way)
-        // ###
-
         // this is what controls the PRU
         private PRUDriver pruDriver = null;
+
+        // This is what controls the PWM ports
+        private const int DEFAULT_PWM_FREQ = 1000;
+        // we map PwmPortA on the incoming data to this BBB pwm port
+        private const PWMPortEnum PWMPORT_A = PWMPortEnum.PWM0_A;
+        // we map PwmPortB on the incoming data to this BBB pwm port
+        private const PWMPortEnum PWMPORT_B = PWMPortEnum.PWM0_B;
+        // we map PwmPortA Direction to this gpio
+        private const GpioEnum PWMPORTDIR_A = GpioEnum.GPIO_15;
+        // we map PwmPortB Direction to this gpio
+        private const GpioEnum PWMPORTDIR_B = GpioEnum.GPIO_49;
+
+        // the pwm port A
+        private PWMPortFS pwmPortA = null;
+        private OutputPortMM pwmPortADir = null;
+
+        // the pwm port B
+        private PWMPortFS pwmPortB = null;
+        private OutputPortMM pwmPortBDir = null;
 
         // ###
         // ### these are the offsets into the data store we pass into the PRU
@@ -157,6 +173,25 @@ namespace WalnutClient
         // the last outputs (speed and dir) it returned and makes decisions based on them
         private Behaviour_MoveClose behaviourMoveClose = null;
         private const uint MAX_STEPPER_SPEED = 200;
+
+        // this is the level behaviour. It gets instantiated at the class level because it is 
+        // NOT stateless. It remembers past red and green square coordinate values and
+        // the last outputs (speed and dir) it returned and makes decisions based on them
+        private Behaviour_MoveLevel behaviourMoveLevelX = null;
+        private Behaviour_MoveLevel behaviourMoveLevelY = null;
+        private const uint MAX_MOTOR_SPEED = 100;
+
+        // this is a point tracker. It gets instantiated at the class level because it is 
+        // NOT stateless. It remembers past N points it is presented with and can detect
+        // things like movment etc
+        private Behaviour_TrackTarget behaviourTrackTarget = null;
+        private const float DEFAULT_TARGET_MOVED_THRESHOLD = 10;
+        private const int DEFAULT_TARGET_QUEUE_SIZE = 5;
+
+        // we can skip over missing src points if we wish to do so. This copes with missing
+        // data. 
+        private const int MAX_MISSING_SRC_POINTS = 5;
+        private int numMissingSrcPoints = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -220,11 +255,49 @@ namespace WalnutClient
             // Start the PRU
             StartPRUWithDefaults(PRUEnum.PRU_1);
 
+            // start the PWM ports
+            StartPWMPortA();
+            StartPWMPortB();
+
             // we sit and wait for the user to press return. The handler is dealing with the responses
             Console.WriteLine("Press <Return> to quit");
             Console.ReadLine();
 
             ShutDown();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Starts and configures the PWM A port
+        /// </summary>
+        private void StartPWMPortA()
+        {
+            pwmPortA = new PWMPortFS(PWMPORT_A);
+            // we use FrequencyHz
+            pwmPortA.FrequencyHz = DEFAULT_PWM_FREQ;
+            // we set the DutyPercent so it is always low
+            pwmPortA.DutyPercent = 0;
+            // set the run state off
+            pwmPortA.RunState = false;
+            // set up the direction GPIO pin
+            pwmPortADir = new OutputPortMM(PWMPORTDIR_A);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Starts and configures the PWM B port
+        /// </summary>
+        private void StartPWMPortB()
+        {
+            pwmPortB = new PWMPortFS(PWMPORT_B);
+            // we use FrequencyHz
+            pwmPortB.FrequencyHz = DEFAULT_PWM_FREQ;
+            // we set the DutyPercent so it is always low
+            pwmPortB.DutyPercent = 0;
+            // set the run state off
+            pwmPortB.RunState = false;
+            // set up the direction GPIO pin
+            pwmPortBDir = new OutputPortMM(PWMPORTDIR_B);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -317,6 +390,42 @@ namespace WalnutClient
                 pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
             }
 
+            // are we dealing with PWMA data?
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
+            {
+                if (pwmPortA != null)
+                {
+                    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString());
+
+                    // set the pwmPercent, the frequency was set to a constant when the port was opened
+                    pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
+                    // now enable or disable as appropriate
+                    if (scData.PWMA_Enable != 0) pwmPortA.RunState = true;
+                    else pwmPortA.RunState = false;
+                    // set the direction
+                    if(scData.PWMA_DirState != 0) pwmPortADir.Write(true);
+                    else pwmPortADir.Write(false);
+                }
+            }
+
+            // are we dealing with PWMB data?
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMB_DATA))
+            {
+                if (pwmPortB != null)
+                {
+                    Console.WriteLine("PWMB DATA PWMB_Enable=" + scData.PWMB_Enable.ToString() + ",DutyPercent=" + scData.PWMB_PWMPercent.ToString());
+
+                    // set the pwmPercent, the frequency was set to a constant when the port was opened
+                    pwmPortB.DutyPercent = scData.PWMB_PWMPercent;
+                    // now enable or disable as appropriate
+                    if (scData.PWMB_Enable != 0) pwmPortB.RunState = true;
+                    else pwmPortB.RunState = false;
+                    // set the direction
+                    if (scData.PWMB_DirState != 0) pwmPortBDir.Write(true);
+                    else pwmPortBDir.Write(false);
+                }
+            }
+
             // are we dealing with rectangle data, this is data that has come off
             // the image recognition algorythm in the Walnut Server
             if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
@@ -333,8 +442,30 @@ namespace WalnutClient
                 // so we can use it
                 IdentifySquaresByColor(scData.RectList);
                 // now we move the red square to the green square. This is a stated goal
-                MoveRedToGreen();
+                //MoveRedToGreen();
             }
+
+            // are we dealing with srcTgt data, this is data that has come off
+            // decided on by the Walnut Server
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
+            {
+                // sanity check
+                if (scData.SrcTgtList == null)
+                {
+                    Console.WriteLine("Null srcTgtList with content flag SRCTGT_DATA");
+                    LogMessage("SetWaldosFromServerClientData, Null srcTgtList with content flag SRCTGT_DATA");
+                    return;
+                }
+                if (scData.SrcTgtList.Count == 0)
+                {
+                    Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
+                    LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
+                    return;
+                }
+                // now we move the source to the target with the green square. This is a stated goal
+                MoveSourceToTarget(scData.SrcTgtList[0]);
+            }
+
             // are we dealing with a flag
             if (scData.UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
             {
@@ -443,6 +574,170 @@ namespace WalnutClient
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// A Waldo action to move the source onto the target
+        /// 
+        /// </summary>
+        private void MoveSourceToTarget(SrcTgtData stData)
+        {
+            uint outSpeedX = 0;
+            uint outDirectionX = 0;
+            uint outSpeedY = 0;
+            uint outDirectionY = 0;
+            PointF srcCenter = new PointF(float.NaN, float.NaN);
+            PointF tgtCenter = new PointF(float.NaN, float.NaN);
+
+            Console.WriteLine("(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
+
+            // set up our behaviours if we need to
+            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
+            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
+            // set up our target tracker if we need to
+            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(DEFAULT_TARGET_MOVED_THRESHOLD, DEFAULT_TARGET_QUEUE_SIZE);
+
+            if (stData == null)
+            {
+                Console.WriteLine("No stData");
+                // turn off the ports
+                pwmPortA.RunState = false;
+                pwmPortB.RunState = false;
+                // and leave
+                return;
+            }
+
+            if ((stData == null) || (stData.SrcIsPopulated() == false))
+            {
+                // we do not have source data
+                Console.WriteLine("No Src Data");
+                // record this
+                numMissingSrcPoints++;
+
+                // we can sometimes use past coords
+                PointF tmpSrcPoint = new PointF(behaviourMoveLevelX.LastDynamicCoord, behaviourMoveLevelY.LastDynamicCoord);
+                if ((numMissingSrcPoints > MAX_MISSING_SRC_POINTS) ||
+                    (float.IsNaN(tmpSrcPoint.X) == true) ||
+                    (float.IsNaN(tmpSrcPoint.Y) == true))
+                {
+                    // we either have to many missing points or the substitute one we do have is not viable
+                    // turn off the ports
+                    pwmPortA.RunState = false;
+                    pwmPortB.RunState = false;
+                    // and leave
+                    return;
+                }
+                // just use the substitute point
+                srcCenter = tmpSrcPoint;
+            }
+            else
+            {
+                // set the src center now with the real incoming point
+                srcCenter = stData.SrcPoint;
+                // reset this
+                numMissingSrcPoints = 0;
+            }
+
+            // it is possible for the tgt not to be populated so this is more complicated
+            if (stData.TgtIsPopulated() == true)
+            {
+                // just give it the input target point
+                tgtCenter = stData.TgtPoint;
+            }
+            else
+            {
+                // it is possible to not have target data. We just use the last one we saw
+                if ((behaviourTrackTarget != null) && (behaviourTrackTarget.TargetQueueCount!=0))
+                {
+                    Console.WriteLine("No incoming Tgt Data Using last target");
+                    tgtCenter = behaviourTrackTarget.LastTargetCoord;
+                }
+                else
+                {
+                    Console.WriteLine("No incoming Tgt Data");
+                    // turn off the ports
+                    pwmPortA.RunState = false;
+                    pwmPortB.RunState = false;
+                    // and leave
+                    return;
+                }
+            }
+
+            // feed our target tracker with the static point. We want to be able to see if it has moved
+            behaviourTrackTarget.SetTargetPoint(tgtCenter);
+
+            if (behaviourTrackTarget.HasMoved() == true)
+            {
+                // reset the MoveLevel behaviour
+                behaviourMoveLevelX.Reset();
+                behaviourMoveLevelY.Reset();
+                // reset the target point tracker
+                behaviourTrackTarget.Reset();
+                behaviourTrackTarget.SetTargetPoint(tgtCenter);
+            }
+
+            // Process X, have we already reached a point where we can stop?
+            if (behaviourMoveLevelX.CanStop() == true)
+            {
+                // turn off the port
+                pwmPortA.RunState = false;
+            }
+            else
+            {
+                // can't stop, process this input
+                // get the result for X direction
+                int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
+                if (retVal != 0)
+                {
+                    pwmPortA.RunState = false;
+                    return;
+                }
+                else
+                {
+                    // set the pwmPercent, the frequency was set to a constant when the port was opened
+                    pwmPortA.DutyPercent = (double)outSpeedX;
+
+                    // set the direction
+                    if (outDirectionX != 0) pwmPortADir.Write(true);
+                    else pwmPortADir.Write(false);
+
+                    // now enable the port
+                    pwmPortA.RunState = true;
+                }
+            }
+
+            // Process Y, have we already reached a point where we can stop?
+            if (behaviourMoveLevelY.CanStop() == true)
+            {
+                // turn off the port
+                pwmPortB.RunState = false;
+            }
+            else
+            {
+                // can't stop, process this input
+                // get the result for Y direction
+                int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
+                if (retVal != 0)
+                {
+                    pwmPortB.RunState = false;
+                    return;
+                }
+                else
+                {
+                    // set the pwmPercent, the frequency was set to a constant when the port was opened
+                    pwmPortB.DutyPercent = (double)outSpeedY;
+
+                    // set the direction
+                    if (outDirectionY != 0) pwmPortBDir.Write(true);
+                    else pwmPortBDir.Write(false);
+
+                    // now enable the port
+                    pwmPortB.RunState = true;
+                }
+            }
+            // write this out for diagnostics
+            Console.WriteLine("");
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Starts the PRU with the  PRU1_StepperIO binary. Very specific to the 
         /// data needs of the PRU1_StepperIO binary
         /// 
@@ -517,7 +812,234 @@ namespace WalnutClient
                 pruDriver = null;
             }
 
+            // shutdown the PWMPorts
+            if (pwmPortA != null)
+            {
+                // we are done, stop running
+                if(pwmPortA.RunState==true) pwmPortA.RunState = false;
+
+                // close the port
+                pwmPortA.ClosePort();
+                pwmPortA.Dispose();
+            }
+            if (pwmPortB != null)
+            {
+                // we are done, stop running
+                if (pwmPortB.RunState == true) pwmPortB.RunState = false;
+
+                // close the port
+                pwmPortB.ClosePort();
+                pwmPortB.Dispose();
+            }
+            if (pwmPortADir != null)
+            {
+                // close the port
+                pwmPortADir.ClosePort();
+                pwmPortADir.Dispose();
+            }
+            if (pwmPortBDir != null)
+            {
+                // close the port
+                pwmPortBDir.ClosePort();
+                pwmPortBDir.Dispose();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Tests a PWM Port (and presumably a servo attached to that port)
+        /// by changing the pulse width duty cycle to 25%, 50% and 75% and
+        /// back again. Once that is done, the pulse width is changed over the
+        /// same range but much more smoothly. 
+        /// 
+        /// NOTE: 
+        ///   This code assumes that the PWM device has been configured in the 
+        ///   device tree. If it is not, then the PWM Port will probably not
+        ///   be available. Usually this is done by adding the 
+        ///   overlay to the uEnv.txt file. The Beaglebone Black and Device Tree Overlays
+        ///   technical note has more information.
+        /// 
+        /// http://www.ofitselfso.com/BeagleNotes/Beaglebone_Black_And_Device_Tree_Overlays.php
+        ///
+        /// Any of the entries below placed in the /boot/uEnv.txt file will enable the 
+        /// specified PWM ports. You may need to edit the .dts source if you only want A and 
+        /// not B etc.
+        /// uboot_overlay_addr4=/lib/firmware/BB-PWM0-00A0.dtbo (PWM0_A & PWM0_B)
+        /// uboot_overlay_addr5=/lib/firmware/BB-PWM1-00A0.dtbo (PWM1_A & PWM1_B)
+        /// uboot_overlay_addr6=/lib/firmware/BB-PWM2-00A0.dtbo (PWM2_A & PWM2_B)
+        ///   
+        ///   You should conduct the usual tests to make sure the PWM header pin
+        ///   you wish to use is available and not in use by anything else on 
+        ///   the Beaglebone Black PinMux. 
+        /// 
+        /// NOTE:
+        ///    Be aware that although there are 12 pins available for PWM output
+        ///    on the Beaglebone Black P8 and P9 headers in many cases two pins
+        ///    share the same PWM output. In addition, in many cases two PWM 
+        ///    outputs share the same PWM module. P8/P9 Header pins that 
+        ///    share the same PWM output will always have identical signals in
+        ///    frequency, pulse width and timing. They _are_ the same signal!
+        /// 
+        ///    PWM Outputs that share the same PWM OCP device MUST have the same
+        ///    frequency but can have independent pulse widths. The trigger
+        ///    timing of the start of the high part of pulse waveform is 
+        ///    simultaneous.
+        /// 
+        ///    PWM Name         H8/H9 Pins          PWMDevice_Output
+        ///    PWM0_A,        PWM_P9_22_or_P9_31     (EHRPWM0_A)
+        ///    PWM0_B,        PWM_P9_21_or_P9_29     (EHRPWM0_B)    
+        ///                 
+        ///    PWM1_A,        PWM_P9_14_or_P8_36     (EHRPWM1_A)
+        ///    PWM1_B,        PWM_P9_16_or_P8_34     (EHRPWM1_B)
+        /// 
+        ///    PWM2_A,        PWM_P8_19_or_P8_45     (EHRPWM2_A)
+        ///    PWM2_B,        PWM_P8_13_or_P8_46     (EHRPWM2_B)
+        /// 
+        ///    This is IMPORTANT so I will say it again. If you configure 
+        ///    two PWM outputs in the same device (PWM1_A, PWM1_B for example) 
+        ///    then they MUST be configured with the same frequency. 
+        /// 
+        ///    They will use the same frequency anyways and if
+        ///    you change one you change the other. Changing the frequency on the
+        ///    B output will instantly change the frequency on the A output and
+        ///    will really mess up any pulse widths/duty cycles the A output is using
+        /// 
+        ///    Always set the frequency first then the Pulse Width/duty cycle. The pulse 
+        ///    width is calculated from whatever frequency is currently set it is
+        ///    not adjusted if the frequency is later changed.
+        ///
+        /// From the above information, if you connect servos to both P9_14 and 
+        /// P8_36 you will see the servos behave identically. If you connect
+        /// servos to P9_14 and P9_16 the frequency must be identical (because
+        /// the are both on PWM module EHRPWM1 but the pulse widths can be
+        /// independently controlled. If you connect servos to P9_22 and
+        /// P9_14 you can have distinct frequencies and pulse widths because
+        /// the two PWM devices are fully independent.
+        /// 
+        /// </summary>
+        /// <param name="pwmID">The pwmID</param>
+        /// <history>
+        ///    07 Mar 19  Cynic - Originally written
+        /// </history>
+        public void SimpleTestPWM_FS(PWMPortEnum pwmID)
+        {
+            const uint DEFAULT_PERIOD_NS = 250000;
+            const uint DEFAULT_DUTY_50PERCENT = (uint)(DEFAULT_PERIOD_NS * (0.5));
+            const uint DEFAULT_DUTY_75PERCENT = (uint)(DEFAULT_PERIOD_NS * (0.75));
+            const uint DEFAULT_DUTY_25PERCENT = (uint)(DEFAULT_PERIOD_NS * (0.25));
+
+            // open the port
+            PWMPortFS pwmPort = new PWMPortFS(pwmID);
+
+            // set the PWM waveform period
+            pwmPort.PeriodNS = DEFAULT_PERIOD_NS;
+            // we could also use FrequencyHz which does the same thing
+            // pwmPort.FrequencyHz = 4000;
+
+            // set the PWM waveform Duty Cycle
+            pwmPort.DutyNS = DEFAULT_DUTY_50PERCENT;
+            // we could also use DutyPercent which does the same thing
+            // pwmPort.DutyPercent = 50;
+
+            // set the run state to begin the output of the PWM waveform
+            pwmPort.RunState = true;
+
+            Console.WriteLine("PeriodNS is: " + pwmPort.PeriodNS.ToString());
+            Console.WriteLine("DutyNS is: " + pwmPort.DutyNS.ToString());
+            Console.WriteLine("FrequencyHz is: " + pwmPort.FrequencyHz.ToString());
+            Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+            Console.WriteLine("RunState is: " + pwmPort.RunState.ToString());
+
+            // change the PWM duty cycle (i.e. rotate the servo)
+            // until we get a key press on the console
+            while (true)
+            {
+                // first we rotate the servo in steps
+                Console.WriteLine("");
+                Console.WriteLine("Now Step Rotating Servo");
+
+                // set the Duty Cycle low 
+                pwmPort.DutyNS = DEFAULT_DUTY_25PERCENT;
+                if (Console.KeyAvailable == true) break;
+                Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+                Thread.Sleep(1000);
+                // set the Duty Cycle midway
+                pwmPort.DutyNS = DEFAULT_DUTY_50PERCENT;
+                if (Console.KeyAvailable == true) break;
+                Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+                Thread.Sleep(1000);
+                // set the Duty Cycle high
+                pwmPort.DutyNS = DEFAULT_DUTY_75PERCENT;
+                if (Console.KeyAvailable == true) break;
+                Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+                Thread.Sleep(1000);
+                // set the Duty Cycle midway
+                pwmPort.DutyNS = DEFAULT_DUTY_50PERCENT;
+                if (Console.KeyAvailable == true) break;
+                Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+                Thread.Sleep(1000);
+
+                Console.WriteLine("");
+                Console.WriteLine("Now Smoothly Rotating Servo");
+
+                // now we rotate the servo smoothly from
+                // 25.123% to 75.456% using a totally arbitrary increment
+                for (float i = 25.123f; i < 75.345f; i = i + 0.678f)
+                {
+                    pwmPort.DutyPercent = i;
+                    if (Console.KeyAvailable == true) break;
+                    Console.WriteLine("DutyPercent is: " + pwmPort.DutyPercent.ToString());
+                    Thread.Sleep(50);
+                }
+            }
+
+            // we are done, stop running
+            pwmPort.RunState = false;
+
+            // close the port
+            pwmPort.ClosePort();
+            pwmPort.Dispose();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Produces a series of 1 sec pulses on a GPIO port. Memory mapped version
+        /// 
+        /// NOTE: 
+        ///   This code assumes that the port associated with the gpioID has been 
+        ///   properly configured in the device tree as an output. If it is not
+        ///   then the output may not work correctly. See the associated documentation
+        /// 
+        /// NOTE:
+        ///    Be aware of the BBB output voltage and max output current. In general
+        ///    you cannot directly switch any meaningful output device. You have to
+        ///    run it through a transistor or some other current/voltage amplifier.
+        /// 
+        /// </summary>
+        /// <param name="gpioID">The gpioID</param>
+        /// <history>
+        ///    28 Aug 14  Cynic - Originally written
+        /// </history>
+        public void SimplePulsePortMM(GpioEnum gpioID)
+        {
+            // open the port
+            OutputPortMM outPort = new OutputPortMM(gpioID);
+
+            // run until we have a keypress on the console
+            while (Console.KeyAvailable == false)
+            {
+                // put the port low
+                outPort.Write(false);
+                // sleep for half a second
+                Thread.Sleep(500);
+                // put the port high
+                outPort.Write(true);
+                // sleep for half a second
+                Thread.Sleep(500);
+            }
+            // close the port
+            outPort.ClosePort();
+            outPort.Dispose();
         }
     }
-
 }

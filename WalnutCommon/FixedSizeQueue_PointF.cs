@@ -47,6 +47,41 @@ namespace WalnutCommon
         {
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Calculates the average of all the X values in the queue
+        /// </summary>
+        /// <returns>the average of all the X values in the queue</returns>
+        public float AverageX()
+        {
+            if (this.Count == 0) return 0;
+            // loop through
+            float sumVal = 0;
+            // just sum them up
+            foreach (PointF workingPoint in this)
+            {
+                sumVal += workingPoint.X;
+            }
+            return sumVal / this.Count;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Calculates the average of all the Y values in the queue
+        /// </summary>
+        /// <returns>the average of all the Y values in the queue</returns>
+        public float AverageY()
+        {
+            if (this.Count == 0) return 0;
+            // loop through
+            float sumVal = 0;
+            // just sum them up
+            foreach (PointF workingPoint in this)
+            {
+                sumVal += workingPoint.Y;
+            }
+            return sumVal / this.Count;
+        }
 
     }
 }

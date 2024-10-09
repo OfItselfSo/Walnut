@@ -45,15 +45,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorDetector.cs" />
     <Compile Include="ColoredRotatedRect.cs" />
     <Compile Include="FixedSizeQueue_Uint.cs" />
     <Compile Include="FixedSizeQueue_PointF.cs" />
     <Compile Include="FixedSizeQueue_Generic.cs" />
     <Compile Include="FixedSizeQueue_Double.cs" />
+    <Compile Include="AxisEnum.cs" />
     <Compile Include="OctantEnum.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuadrantEnum.cs" />
     <Compile Include="ServerClientData.cs" />
+    <Compile Include="SrcTgtData.cs" />
     <Compile Include="UserDataFlagEnum.cs" />
     <Compile Include="UserDataContentEnum.cs" />
     <Compile Include="ServerClientDataContentEnum.cs" />

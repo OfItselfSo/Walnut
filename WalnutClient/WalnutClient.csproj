@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Behaviour_TrackTarget.cs" />
+    <Compile Include="Behaviour_MoveLevel.cs" />
     <Compile Include="Behaviour_MoveClose.cs" />
     <Compile Include="MainClass.cs" />
     <Compile Include="MarkedObject.cs" />

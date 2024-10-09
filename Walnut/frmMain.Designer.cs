@@ -31,6 +31,14 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBoxPWMBDir = new System.Windows.Forms.CheckBox();
+            this.textBoxPWMBSpeed = new System.Windows.Forms.TextBox();
+            this.checkBoxPWMBEnable = new System.Windows.Forms.CheckBox();
+            this.checkBoxPWMADir = new System.Windows.Forms.CheckBox();
+            this.textBoxPWMASpeed = new System.Windows.Forms.TextBox();
+            this.checkBoxPWMAEnable = new System.Windows.Forms.CheckBox();
+            this.checkBoxDrawImageOverlay = new System.Windows.Forms.CheckBox();
             this.groupBoxTestRect = new System.Windows.Forms.GroupBox();
             this.radioButtonLocNone = new System.Windows.Forms.RadioButton();
             this.radioButtonLoc4 = new System.Windows.Forms.RadioButton();
@@ -71,9 +79,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
-            this.checkBoxDrawImageOverlay = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.groupBoxTestRect.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
             this.tabPageTransporter.SuspendLayout();
@@ -95,6 +103,7 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.groupBox1);
             this.tabPageMain.Controls.Add(this.checkBoxDrawImageOverlay);
             this.tabPageMain.Controls.Add(this.groupBoxTestRect);
             this.tabPageMain.Controls.Add(this.checkBoxTestStepperDir);
@@ -129,8 +138,99 @@
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.checkBoxPWMBDir);
+            this.groupBox1.Controls.Add(this.textBoxPWMBSpeed);
+            this.groupBox1.Controls.Add(this.checkBoxPWMBEnable);
+            this.groupBox1.Controls.Add(this.checkBoxPWMADir);
+            this.groupBox1.Controls.Add(this.textBoxPWMASpeed);
+            this.groupBox1.Controls.Add(this.checkBoxPWMAEnable);
+            this.groupBox1.Location = new System.Drawing.Point(668, 360);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(157, 86);
+            this.groupBox1.TabIndex = 66;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "PWM Test";
+            // 
+            // checkBoxPWMBDir
+            // 
+            this.checkBoxPWMBDir.AutoSize = true;
+            this.checkBoxPWMBDir.Location = new System.Drawing.Point(83, 63);
+            this.checkBoxPWMBDir.Name = "checkBoxPWMBDir";
+            this.checkBoxPWMBDir.Size = new System.Drawing.Size(39, 17);
+            this.checkBoxPWMBDir.TabIndex = 5;
+            this.checkBoxPWMBDir.Text = "Dir";
+            this.checkBoxPWMBDir.UseVisualStyleBackColor = true;
+            this.checkBoxPWMBDir.CheckedChanged += new System.EventHandler(this.checkBoxPWMBDir_CheckedChanged);
+            // 
+            // textBoxPWMBSpeed
+            // 
+            this.textBoxPWMBSpeed.Location = new System.Drawing.Point(83, 37);
+            this.textBoxPWMBSpeed.Name = "textBoxPWMBSpeed";
+            this.textBoxPWMBSpeed.Size = new System.Drawing.Size(62, 20);
+            this.textBoxPWMBSpeed.TabIndex = 4;
+            this.textBoxPWMBSpeed.Text = "50";
+            this.textBoxPWMBSpeed.TextChanged += new System.EventHandler(this.textBoxPWMBSpeed_TextChanged);
+            // 
+            // checkBoxPWMBEnable
+            // 
+            this.checkBoxPWMBEnable.AutoSize = true;
+            this.checkBoxPWMBEnable.Location = new System.Drawing.Point(83, 19);
+            this.checkBoxPWMBEnable.Name = "checkBoxPWMBEnable";
+            this.checkBoxPWMBEnable.Size = new System.Drawing.Size(66, 17);
+            this.checkBoxPWMBEnable.TabIndex = 3;
+            this.checkBoxPWMBEnable.Text = "PWM_B";
+            this.checkBoxPWMBEnable.UseVisualStyleBackColor = true;
+            this.checkBoxPWMBEnable.CheckedChanged += new System.EventHandler(this.checkBoxPWMBEnable_CheckedChanged);
+            // 
+            // checkBoxPWMADir
+            // 
+            this.checkBoxPWMADir.AutoSize = true;
+            this.checkBoxPWMADir.Location = new System.Drawing.Point(11, 63);
+            this.checkBoxPWMADir.Name = "checkBoxPWMADir";
+            this.checkBoxPWMADir.Size = new System.Drawing.Size(39, 17);
+            this.checkBoxPWMADir.TabIndex = 2;
+            this.checkBoxPWMADir.Text = "Dir";
+            this.checkBoxPWMADir.UseVisualStyleBackColor = true;
+            this.checkBoxPWMADir.CheckedChanged += new System.EventHandler(this.checkBoxPWMADir_CheckedChanged);
+            // 
+            // textBoxPWMASpeed
+            // 
+            this.textBoxPWMASpeed.Location = new System.Drawing.Point(11, 37);
+            this.textBoxPWMASpeed.Name = "textBoxPWMASpeed";
+            this.textBoxPWMASpeed.Size = new System.Drawing.Size(62, 20);
+            this.textBoxPWMASpeed.TabIndex = 1;
+            this.textBoxPWMASpeed.Text = "50";
+            this.textBoxPWMASpeed.TextChanged += new System.EventHandler(this.textBoxPWMASpeed_TextChanged);
+            // 
+            // checkBoxPWMAEnable
+            // 
+            this.checkBoxPWMAEnable.AutoSize = true;
+            this.checkBoxPWMAEnable.Location = new System.Drawing.Point(11, 19);
+            this.checkBoxPWMAEnable.Name = "checkBoxPWMAEnable";
+            this.checkBoxPWMAEnable.Size = new System.Drawing.Size(66, 17);
+            this.checkBoxPWMAEnable.TabIndex = 0;
+            this.checkBoxPWMAEnable.Text = "PWM_A";
+            this.checkBoxPWMAEnable.UseVisualStyleBackColor = true;
+            this.checkBoxPWMAEnable.CheckedChanged += new System.EventHandler(this.checkBoxPWMAEnable_CheckedChanged);
+            // 
+            // checkBoxDrawImageOverlay
+            // 
+            this.checkBoxDrawImageOverlay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxDrawImageOverlay.AutoSize = true;
+            this.checkBoxDrawImageOverlay.Location = new System.Drawing.Point(837, 429);
+            this.checkBoxDrawImageOverlay.Name = "checkBoxDrawImageOverlay";
+            this.checkBoxDrawImageOverlay.Size = new System.Drawing.Size(94, 17);
+            this.checkBoxDrawImageOverlay.TabIndex = 65;
+            this.checkBoxDrawImageOverlay.Text = "Image Overlay";
+            this.checkBoxDrawImageOverlay.UseVisualStyleBackColor = true;
+            this.checkBoxDrawImageOverlay.CheckedChanged += new System.EventHandler(this.checkBoxDrawImageOverlay_CheckedChanged);
+            // 
             // groupBoxTestRect
             // 
+            this.groupBoxTestRect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxTestRect.Controls.Add(this.radioButtonLocNone);
             this.groupBoxTestRect.Controls.Add(this.radioButtonLoc4);
             this.groupBoxTestRect.Controls.Add(this.radioButtonLoc3);
@@ -202,8 +302,9 @@
             // 
             // checkBoxTestStepperDir
             // 
+            this.checkBoxTestStepperDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxTestStepperDir.AutoSize = true;
-            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 379);
+            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 339);
             this.checkBoxTestStepperDir.Name = "checkBoxTestStepperDir";
             this.checkBoxTestStepperDir.Size = new System.Drawing.Size(51, 17);
             this.checkBoxTestStepperDir.TabIndex = 62;
@@ -212,8 +313,9 @@
             // 
             // checkBoxTestStepper0
             // 
+            this.checkBoxTestStepper0.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxTestStepper0.AutoSize = true;
-            this.checkBoxTestStepper0.Location = new System.Drawing.Point(679, 379);
+            this.checkBoxTestStepper0.Location = new System.Drawing.Point(679, 339);
             this.checkBoxTestStepper0.Name = "checkBoxTestStepper0";
             this.checkBoxTestStepper0.Size = new System.Drawing.Size(96, 17);
             this.checkBoxTestStepper0.TabIndex = 61;
@@ -223,6 +325,7 @@
             // 
             // buttonClientExit
             // 
+            this.buttonClientExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonClientExit.Location = new System.Drawing.Point(874, 159);
             this.buttonClientExit.Name = "buttonClientExit";
             this.buttonClientExit.Size = new System.Drawing.Size(39, 19);
@@ -233,6 +336,7 @@
             // 
             // buttonClientMark
             // 
+            this.buttonClientMark.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonClientMark.Location = new System.Drawing.Point(874, 139);
             this.buttonClientMark.Name = "buttonClientMark";
             this.buttonClientMark.Size = new System.Drawing.Size(39, 19);
@@ -251,6 +355,7 @@
             // 
             // checkBoxTransmitToClient
             // 
+            this.checkBoxTransmitToClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxTransmitToClient.AutoSize = true;
             this.checkBoxTransmitToClient.Location = new System.Drawing.Point(806, 151);
             this.checkBoxTransmitToClient.Name = "checkBoxTransmitToClient";
@@ -564,17 +669,6 @@
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
             // 
-            // checkBoxDrawImageOverlay
-            // 
-            this.checkBoxDrawImageOverlay.AutoSize = true;
-            this.checkBoxDrawImageOverlay.Location = new System.Drawing.Point(837, 429);
-            this.checkBoxDrawImageOverlay.Name = "checkBoxDrawImageOverlay";
-            this.checkBoxDrawImageOverlay.Size = new System.Drawing.Size(94, 17);
-            this.checkBoxDrawImageOverlay.TabIndex = 65;
-            this.checkBoxDrawImageOverlay.Text = "Image Overlay";
-            this.checkBoxDrawImageOverlay.UseVisualStyleBackColor = true;
-            this.checkBoxDrawImageOverlay.CheckedChanged += new System.EventHandler(this.checkBoxDrawImageOverlay_CheckedChanged);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -592,6 +686,8 @@
             this.tabControlMainFrm.ResumeLayout(false);
             this.tabPageMain.ResumeLayout(false);
             this.tabPageMain.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.groupBoxTestRect.ResumeLayout(false);
             this.groupBoxTestRect.PerformLayout();
             this.tabPageSetup.ResumeLayout(false);
@@ -647,6 +743,13 @@
         private System.Windows.Forms.RadioButton radioButtonLoc1;
         private System.Windows.Forms.RadioButton radioButtonLocNone;
         private System.Windows.Forms.CheckBox checkBoxDrawImageOverlay;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.CheckBox checkBoxPWMAEnable;
+        private System.Windows.Forms.CheckBox checkBoxPWMADir;
+        private System.Windows.Forms.TextBox textBoxPWMASpeed;
+        private System.Windows.Forms.CheckBox checkBoxPWMBDir;
+        private System.Windows.Forms.TextBox textBoxPWMBSpeed;
+        private System.Windows.Forms.CheckBox checkBoxPWMBEnable;
     }
 }
 

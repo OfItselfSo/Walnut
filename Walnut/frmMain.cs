@@ -18,6 +18,7 @@ using MediaFoundation.EVR;
 using OISCommon;
 using TantaCommon;
 using WalnutCommon;
+using System.Xml.Linq;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -91,7 +92,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.04";
+        private const string APPLICATION_VERSION = "00.02.05";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -1896,8 +1897,11 @@ namespace Walnut
                     return;
                 }
 
+                // convert to src-tgt format
+                List<SrcTgtData> srcTgtData = ConvertRectListToSrcTgtList(rectList);
+
                 // do we want to transmit this data to the client?
-                if(TransmitToClientEnabled==true)
+                if (TransmitToClientEnabled==true)
                 {
 
                     if (dataTransporter == null)
@@ -1910,12 +1914,13 @@ namespace Walnut
                         LogMessage("codeWorker_ProgressChanged, Not connected");
                         return;
                     }
-                    // create the data contaiiner
-                    ServerClientData scData = new ServerClientData("Rect Data from Server to Client");
-                    // tell it we are carrying a rect list
-                    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.RECT_DATA;
+
+                    // create the data container
+                    ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
+                    // tell it we are carrying a srcTgt list
+                    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
                     scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
-                    scData.RectList = rectList;
+                    scData.SrcTgtList = srcTgtData;
 
                     // display it
                     LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
@@ -2035,6 +2040,46 @@ namespace Walnut
             dataTransporter.SendData(scData);
 
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a rectList to a srcTgtList. Just looks for the first red and green
+        /// rect we can find and returns those
+        /// </summary>
+        /// <param name="rectList">the rectList to convert</param>
+        /// <returns>a populated List<SrcTgtData> container</returns>
+        private List<SrcTgtData> ConvertRectListToSrcTgtList(List<ColoredRotatedRect> rectList)
+        {
+            ColoredRotatedRect greenRect = null;
+            ColoredRotatedRect redRect = null;
+
+            List<SrcTgtData> outList = new List<SrcTgtData>();
+
+            // sanity check
+            if (rectList == null) return outList;
+            if (rectList.Count == 0) return outList;
+
+            // we consider the green rect to be the tgt and red to be the src look for them
+            foreach (ColoredRotatedRect rect in rectList)
+            {
+                // we just take the first one we find
+                if ((greenRect == null) && (rect.RectColor == KnownColor.Green)) greenRect = rect;
+                if ((redRect == null) && (rect.RectColor == KnownColor.Red)) redRect = rect;
+            }
+            // create our output class
+            SrcTgtData workingSrcTgt = new SrcTgtData();
+
+            // if we found either a red or a green square then add them
+            if (greenRect != null) workingSrcTgt.TgtPoint = greenRect.Center;
+            if (redRect != null) workingSrcTgt.SrcPoint = redRect.Center;
+
+            // do we have at least one of these? if not return empty list
+            if(workingSrcTgt.IsMinimallyPopulated() == false) return outList;
+            // we do, add it
+            outList.Add(workingSrcTgt);
+            // return it
+            return outList;
+         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -2334,7 +2379,7 @@ namespace Walnut
             if (ImageOverlayTransform == null) return;
             if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(120, 150));
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(150, 150));
         }
 
         private void radioButtonLoc2_CheckedChanged(object sender, EventArgs e)
@@ -2344,7 +2389,7 @@ namespace Walnut
             if (ImageOverlayTransform == null) return;
             if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(120, 300));
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(200, 200));
 
         }
 
@@ -2355,7 +2400,7 @@ namespace Walnut
             if (ImageOverlayTransform == null) return;
             if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 300));
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 100));
 
         }
 
@@ -2366,7 +2411,7 @@ namespace Walnut
             if (ImageOverlayTransform == null) return;
             if ((ImageOverlayTransform is MFTOverlayImage_Sync) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 130));
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetRectangle(new Point(350, 200));
 
         }
 
@@ -2396,6 +2441,237 @@ namespace Walnut
             (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(OVERLAY_IMAGE_FILENAME);
 
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a checked changed event on the PWMA test option
+        /// </summary>
+        /// 
+        private void checkBoxPWMAEnable_CheckedChanged(object sender, EventArgs e)
+        {
+            LogMessage("checkBoxPWMAEnable_CheckedChanged");
+
+            // send the PWMA test data
+            SendPWMATestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle an update on the PWMA speed test option
+        /// </summary>
+        /// 
+        private void textBoxPWMASpeed_TextChanged(object sender, EventArgs e)
+        {
+            LogMessage("textBoxPWMASpeed_TextChanged");
+
+            // send the PWMA test data
+            SendPWMATestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle an update on the PWMA dir test option
+        /// </summary>
+        /// 
+        private void checkBoxPWMADir_CheckedChanged(object sender, EventArgs e)
+        {
+            LogMessage("textBoxPWMASpeed_TextChanged");
+
+            // send the PWMA test data
+            SendPWMATestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a checked changed event on the PWMB test option
+        /// </summary>
+        /// 
+        private void checkBoxPWMBEnable_CheckedChanged(object sender, EventArgs e)
+        {
+            LogMessage("checkBoxPWMBEnable_CheckedChanged");
+
+            // send the PWMB test data
+            SendPWMBTestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle an update on the PWMB speed test option
+        /// </summary>
+        /// 
+        private void textBoxPWMBSpeed_TextChanged(object sender, EventArgs e)
+        {
+            LogMessage("textBoxPWMBSpeed_TextChanged");
+
+            // send the PWMB test data
+            SendPWMBTestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle an update on the PWMB dir test option
+        /// </summary>
+        /// 
+        private void checkBoxPWMBDir_CheckedChanged(object sender, EventArgs e)
+        {
+            LogMessage("textBoxPWMBSpeed_TextChanged");
+
+            // send the PWMB test data
+            SendPWMBTestData();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Populates a ServerClientData object with PWMB test data and sends it
+        /// </summary>
+        /// <returns>a ServerClientData object</returns>
+        /// 
+        private void SendPWMBTestData()
+        {
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+
+            // set up some default speeds and dirs
+            scData.PWMB_PWMPercent = GetPWMBSpeed();
+            if (checkBoxPWMBDir.Checked == true)
+            {
+                scData.PWMB_DirState = 1;
+            }
+            else
+            {
+                scData.PWMB_DirState = 0;
+
+            }
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+
+            // set PWMB speed according to the screen
+            if (checkBoxPWMBEnable.Checked == true)
+            {
+                scData.PWMB_Enable = 1;
+                scData.DataStr = "Set PWM B State On";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.PWMB_DATA;
+            }
+            else
+            {
+                scData.PWMB_Enable = 0;
+                scData.DataStr = "Set PWM B State Off";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.PWMB_DATA;
+            }
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+            return;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Populates a ServerClientData object with PWMA test data and sends it
+        /// </summary>
+        /// <returns>a ServerClientData object</returns>
+        /// 
+        private void SendPWMATestData()
+        {
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+
+            // set up some default speeds and dirs
+            scData.PWMA_PWMPercent = GetPWMASpeed();
+            if (checkBoxPWMADir.Checked == true)
+            {
+                scData.PWMA_DirState = 1;
+            }
+            else
+            {
+                scData.PWMA_DirState = 0;
+
+            }
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+
+            // set PWMA speed according to the screen
+            if (checkBoxPWMAEnable.Checked == true)
+            {
+                scData.PWMA_Enable = 1;
+                scData.DataStr = "Set PWM A State On";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.PWMA_DATA;
+            }
+            else
+            {
+                scData.PWMA_Enable = 0;
+                scData.DataStr = "Set PWM A State Off";
+                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.PWMA_DATA;
+            }
+
+            // display it
+            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+            return;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the speed for PWM A
+        /// </summary>
+        private uint GetPWMASpeed()
+        {
+            try
+            {
+                return Convert.ToUInt32(textBoxPWMASpeed.Text);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the speed for PWM B
+        /// </summary>
+        private uint GetPWMBSpeed()
+        {
+            try
+            {
+                return Convert.ToUInt32(textBoxPWMASpeed.Text);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
     }
 
 }
