@@ -16,7 +16,7 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
-- **00.02.06** Commit ID: 
+- **00.02.06** Commit ID: 424bddc
     - This experiment demonstrates the controlled motion of a movable red circle over a virtual linear path drawn in the color green. The green path is removed as the circle moves over it. As the red circle moves along, it can lay down a colored "trail" which forms a return path. When there is no more of the green path to follow, the red circle will follow the return path back to the start. See the FPath_Ex004 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex004_GraphicalStigmergy.php](http://www.ofitselfso.com/FPath/FPath_Ex004_GraphicalStigmergy.php).
     
