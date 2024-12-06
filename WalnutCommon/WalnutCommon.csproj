@@ -46,7 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColorDetector.cs" />
-    <Compile Include="ColoredRotatedRect.cs" />
+    <Compile Include="ColoredObjectType.cs" />
+    <Compile Include="ColoredRotatedObject.cs" />
+    <Compile Include="DirectBitmap.cs" />
     <Compile Include="FixedSizeQueue_Uint.cs" />
     <Compile Include="FixedSizeQueue_PointF.cs" />
     <Compile Include="FixedSizeQueue_Generic.cs" />

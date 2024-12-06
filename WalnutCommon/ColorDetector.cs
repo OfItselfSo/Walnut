@@ -65,12 +65,20 @@ namespace WalnutCommon
         /// </summary>
         private void SetupColorHueDict()
         { 
-            colorHueDict.Add(Color.Red.GetHue(), KnownColor.Red);
-            colorHueDict.Add(Color.Green.GetHue(), KnownColor.Green);
-            colorHueDict.Add(Color.Blue.GetHue(), KnownColor.Blue);
-            colorHueDict.Add(Color.Magenta.GetHue(), KnownColor.Magenta);
-            colorHueDict.Add(Color.Yellow.GetHue(), KnownColor.Yellow);
-            colorHueDict.Add(Color.Cyan.GetHue(), KnownColor.Cyan);
+            colorHueDict.Add(Color.FromArgb(255, 255, 0, 0).GetHue(), KnownColor.Red);
+            colorHueDict.Add(Color.FromArgb(255, 0, 255, 0).GetHue(), KnownColor.Green);
+            colorHueDict.Add(Color.FromArgb(255, 0, 0, 255).GetHue(), KnownColor.Blue);
+            // the GetHue() always returns an angle value between 0 and 359.9999. This messes
+            // up some comparisons close to 0. ie 352 is really RED because it is close 
+            // to zero in angle rather than blue which is 270, if we add a second RED at 360
+            // the math works out better when iterating the dict
+            colorHueDict.Add(360, KnownColor.Red);
+
+            // later make this a settable option. Also need Orange and others. For now three colors
+            // makes things more accurate
+            //colorHueDict.Add(Color.FromArgb(255, 255, 0, 255).GetHue(), KnownColor.Magenta);
+            //colorHueDict.Add(Color.FromArgb(255, 255, 255, 0).GetHue(), KnownColor.Yellow);
+            //colorHueDict.Add(Color.FromArgb(255, 0, 255, 255).GetHue(), KnownColor.Cyan);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -78,17 +86,61 @@ namespace WalnutCommon
         /// Converts a BGR byte array to a known color. Uses the limited selection in
         /// the colorHueDict for its choices
         /// 
-        /// NOTE: greys must be checked for separately. 
+        /// Note: will check for greys according to the set detection range
+        /// 
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
         /// <returns>the closest known color, or black for fail</returns>
-        public KnownColor GetClosestKnownColor(byte[] pixelValue)
+        public KnownColor GetClosestKnownColorBGR(byte[] pixelValue)
         {
+            // check for gray, hues don't work well on blacks, grays and whites
+            if (IsGray(pixelValue) == true) return KnownColor.Gray;
+
             KeyValuePair<float, KnownColor> closestMatch = new KeyValuePair<float, KnownColor>(float.MaxValue, KnownColor.Black);
             float lowestDiff = float.MaxValue;
 
             // convert to a Color
             Color testColor = BGRPixelToColor(pixelValue);
+            // get the Hue of the test color
+            float testHue = testColor.GetHue();
+
+            // find the closest hue to the input
+            foreach (KeyValuePair<float, KnownColor> pairObj in colorHueDict)
+            {
+                // get the difference
+                float workingHueDiff = Math.Abs(testHue - pairObj.Key);
+
+                // have we have found the closest match so far 
+                if (workingHueDiff < lowestDiff)
+                {
+                    // yes, record it
+                    closestMatch = pairObj;
+                    lowestDiff = workingHueDiff;
+                }
+            }
+            return closestMatch.Value;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a RGB byte array to a known color. Uses the limited selection in
+        /// the colorHueDict for its choices
+        /// 
+        /// Note: will check for greys according to the set detection range
+        /// 
+        /// </summary>
+        /// <param name="pixelValue">3 byte BGR pixel value</param>
+        /// <returns>the closest known color, or black for fail</returns>
+        public KnownColor GetClosestKnownColorRGB(byte[] pixelValue)
+        {
+            // check for gray, hues don't work well on blacks, grays and whites
+            if (IsGray(pixelValue) == true) return KnownColor.Gray;
+
+            KeyValuePair<float, KnownColor> closestMatch = new KeyValuePair<float, KnownColor>(float.MaxValue, KnownColor.Black);
+            float lowestDiff = float.MaxValue;
+
+            // convert to a Color
+            Color testColor = RGBPixelToColor(pixelValue);
             // get the Hue of the test color
             float testHue = testColor.GetHue();
 
@@ -120,6 +172,19 @@ namespace WalnutCommon
             if (pixelValue == null) return Color.Black;
             if (pixelValue.Length != 3) return Color.Black;
             return Color.FromArgb(pixelValue[2], pixelValue[1], pixelValue[0]);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a RGB byte array to a color value 
+        /// </summary>
+        /// <param name="pixelValue">3 byte RGB pixel value</param>
+        /// <returns>true - in range, false - is not</returns>
+        public static Color RGBPixelToColor(byte[] pixelValue)
+        {
+            if (pixelValue == null) return Color.Black;
+            if (pixelValue.Length != 3) return Color.Black;
+            return Color.FromArgb(pixelValue[0], pixelValue[1], pixelValue[2]);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

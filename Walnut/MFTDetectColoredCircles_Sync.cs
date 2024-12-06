@@ -16,6 +16,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Emgu.CV.UI;
 using WalnutCommon;
+using System.Linq;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -41,7 +42,7 @@ using WalnutCommon;
 /// quite loosely. It will also pick up circles quite readily.
 /// 
 /// Circles are very computationally quite intensive to detect alone and so 
-/// the decision was made to just use squares. The target data is expected
+/// the decision was made to just use circles. The target data is expected
 /// not to have colored circles in it. Effectively we are just identifing
 /// the center and size of blobs of color here.
 /// 
@@ -68,14 +69,14 @@ namespace Walnut
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An MFT to use EmguCV to detect colored rectangles 
+    /// An MFT to use EmguCV to detect colored blobs
     ///  in video frames. 
     /// 
     /// This MFT can handle 1 media type (ARGB). You will also note that it
     /// hard codes the support for this type
     /// 
     /// </summary>
-    public sealed class MFTDetectColoredSquares_Sync : MFTImageRecognitionBase
+    public sealed class MFTDetectColoredCircles_Sync : MFTImageRecognitionBase
     {
         // Format information
         private int m_imageWidthInPixels;
@@ -86,7 +87,7 @@ namespace Walnut
         private bool wantOriginLowerLeft = false; // if true put the origin in lower left. Default is upper left
 
         // only used to if we write the text onto the video buffer. This functionality is actually commented out
-        // but someone might want it and this code has been left in to demonstrate how to create the components with out 
+        // but someone might want it and this code has been left in to demonstrate how to create the components without 
         // memory leaks. We do not want to have to create these for each frame so we create it once and re-use it each time
         private static readonly SolidBrush m_transparentBrush = new SolidBrush(Color.FromArgb(96, 0, 0, 255));
         private Font m_fontOverlay;
@@ -116,7 +117,7 @@ namespace Walnut
         /// <summary>
         /// Constructor
         /// </summary>
-        public MFTDetectColoredSquares_Sync() : base()
+        public MFTDetectColoredCircles_Sync() : base()
         {
             // init this now
             m_FrameCount = 0;
@@ -126,7 +127,7 @@ namespace Walnut
         /// <summary>
         /// Destructor
         /// </summary>
-        ~MFTDetectColoredSquares_Sync()
+        ~MFTDetectColoredCircles_Sync()
         {
             SafeRelease(m_transparentBrush);
             SafeRelease(m_fontOverlay);
@@ -278,7 +279,7 @@ namespace Walnut
 
                 // now that we have an output buffer, do the work to find the objects.
                 // Writing into outputMediaBuffer will write to the approprate location in the outputSample
-                identifiedObjects = DetectSquaresInBuffer(outputMediaBuffer); // much faster, can go at realtime, more or less any frame rate
+                identifiedObjects = DetectCirclesInBuffer(outputMediaBuffer); // much faster, can go at realtime, more or less any frame rate
                 if ((identifiedObjects != null) && (WantOriginLowerLeft == true))
                 {
                     // we need to convert the origin to a lower left (0,0) system. Essentially this means subracting the y coord from the 
@@ -538,16 +539,16 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect Squares in the output buffer
+        /// Detect Circles in the output buffer
         /// </summary>
         /// <param name="outputMediaBuffer">Output buffer</param>
-        private List<ColoredRotatedObject> DetectSquaresInBuffer(IMFMediaBuffer outputMediaBuffer)
+        private List<ColoredRotatedObject> DetectCirclesInBuffer(IMFMediaBuffer outputMediaBuffer)
         {
             IntPtr destRawDataPtr = IntPtr.Zero;			// Destination buffer.
             int destStride = 0;	                            // Destination stride.
             bool destIs2D = false;
             // the return value
-            List<ColoredRotatedObject> squares = null;
+            List<ColoredRotatedObject> circles = null;
 
             try
             {
@@ -574,7 +575,7 @@ namespace Walnut
 
                 // We could eventually offer the ability to write on other formats depending on the 
                 // current media type. We have this hardcoded to ARGB for now
-                squares = DetectSquaresInImageOfTypeRGB32(destRawDataPtr,
+                circles = DetectCirclesInImageOfTypeRGB32(destRawDataPtr,
                                 destStride,
                                 m_imageWidthInPixels,
                                 m_imageHeightInPixels);
@@ -584,8 +585,8 @@ namespace Walnut
                 HResult hr = outputMediaBuffer.SetCurrentLength(m_cbImageSize);
                 if (hr != HResult.S_OK)
                 {
-                    squares = null;
-                    throw new Exception("DetectSquaresInBuffer call to outputMediaBuffer.SetCurrentLength failed. Err=" + hr.ToString());
+                    circles = null;
+                    throw new Exception("DetectCirclesInBuffer call to outputMediaBuffer.SetCurrentLength failed. Err=" + hr.ToString());
                 }
             }
             finally
@@ -595,20 +596,20 @@ namespace Walnut
                 else TantaWMFUtils.UnLockIMF2DBuffer((outputMediaBuffer as IMF2DBuffer));
             }
             // return what we got
-            return squares;
+            return circles;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect squares ARGB formatted image and mark them. We use an EmguCV Mat()
+        /// Detect circles ARGB formatted image and mark them. We use an EmguCV Mat()
         /// object for this. 
         /// </summary>
         /// <param name="pDest">Pointer to the destination buffer.</param>
         /// <param name="lDestStride">Stride of the destination buffer, in bytes.</param>
         /// <param name="dwWidthInPixels">Frame width in pixels.</param>
         /// <param name="dwHeightInPixels">Frame height, in pixels.</param>
-        /// <returns>a list of colored squares or null for fail</returns>
-        private unsafe List<ColoredRotatedObject> DetectSquaresInImageOfTypeRGB32(
+        /// <returns>a list of colored circles or null for fail</returns>
+        private unsafe List<ColoredRotatedObject> DetectCirclesInImageOfTypeRGB32(
             IntPtr pDest,
             int lDestStride,
             int dwWidthInPixels,
@@ -616,7 +617,7 @@ namespace Walnut
             )
         {
             // the return value
-            List<ColoredRotatedObject> squares = null;
+            List<ColoredRotatedObject> circles = null;
 
             // Although the actual data is down in unmanaged memory
             // we do not need to use "unsafe" access to get at it. 
@@ -633,31 +634,31 @@ namespace Walnut
                 {
                     // populate the Mat() object
                     bitmapFrame.ToMat(bitmapAsMat);
-                    // now find the squares. Note this sometimes picks up circles as well
 
-                    squares = FindSquares(bitmapAsMat);
-                    squares = DeDuplicateSquares(squares, 2);
+                    // now find the circles. 
+                    circles = FindCircles(bitmapAsMat);
+                    circles = DeDuplicateCircles(circles, 2);
 
-                    // lets draw some crosses on the center of each square of a specified color
-                    foreach (ColoredRotatedObject squareCoord in squares)
+                    // lets draw some crosses on the center of each circle of a specified color
+                    foreach (ColoredRotatedObject circleCoord in circles)
                     {
                         // yes, this is the right way around
-                        int row = Convert.ToInt32(squareCoord.Center.Y);
-                        int col = Convert.ToInt32(squareCoord.Center.X);
+                        int row = Convert.ToInt32(circleCoord.Center.Y);
+                        int col = Convert.ToInt32(circleCoord.Center.X);
 
                         // set the pixel values. Note that GetValues is an extension method on Mat() See MatExtension.cs
-                        squareCoord.CenterPixelBGRValue = bitmapAsMat.GetValues(row, col);
+                        circleCoord.CenterPixelBGRValue = bitmapAsMat.GetValues(row, col);
                         // is it gray? we ignore these
-                        if (colorDetectorObj.IsGray(squareCoord.CenterPixelBGRValue) == true) continue;
+                        if (colorDetectorObj.IsGray(circleCoord.CenterPixelBGRValue) == true) continue;
                         // not gray, detect the color
-                        squareCoord.ObjColor = colorDetectorObj.GetClosestKnownColorBGR(squareCoord.CenterPixelBGRValue);
+                        circleCoord.ObjColor = colorDetectorObj.GetClosestKnownColorBGR(circleCoord.CenterPixelBGRValue);
 
                         // if we identified a color
-                        // if (squareCoord.ObjColor != ColoredRotatedRect.DEFAULT_COLOR)
-                        if ((squareCoord.ObjColor == KnownColor.Red) || (squareCoord.ObjColor == KnownColor.Blue) || (squareCoord.ObjColor == KnownColor.Green))
+                        if (circleCoord.ObjColor != ColoredRotatedObject.DEFAULT_COLOR)
+                        //if ((circleCoord.ObjColor == KnownColor.Red) || (circleCoord.ObjColor == KnownColor.Blue) || (circleCoord.ObjColor == KnownColor.Green))
                         {
                             // draw the cross
-                            DrawCrossOnPoint(graphicsObj, new Point(Convert.ToInt32(squareCoord.Center.X), Convert.ToInt32(squareCoord.Center.Y)), CENTROID_CROSS_BAR_LEN, blackPen);
+                            DrawCrossOnPoint(graphicsObj, new Point(Convert.ToInt32(circleCoord.Center.X), Convert.ToInt32(circleCoord.Center.Y)), CENTROID_CROSS_BAR_LEN, blackPen);
                         }
 
                     } // bottom of foreach
@@ -665,7 +666,7 @@ namespace Walnut
             } // bottom of using (Graphics graphicsObj
 
             // return what we got
-            return squares;
+            return circles;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -715,20 +716,20 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Find the centers of all squares in the input image. Derived from the open
+        /// Find the centers of all circles in the input image. Derived from the open
         /// source code at:
-        /// https://www.emgu.com/wiki/index.php/Shape_(Triangle,_Rectangle,_Square,_Line)_Detection_in_CSharp
+        /// https://www.emgu.com/wiki/index.php/Shape_(Triangle,_Rectangle,_Circle,_Line)_Detection_in_CSharp
         /// </summary>
         /// <param name="imageToProcess">the input image</param>
         /// <returns>a list of ColoredRotatedRect objects</returns>
-        public List<ColoredRotatedObject> FindSquares(Mat imageToProcess)
+        public List<ColoredRotatedObject> FindCircles(Mat imageToProcess)
         {
             if (imageToProcess == null) throw new Exception("Null image provided");
 
             // we return this
-            List<ColoredRotatedObject> boxList = new List<ColoredRotatedObject>(); 
+            List<ColoredRotatedObject> boxList = new List<ColoredRotatedObject>();
 
-            double cannyThreshold = 10; // was 180.0;
+            double cannyThreshold = 180; // was 180.0;
 
             using (Mat grayImage = new Mat())
             using (UMat cannyEdges = new UMat())
@@ -739,94 +740,54 @@ namespace Walnut
                 //Remove noise
                 CvInvoke.GaussianBlur(grayImage, grayImage, new Size(3, 3), 1);
 
-                // Canny and edge detection
-                double cannyThresholdLinking = 120.0;
-                CvInvoke.Canny(grayImage, cannyEdges, cannyThreshold, cannyThresholdLinking);
-                LineSegment2D[] lines = CvInvoke.HoughLinesP(
-                    cannyEdges,
-                    1, //Distance resolution in pixel-related units
-                    Math.PI / 45.0, //Angle resolution measured in radians.
-                    60, //threshold
-                    30, //min Line width
-                    10); //gap between lines
-
-                // Find rectangles
-                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+                double circleAccumulatorThreshold = 120;
+                CircleF[] circles = CvInvoke.HoughCircles(grayImage, HoughModes.Gradient, 2.0, 20.0, cannyThreshold, circleAccumulatorThreshold, 5);
+                // add all found circles to the output list we will de-dup later
+                for(int i =0; i< circles.Length; i++) 
                 {
-                    CvInvoke.FindContours(cannyEdges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-                    int count = contours.Size;
-                    for (int i = 0; i < count; i++)
-                    {
-                        using (VectorOfPoint contour = contours[i])
-                        using (VectorOfPoint approxContour = new VectorOfPoint())
-                        {
-                            CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * 0.05, true);
-                            //only consider contours with area greater than 250
-                            if (CvInvoke.ContourArea(approxContour, false) > 250)
-                            {
-                                //The contour must have 4 vertices
-                                if (approxContour.Size != 4) continue;
-
-                                // determine if all the angles in the contour are within [80, 100] degree
-                                bool isRectangle = true;
-                                Point[] pts = approxContour.ToArray();
-                                LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
-                                for (int j = 0; j < edges.Length; j++)
-                                {
-                                    double angle = Math.Abs(edges[(j + 1) % edges.Length].GetExteriorAngleDegree(edges[j]));
-                                    if (angle < 80 || angle > 100)
-                                    {
-                                        isRectangle = false;
-                                        break;
-                                    }
-                                }
-
-                                if (isRectangle) boxList.Add(new ColoredRotatedObject(CvInvoke.MinAreaRect(approxContour)));
-
-                            }
-                        }
-                    }
+                    boxList.Add(new ColoredRotatedObject(circles[i]));
                 }
+
             }
             return boxList;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// De-Duplicates found squares in the list. Duplicates happen because of the 
+        /// De-Duplicates found circles in the list. Duplicates happen because of the 
         /// fuzzy edges. 
         /// 
         /// Note: the algorythm here assumes duplicates will be sequential in the list
         /// </summary>
         /// <param name="minSeparationDistance">the minimum separation distance in pixels</param>
-        /// <param name="squares">a list of ColoredRotatedRect objects which may have duplicates</param>
+        /// <param name="circles">a list of ColoredRotatedRect objects which may have duplicates</param>
         /// <returns>a list of ColoredRotatedRect objects</returns>
-        public List<ColoredRotatedObject> DeDuplicateSquares(List<ColoredRotatedObject> squares, int minSeparationDistance) 
+        public List<ColoredRotatedObject> DeDuplicateCircles(List<ColoredRotatedObject> circles, int minSeparationDistance) 
         {
             float lastCenterX = -1;
             float lastCenterY = -1;
             // calc this now for fast comparisions
-            int sepDistSquared = minSeparationDistance * minSeparationDistance;
+            int sepDistCircled = minSeparationDistance * minSeparationDistance;
 
             List<ColoredRotatedObject> outList = new List<ColoredRotatedObject>();
-            if (squares == null) return outList;
+            if (circles == null) return outList;
 
             // lets run through the list 
-            foreach (ColoredRotatedObject squareCoord in squares)
+            foreach (ColoredRotatedObject circleCoord in circles)
             {
                 // yes, this is the right way around
-                float currentCenterX = squareCoord.Center.X;
-                float currentCenterY = squareCoord.Center.Y;
+                float currentCenterX = circleCoord.Center.X;
+                float currentCenterY = circleCoord.Center.Y;
                 double distance = ( Math.Pow((currentCenterX - lastCenterX), 2) + Math.Pow((currentCenterY - lastCenterY), 2));
                 // record for next loop
                 lastCenterX = currentCenterX;
                 lastCenterY = currentCenterY;
 
                 // now test
-                if (distance > sepDistSquared)
+                if (distance > sepDistCircled)
                 {
                     // we are two distinct rectangles, so copy it to the outList
-                    outList.Add(squareCoord);
+                    outList.Add(circleCoord);
                 }
             }
 

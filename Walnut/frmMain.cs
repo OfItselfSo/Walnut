@@ -19,6 +19,12 @@ using OISCommon;
 using TantaCommon;
 using WalnutCommon;
 using System.Xml.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+using System.Text.RegularExpressions;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using MediaFoundation.OPM;
+using Emgu.CV;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -92,7 +98,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.05";
+        private const string APPLICATION_VERSION = "00.02.06";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -148,7 +154,7 @@ namespace Walnut
         protected IMFTransform imageOverlayTransform = null;
 
         // if we are using an image recognition transform (as a binary) this will be non-null
-        protected MFTDetectColoredSquares_Sync recognitionTransform = null;
+        protected MFTDetectColoredAreas_Sync recognitionTransform = null;
 
         // this is the current type of the video stream. We need this to set up the sink writer
         // properly. This must be released at the end
@@ -180,7 +186,42 @@ namespace Walnut
         DateTime diagnosticStartTime = DateTime.Now;
         int diagnosticMessageCount = 0;
         const int MAX_DIAGNOSTIC_MESSAGE_COUNT = 100;
-        private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex002\circuit_transparent.png";
+        //   private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\Line1.png";
+        private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\WavePath1.png";
+        private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\AllTransparent640x480.png";
+        //private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\Walnut_003\CirclePath.png";
+        // private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\AllGreen640x480.png";
+
+        // this is the color the overlay image paths are drawn in
+        private static Color OVERLAY_TARGET_COLOR = Color.FromArgb(255, 0, 255, 0);
+        private static Color TRACKER_COLOR = Color.Cyan;
+        private static int DEFAULT_TARGET_COLOR_ARGB = Color.FromArgb(255, 0, 255, 0).ToArgb();
+        private static int ALT_TARGET_COLOR_ARGB = TRACKER_COLOR.ToArgb();
+
+        // this is the current color we are tracking
+        private int currentTargetColorARGB = DEFAULT_TARGET_COLOR_ARGB;
+        private int countOfDefaultTargetPixelsFound = 0;
+
+        // some pens and brushes we use
+        private Pen blackPen = new Pen(Color.Black);
+        private Pen trackerPen = new Pen(TRACKER_COLOR);
+        private SolidBrush blackBrush = new SolidBrush(Color.FromArgb(255, 0, 0, 0));
+        private SolidBrush trackerBrush = new SolidBrush(TRACKER_COLOR);
+        // make a transparent white brush, note this has an alpha channel of 0
+        private SolidBrush whiteTransparentBrush = new SolidBrush(Color.FromArgb(0, 255, 255, 255));
+
+
+        private const int SMALL_CIRCLE_DIAMETER_IN_PIXELS = 23;
+        private const int LARGE_CIRCLE_DIAMETER_IN_PIXELS = 37;
+
+        // set this up to detect the colors
+        private const uint DEFAULT_GRAY_DETECTION_RANGE = 15;
+        private ColorDetector colorDetectorObj = new ColorDetector(DEFAULT_GRAY_DETECTION_RANGE);
+        // used to draw crosses on objects
+        public const int DEFAULT_CENTROID_CROSS_BAR_LEN = 10;
+
+
+        private const int PATH_FOLLOW_MIN_POINTS_NEEDED = 3;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -717,8 +758,10 @@ namespace Walnut
                 buttonStartStopCapture.Text = START_CAPTURE;
                 buttonRecordingOnOff.Enabled = false;
                 buttonRecordingOnOff.Text = RECORDING_IS_OFF;
-                checkBoxTransmitToClient.Enabled = false;
-                checkBoxTransmitToClient.Checked = false;
+                checkBoxActivate.Enabled = false;
+                checkBoxActivate.Checked = false;
+                radioButtonRedToGreen.Enabled = true;
+                radioButtonPathFollow.Enabled = true;
             }
             else
             {
@@ -731,7 +774,9 @@ namespace Walnut
                 buttonStartStopCapture.Text = STOP_CAPTURE;
                 buttonRecordingOnOff.Enabled = true;
                 buttonRecordingOnOff.Text = RECORDING_IS_OFF;
-                checkBoxTransmitToClient.Enabled = true;
+                checkBoxActivate.Enabled = true;
+                radioButtonRedToGreen.Enabled = false;
+                radioButtonPathFollow.Enabled = false;
             }
 
             if ((displayText != null) && (displayText.Length != 0))
@@ -748,8 +793,8 @@ namespace Walnut
         {
             get
             {
-                if(checkBoxTransmitToClient.Enabled == false) return false;
-                if(checkBoxTransmitToClient.Checked == false) return false;
+                if(checkBoxActivate.Enabled == false) return false;
+                if(checkBoxActivate.Checked == false) return false;
                 return true;
             }
         }
@@ -1100,11 +1145,11 @@ namespace Walnut
                     }
 
                     // set a few things on the VideoTransform now
-                    if ((RecognitionTransform is MFTDetectColoredSquares_Sync) == true)
+                    if ((RecognitionTransform is MFTDetectColoredAreas_Sync) == true)
                     {
-                        //(RecognitionTransform as MFTDetectColoredSquares_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                        //(RecognitionTransform as MFTDetectColoredBlobs_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
                         //// the run info gets the run number inserted if the user used the MARKER in the string
-                        //(RecognitionTransform as MFTDetectColoredSquares_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
+                        //(RecognitionTransform as MFTDetectColoredBlobs_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
                     }
                 }
 
@@ -1147,26 +1192,6 @@ namespace Walnut
                 // record this, so we can chain the transforms properly. We always chain last to next
                 IMFTopologyNode lastTransformNode = textOverlayTransformNode;
 
-                // do we have an image overlay transform? 
-                if (ImageOverlayTransform != null)
-                {
-                    // yes, we do
-                    // inject the image overlay transform node into the topology
-                    hr = topologyObj.AddNode(imageOverlayTransformNode);
-                    if (hr != HResult.S_OK)
-                    {
-                        throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(imageOverlayTransformNode) failed. Err=" + hr.ToString());
-                    }
-                    // connect last transform node to the image overlay transform node
-                    hr = lastTransformNode.ConnectOutput(0, imageOverlayTransformNode, 0);
-                    if (hr != HResult.S_OK)
-                    {
-                        throw new Exception("PrepareSessionAndTopology call(a) to lastTransformNode.ConnectOutput failed. Err=" + hr.ToString());
-                    }
-                    // record this
-                    lastTransformNode = imageOverlayTransformNode;
-                }
-
                 // do we have an image recognition transform? 
                 if (RecognitionTransform != null)
                 {
@@ -1185,6 +1210,30 @@ namespace Walnut
 
                     // record this
                     lastTransformNode = recognitionTransformNode;
+                }
+
+                // note we are putting the overlay transform after the image recognition. This is more
+                // appropriate for following a path since the green does not interfere with the image recognition
+                // if we want to have virtual targets on the overlay it has to go before the recognition transform
+
+                // do we have an image overlay transform? 
+                if (ImageOverlayTransform != null)
+                {
+                    // yes, we do
+                    // inject the image overlay transform node into the topology
+                    hr = topologyObj.AddNode(imageOverlayTransformNode);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(imageOverlayTransformNode) failed. Err=" + hr.ToString());
+                    }
+                    // connect last transform node to the image overlay transform node
+                    hr = lastTransformNode.ConnectOutput(0, imageOverlayTransformNode, 0);
+                    if (hr != HResult.S_OK)
+                    {
+                        throw new Exception("PrepareSessionAndTopology call(a) to lastTransformNode.ConnectOutput failed. Err=" + hr.ToString());
+                    }
+                    // record this
+                    lastTransformNode = imageOverlayTransformNode;
                 }
 
                 // now connect the last transform node to sample grabber transform node
@@ -1308,11 +1357,11 @@ namespace Walnut
         /// This can be null if we do not have one.
         /// </summary>
         /// <returns> the a new transform object according to the display settings or null for none</returns>
-        private MFTDetectColoredSquares_Sync CreateRGBAObjectDetectionTransform()
+        private MFTDetectColoredAreas_Sync CreateRGBAObjectDetectionTransform()
         {
             // hard coded to this. If we wished to inject a different one into the pipeline we
             // could put some logic here.
-            return new MFTDetectColoredSquares_Sync();
+            return new MFTDetectColoredAreas_Sync();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1320,7 +1369,7 @@ namespace Walnut
         /// Gets/Sets the current image recognition transform object. Can be null
         /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public MFTDetectColoredSquares_Sync RecognitionTransform
+        public MFTDetectColoredAreas_Sync RecognitionTransform
         {
             get
             {
@@ -1560,12 +1609,30 @@ namespace Walnut
                 // evrVideoDisplay.SetAspectRatioMode(MFVideoAspectRatioMode.PreservePicture);
             }
 
+            // set this now
+            GiveChyronHeightToImageRecognitionTransform();
+
             // this is what starts the data moving through the pipeline
             HResult hr = mediaSession.Start(Guid.Empty, new PropVariant());
             if (hr != HResult.S_OK)
             {
                 throw new Exception("StartVideoCapture call to mediaSession.Start failed. Err=" + hr.ToString());
             }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Tell the image recognition transform the chyron height. This is so it 
+        /// does not try to image recognise in the bar at the bottom of the screen
+        /// 
+        /// This needs to be done after the topology has been set but before it starts
+        /// </summary>
+        private void GiveChyronHeightToImageRecognitionTransform()
+        {
+            if (RecognitionTransform == null) return;
+            if (TextOverlayTransform == null) return;
+            // set it now, 
+            (RecognitionTransform as MFTDetectColoredAreas_Sync).BottomOfScreenSkipHeight = (TextOverlayTransform as MFTWriteText_Sync).ChyronHeight;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1890,15 +1957,62 @@ namespace Walnut
             // do we have a recognition transform?
             if(RecognitionTransform  != null)
             {
-                // yes, we do. Get the list of rectangles from it
-                List<ColoredRotatedRect> rectList = RecognitionTransform.IdentifiedObjects;
-                if(rectList==null)
+                // yes, we do. Get the list of objects from it
+                List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
+                if (objList == null)
                 {
                     return;
                 }
-
                 // convert to src-tgt format
-                List<SrcTgtData> srcTgtData = ConvertRectListToSrcTgtList(rectList);
+                List<SrcTgtData> srcTgtDataList = new List<SrcTgtData>();
+ 
+                // do we want to check for the nearest green point?
+                if ((objList.Count != 0) && (imageOverlayTransform != null))
+                {
+                    Point centerPoint = new Point((int)objList[0].Center.X, (int)objList[0].Center.Y);
+                    int objRadius = (int)objList[0].Radius+3;
+
+                    // do we want to make it transparent
+                    if (checkBoxMakeTargetTransparent.Checked == true)
+                    {
+                        // make the target transparent
+                        (imageOverlayTransform as MFTOverlayImage_Sync).FillCircularRegionOnOverlay(whiteTransparentBrush, centerPoint, objRadius);
+                        // only write on the tracker if we are not actually following the track
+                        if(currentTargetColorARGB != ALT_TARGET_COLOR_ARGB) (imageOverlayTransform as MFTOverlayImage_Sync).FillCircularRegionOnTracker(trackerBrush,centerPoint, 3);
+                    }
+                    if (checkBoxFindGreen.Checked == true)
+                    {
+                        // look for the nearest green point. This is a spiral algorythm from the start point
+                        // it is faster than a raster scan from (0,0) and because the overlay uses a DirectBitmap
+                        // the GetPixel() calls are reasonably fast.
+                        Point nearestGreenPoint = (imageOverlayTransform as MFTOverlayImage_Sync).GetNearestColorPointFromOrigin(centerPoint, currentTargetColorARGB, PATH_FOLLOW_MIN_POINTS_NEEDED);
+                        if (nearestGreenPoint.IsEmpty == false)
+                        {
+                            // found one, count it
+                            countOfDefaultTargetPixelsFound ++;
+                            // load up the srcTgt object
+                            srcTgtDataList.Add(new SrcTgtData(centerPoint, nearestGreenPoint));
+
+                            // temporary
+                           // (imageOverlayTransform as MFTOverlayImage_Sync).DrawLineBetweenPoints(blackPen, centerPoint, nearestGreenPoint);
+                        }
+                        else
+                        {
+                            // not found. Have we moved enough to consider switching colors and toggling the 
+                            // operation to find our way back.
+                            const int MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS = 20;
+                            if (countOfDefaultTargetPixelsFound>MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS)
+                            {
+                                // switch to the alt color
+                                currentTargetColorARGB = ALT_TARGET_COLOR_ARGB;
+                                countOfDefaultTargetPixelsFound = 0;
+                                (imageOverlayTransform as MFTOverlayImage_Sync).CopyTrackerOntoOverlay();
+                                (imageOverlayTransform as MFTOverlayImage_Sync).ClearTracker();
+
+                            }
+                        }
+                    }                    
+                }
 
                 // do we want to transmit this data to the client?
                 if (TransmitToClientEnabled==true)
@@ -1920,7 +2034,7 @@ namespace Walnut
                     // tell it we are carrying a srcTgt list
                     scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
                     scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
-                    scData.SrcTgtList = srcTgtData;
+                    scData.SrcTgtList = srcTgtDataList;
 
                     // display it
                     LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
@@ -2043,35 +2157,35 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Converts a rectList to a srcTgtList. Just looks for the first red and green
-        /// rect we can find and returns those
+        /// Converts a objectList to a srcTgtList. Just looks for the first red and green
+        /// object we can find and returns those
         /// </summary>
-        /// <param name="rectList">the rectList to convert</param>
-        /// <returns>a populated List<SrcTgtData> container</returns>
-        private List<SrcTgtData> ConvertRectListToSrcTgtList(List<ColoredRotatedRect> rectList)
+        /// <param name="objList">the objList to convert</param>
+        /// <returns>a populated List<SrcTgtData> container, will never be null, might be empty</returns>
+        private List<SrcTgtData> ConvertObjectListToSrcTgtList(List<ColoredRotatedObject> objList)
         {
-            ColoredRotatedRect greenRect = null;
-            ColoredRotatedRect redRect = null;
+            ColoredRotatedObject greenObj = null;
+            ColoredRotatedObject redObj = null;
 
             List<SrcTgtData> outList = new List<SrcTgtData>();
 
             // sanity check
-            if (rectList == null) return outList;
-            if (rectList.Count == 0) return outList;
+            if (objList == null) return outList;
+            if (objList.Count == 0) return outList;
 
-            // we consider the green rect to be the tgt and red to be the src look for them
-            foreach (ColoredRotatedRect rect in rectList)
+            // we consider the green obj to be the tgt and red to be the src, look for them
+            foreach (ColoredRotatedObject foundObj in objList)
             {
                 // we just take the first one we find
-                if ((greenRect == null) && (rect.RectColor == KnownColor.Green)) greenRect = rect;
-                if ((redRect == null) && (rect.RectColor == KnownColor.Red)) redRect = rect;
+                if ((greenObj == null) && (foundObj.ObjColor == KnownColor.Green)) greenObj = foundObj;
+                if ((redObj == null) && (foundObj.ObjColor == KnownColor.Red)) redObj = foundObj;
             }
             // create our output class
             SrcTgtData workingSrcTgt = new SrcTgtData();
 
-            // if we found either a red or a green square then add them
-            if (greenRect != null) workingSrcTgt.TgtPoint = greenRect.Center;
-            if (redRect != null) workingSrcTgt.SrcPoint = redRect.Center;
+            // if we found either a red or a green object then add them
+            if (greenObj != null) workingSrcTgt.TgtPoint = greenObj.Center;
+            if (redObj != null) workingSrcTgt.SrcPoint = redObj.Center;
 
             // do we have at least one of these? if not return empty list
             if(workingSrcTgt.IsMinimallyPopulated() == false) return outList;
@@ -2089,7 +2203,7 @@ namespace Walnut
         /// <returns>a populated ServerClientData container</returns>
         private ServerClientData GetSCDataFromScreen(string scDataText)
         {
-            List<ColoredRotatedRect> rectList = null;
+            List<ColoredRotatedObject> rectList = null;
 
             if (scDataText == null) scDataText = "Rect Data from Server to Client";
             ServerClientData scData = new ServerClientData(scDataText);
@@ -2434,12 +2548,25 @@ namespace Walnut
         {
             if (checkBoxDrawImageOverlay.Checked == false )
             {
-                (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(null);
+                (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(null,null);
                 return;
             }
             // set the overlay image - just hard coded for now
-            (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(OVERLAY_IMAGE_FILENAME);
+            (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(OVERLAY_IMAGE_FILENAME, TRACKER_IMAGE_FILENAME);
 
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Find nearest Green as target
+        /// </summary>
+        private void checkBoxFindGreen_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxDrawImageOverlay.Checked == false)
+            {
+                (ImageOverlayTransform as MFTOverlayImage_Sync).SetOverlayImage(null, null);
+                return;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2670,6 +2797,60 @@ namespace Walnut
             {
                 return 0;
             }
+        }
+
+        private void buttonTest_Click(object sender, EventArgs e)
+        {
+            // BitmapTest();
+            //(imageOverlayTransform as MFTOverlayImage_Sync).CopyTrackerOntoOverlay();
+            //(imageOverlayTransform as MFTOverlayImage_Sync).ConvertColorToColorOnOverlay(OVERLAY_TRACKER_COLOR, OVERLAY_TARGET_COLOR);
+            //(imageOverlayTransform as MFTOverlayImage_Sync).ClearTracker();
+        }
+
+        void BitmapTest()
+        {
+            //int testX = 100;
+            //int testY = 100;
+            //int radius = 10;
+
+            //SolidBrush blackBrush = new SolidBrush(Color.Red);
+            //SolidBrush whiteBrush = new SolidBrush(Color.Orange);
+
+            //DirectBitmap overlayImage = new DirectBitmap(@"D:\Dump\FPathData\FPath_Ex004\AllGreen640x480.png");
+
+            //// set up the bitmap for transparency
+            //overlayImage.Bitmap.MakeTransparent(Color.White);
+
+            //Graphics bitmapGraphicsObj = Graphics.FromImage(overlayImage.Bitmap);
+
+            //bitmapGraphicsObj = Graphics.FromImage(overlayImage.Bitmap);
+            //bitmapGraphicsObj.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+            //// we have to flip the Y axis or the graphics draw calls will be inverted
+            //bitmapGraphicsObj.ScaleTransform(1.0F, -1.0F);
+            //bitmapGraphicsObj.TranslateTransform(0.0F, -(float)overlayImage.Height);
+
+            //Color color1 = overlayImage.GetPixel(testX, testY);
+
+            //// Transparent fill circle on screen.
+            //bitmapGraphicsObj.FillEllipse(whiteBrush, testX - radius, testY - radius, radius * 2, radius * 2);
+
+            ////      overlayImage.SetPixel(testX, testY, Color.Red);
+            ////    overlayImage.SetPixelInvertedY(testX, testY, Color.Blue);
+
+            //Color color2 = overlayImage.GetPixel(testX, testY);
+            //Color color3 = overlayImage.Bitmap.GetPixel(testX, testY);
+
+            //Color color4 = overlayImage.GetPixel(testX, 480 - testY);
+            //Color color5 = overlayImage.Bitmap.GetPixel(testX, 480 - testY);
+            //Color color6 = overlayImage.GetPixel(testX, 479 - testY);
+            //Color color7 = overlayImage.Bitmap.GetPixel(testX, 479 - testY);
+
+            //Color color8 = overlayImage.GetPixelInvertedY(testX, testY);
+
+            //// it appears that 
+
+            //int foo = 1;
+
         }
 
     }

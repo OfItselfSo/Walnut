@@ -48,7 +48,7 @@ namespace WalnutCommon
         // this is the user flag data only valid if dataContent == USER_FLAG
         UserDataFlagEnum userFlag = UserDataFlagEnum.NO_FLAG;
 
-        private List<ColoredRotatedRect> rectList = null;
+        private List<ColoredRotatedObject> rectList = null;
 
         private List<SrcTgtData> srcTgtList = null;
 
@@ -195,17 +195,17 @@ namespace WalnutCommon
         /// <summary>
         /// Gets/Sets the rectList data value. Will never return null 
         /// </summary>
-        public List<ColoredRotatedRect> RectList
+        public List<ColoredRotatedObject> RectList
         {
             get
             {
-                if (rectList == null) rectList = new List<ColoredRotatedRect>();
+                if (rectList == null) rectList = new List<ColoredRotatedObject>();
                 return rectList;
             }
             set
             {
                 rectList = value;
-                if (rectList == null) rectList = new List<ColoredRotatedRect>();
+                if (rectList == null) rectList = new List<ColoredRotatedObject>();
             }
         }
 

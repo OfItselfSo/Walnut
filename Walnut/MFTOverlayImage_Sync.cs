@@ -1,12 +1,20 @@
-﻿using MediaFoundation;
+﻿using Emgu.CV.Structure;
+using MediaFoundation;
+using MediaFoundation.Misc;
+using MediaFoundation.OPM;
 using MediaFoundation.Transform;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using TantaCommon;
+using WalnutCommon;
+using static Emgu.CV.Fuzzy.FuzzyInvoke;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -37,7 +45,7 @@ using TantaCommon;
 /// ******************************************************************************
 
 /// This file implements a Synchronous Media Foundation Transform (MFT)
-/// which writes text on the video frames to grayscale as they pass 
+/// which writes a bitmap on the video frames to grayscale as they pass 
 /// through the transform.
 /// 
 /// This transform only supports one media type (ARGB) and the input and
@@ -78,10 +86,6 @@ namespace Walnut
         private int m_lStrideIfContiguous;
         private int m_FrameCount;               // only used to have something to write on the screen
 
-        // only used to actually write the text onto the video buffer. We do not want to have to 
-        // do this for each frame so we create it once and re-use it each time
-        private static readonly SolidBrush m_transparentBrush = new SolidBrush(Color.FromArgb(96, 0, 0, 255));
- 
         // this list of the guids of the media subtypes we support. The input format must be the same
         // as the output format 
         private readonly Guid[] m_MediaSubtypes = new Guid[] { MFMediaType.RGB32 };
@@ -105,7 +109,14 @@ namespace Walnut
         private const int SAMPLE_RECTANGLE_HEIGHT = 30;
         private const int SAMPLE_RECTANGLE_WIDTH = 30;
 
-        private Bitmap overlayImage;
+        private DirectBitmap overlayImage;
+        private DirectBitmap trackerImage;
+
+        // we use this to draw on the bitmaps
+        private Graphics overlayGraphicsObj = null;
+        private Graphics trackerGraphicsObj = null;
+
+        private SolidBrush whiteTransparentBrush = new SolidBrush(Color.FromArgb(0, 255, 255, 255));
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -126,8 +137,6 @@ namespace Walnut
         ~MFTOverlayImage_Sync()
         {
             // DebugMessage("MFTOverlayImage_Sync Destructor");
-
-            SafeRelease(m_transparentBrush);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -184,7 +193,7 @@ namespace Walnut
         override protected HResult OnCheckInputType(IMFMediaType pmt)
         {
             HResult hr;
-            
+
             // We assume the input type will get checked first
             if (OutputType == null)
             {
@@ -295,9 +304,9 @@ namespace Walnut
                     throw new Exception("OnProcessOutput call to InputSample.ConvertToContiguousBuffer failed. Err=" + hr.ToString());
                 }
 
-                // now that we have an output buffer, do the work to write text on them.
+                // now that we have an output buffer, do the work to draw the overlay and tracker on it.
                 // Writing into outputMediaBuffer will write to the approprate location in the outputSample
-                WriteTextOnBuffer(outputMediaBuffer);
+                DrawOverlayImageOnBuffer(outputMediaBuffer);
 
                 // Set status flags.
                 outputSampleDataStruct.dwStatus = MFTOutputDataBufferFlags.None;
@@ -316,7 +325,7 @@ namespace Walnut
                 // the act of setting it to null releases it because the property
                 // is coded that way
                 InputSample = null;
-            } 
+            }
 
             return HResult.S_OK;
         }
@@ -420,14 +429,224 @@ namespace Walnut
         ///  
         /// </summary>
         /// <param name="imageDirAndFilename">image filename</param>
-        public void SetOverlayImage(string imageDirAndFilename)
+        /// <param name="trackerImageDirAndFilename">if not null we use this image as a tracker backing store</param>
+        public void SetOverlayImage(string imageDirAndFilename, string trackerImageDirAndFilename)
         {
             // reset this
             overlayImage = null;
+            trackerImage = null;
+
+            // set our bitmap graphics object, dispose first if it already exists
+            if (overlayGraphicsObj != null)
+            {
+                overlayGraphicsObj.Dispose();
+                overlayGraphicsObj = null;
+            }
+
+            // set our bitmap graphics object, dispose first if it already exists
+            if (trackerGraphicsObj != null)
+            {
+                trackerGraphicsObj.Dispose();
+                trackerGraphicsObj = null;
+            }
 
             if ((imageDirAndFilename == null) || (imageDirAndFilename.Length == 0)) return;
 
-            overlayImage = (Bitmap)Image.FromFile(imageDirAndFilename);
+            overlayImage = new DirectBitmap(imageDirAndFilename);
+
+
+            overlayGraphicsObj = Graphics.FromImage(overlayImage.Bitmap);
+            overlayGraphicsObj.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+            // we have to flip the Y axis or the graphics draw calls will be inverted
+            overlayGraphicsObj.ScaleTransform(1.0F, -1.0F);
+            overlayGraphicsObj.TranslateTransform(0.0F, -(float)overlayImage.Height);
+
+            // now for the tracker image
+            if ((trackerImageDirAndFilename == null) || (trackerImageDirAndFilename.Length == 0)) return;
+            trackerImage = new DirectBitmap(trackerImageDirAndFilename);
+
+            trackerGraphicsObj = Graphics.FromImage(trackerImage.Bitmap);
+            trackerGraphicsObj.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+            // we have to flip the Y axis or the graphics draw calls will be inverted
+            trackerGraphicsObj.ScaleTransform(1.0F, -1.0F);
+            trackerGraphicsObj.TranslateTransform(0.0F, -(float)trackerImage.Height);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line on the overlay bitmap between two points. 
+        ///  
+        ///  Mostly for diagnostics because they do not get erased
+        ///  
+        /// </summary>
+        /// <param name="endPoint">the end point</param>
+        /// <param name="startPoint">the start point</param>
+        /// <param name="workingPen">pen to use</param>
+        public void DrawLineBetweenPointsOnOverlay(Pen workingPen, Point startPoint, Point endPoint)
+        {
+            if (overlayImage == null) return;
+            if (overlayGraphicsObj == null) return;
+            // draw the line with the default pen
+            overlayGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line on the tracker bitmap between two points. 
+        ///  
+        ///  Mostly for diagnostics because they do not get erased
+        ///  
+        /// </summary>
+        /// <param name="endPoint">the end point</param>
+        /// <param name="startPoint">the start point</param>
+        /// <param name="workingPen">pen to use</param>
+        public void DrawLineBetweenPointsOnTracker(Pen workingPen, Point startPoint, Point endPoint)
+        {
+            if (trackerImage == null) return;
+            if (trackerGraphicsObj == null) return;
+            // draw the line with the default pen
+            trackerGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Makes a circular part of the overlay image a specified color. If using 
+        ///  a color equivalent to the transparent color, the overlay region will be
+        ///  rendered transparent. If already transparent there will be no change. 
+        ///  
+        /// </summary>
+        /// <param name="centerPoint">the centerpoint of the circle</param>
+        /// <param name="radius">the radius of the circle</param>
+        /// <param name="workingBrush">the brush to use</param>
+        public void FillCircularRegionOnOverlay(SolidBrush workingBrush, Point centerPoint, int radius)
+        {
+            if (overlayImage == null) return;
+
+            // some sanity checks
+            if (centerPoint.IsEmpty == true) return;
+
+            // Create global graphics object for alteration.
+            try
+            {
+                if (overlayGraphicsObj != null)
+                {
+                    // Transparent fill circle on screen.
+                    overlayGraphicsObj.FillEllipse(workingBrush, centerPoint.X - radius, centerPoint.Y - radius, radius * 2, radius * 2);
+                }
+            }
+            catch { }
+            finally
+            {
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Makes a circular part of the tracker image a specified color. If using 
+        ///  a color equivalent to the transparent color, the tracker region will be
+        ///  rendered transparent. If already transparent there will be no change. 
+        ///  
+        /// </summary>
+        /// <param name="centerPoint">the centerpoint of the circle</param>
+        /// <param name="radius">the radius of the circle</param>
+        /// <param name="workingBrush">the brush to use</param>
+        public void FillCircularRegionOnTracker(SolidBrush workingBrush, Point centerPoint, int radius)
+        {
+            if (trackerImage == null) return;
+
+            // some sanity checks
+            if (centerPoint.IsEmpty == true) return;
+
+            // Create global graphics object for alteration.
+            try
+            {
+                if (trackerGraphicsObj != null)
+                {
+                    // Transparent fill circle on screen.
+                    trackerGraphicsObj.FillEllipse(workingBrush, centerPoint.X - radius, centerPoint.Y - radius, radius * 2, radius * 2);
+                }
+            }
+            catch { }
+            finally
+            {
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Copys the tracker bitmap contents onto the overlay bitmap
+        ///  
+        /// </summary>
+        public void CopyTrackerOntoOverlay()
+        {
+            if (trackerImage == null) return;
+            if (overlayImage == null) return;
+            overlayImage.CopyFrom(trackerImage);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Converts a color on the Overlay to another color
+        ///  
+        /// </summary>
+        /// <param name="color">the source color</param>
+        /// <param name="toColor">the color to convert to</param>
+        public void ConvertColorToColorOnOverlay(Color color, Color toColor)
+        {
+            if (overlayImage == null) return;
+            overlayImage.ConvertColorToColor(color, toColor);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Clears the tracker DirectBitmap, uses a transparent brush
+        ///  
+        /// </summary>
+        public void ClearTracker()
+        {
+            if (trackerImage == null) return;
+            if (trackerGraphicsObj != null)
+            {
+                Rectangle fullRectagle = new Rectangle(new Point(0, 0), new Size(trackerImage.Width, trackerImage.Height));
+                trackerGraphicsObj.FillEllipse(whiteTransparentBrush, fullRectagle);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the nearest colored point from the specified origin point. 
+        ///  
+        ///  Note this uses a spiral algorythm to find the point 
+        ///  
+        /// </summary>
+        /// <param name="originPoint">the origin we start from</param>
+        /// <param name="colorAsToArgb">the .ToArgb() value of the color being looked for</param
+        /// <param name="minConsecutivePointsNeeded">the minimum number of consecutive points needed in order to consider a returned point valid</param>
+        /// <returns>the nearest colored point or an empty point for fail</returns>
+        public Point GetNearestColorPointFromOrigin(Point originPoint, int colorAsToArgb, int minConsecutivePointsNeeded)
+        {
+            if (originPoint.IsEmpty == true) return new Point();
+            if (overlayImage == null) return new Point();
+
+            try
+            {
+                // this sets up an enumerator which uses the yield pattern
+                IEnumerable<Point> pixels = Utils.GetSpiralGrid(originPoint, new Size(overlayImage.Width - 1, overlayImage.Height - 1));
+                foreach (Point i in pixels)
+                {
+                    // get the pixel. not very efficient
+                    Color pixelColor = overlayImage.GetPixelInvertedY(i.X, i.Y);
+                    // is it the proper color
+                    if (pixelColor.ToArgb().Equals(colorAsToArgb))
+                    {
+                        Point foundPoint = new Point(i.X, i.Y);
+                        return foundPoint;
+                    }
+                }
+            }
+            catch { }
+            // not found 
+            return new Point();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -449,7 +668,6 @@ namespace Walnut
             // bounds checking
             sampleRectagle = new Rectangle(new Point(ulPoint.X, ulPoint.Y), new Size(SAMPLE_RECTANGLE_WIDTH, SAMPLE_RECTANGLE_HEIGHT));
         }
-
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -553,10 +771,10 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Write the text on the output buffer
+        /// Draw the overlay image on the output buffer
         /// </summary>
         /// <param name="outputMediaBuffer">Output buffer</param>
-        private void WriteTextOnBuffer(IMFMediaBuffer outputMediaBuffer)
+        private void DrawOverlayImageOnBuffer(IMFMediaBuffer outputMediaBuffer)
         {
             IntPtr destRawDataPtr = IntPtr.Zero;			// Destination buffer.
             int destStride=0;	                            // Destination stride.
@@ -587,7 +805,7 @@ namespace Walnut
 
                 // We could eventually offer the ability to write on other formats depending on the 
                 // current media type. We have this hardcoded to ARGB for now
-                WriteImageOfTypeARGB( destRawDataPtr, 
+                DrawOverlayImageOnFrame( destRawDataPtr, 
                                 destStride,
                                 m_imageWidthInPixels, 
                                 m_imageHeightInPixels);
@@ -597,7 +815,7 @@ namespace Walnut
                 HResult hr = outputMediaBuffer.SetCurrentLength(m_cbImageSize);
                 if (hr != HResult.S_OK)
                 {
-                    throw new Exception("WriteTextOnBuffer call to outputMediaBuffer.SetCurrentLength failed. Err=" + hr.ToString());
+                    throw new Exception("DrawOverlayImageOnBuffer call to outputMediaBuffer.SetCurrentLength failed. Err=" + hr.ToString());
                 }
             }
             finally
@@ -610,13 +828,13 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Write Text on an ARGB formatted image
+        /// Draw the overlay image on an ARGB formatted frame
         /// </summary>
         /// <param name="pDest">Pointer to the destination buffer.</param>
         /// <param name="lDestStride">Stride of the destination buffer, in bytes.</param>
         /// <param name="dwWidthInPixels">Frame width in pixels.</param>
         /// <param name="dwHeightInPixels">Frame height, in pixels.</param>
-        private void WriteImageOfTypeARGB(
+        private void DrawOverlayImageOnFrame(
             IntPtr pDest,
             int lDestStride,
             int dwWidthInPixels,
@@ -626,7 +844,7 @@ namespace Walnut
 
             // Although the actual data is down in unmanaged memory
             // we do not need to use "unsafe" access to get at it. 
-            // The new BitMap call does this for us. This is probably
+            // The new Bitmap() call does this for us. This is probably
             // only useful in this sort of rare circumstance. Normally
             // you have to copy it about. See the MFTTantaGrayscale_Sync code.
 
@@ -636,24 +854,26 @@ namespace Walnut
             {
                 using (Graphics g = Graphics.FromImage(v))
                 {
-                    //float sLeft;
-                    //float sTop;
-                    //SizeF fontSize;
-
                     if (sampleRectagle != null)
                     {
-                        // draw our background for the text, the rect for this was figured out earlier
+                        // draw our rectangle, the rect for this was figured out earlier
                         g.FillRectangle(Brushes.Green, sampleRectagle);
                     }
 
+                    // if we have a overlay image draw it on the frame
                     if(overlayImage !=null)
                     {
                         // image overlay compositing is really quite simple. See
                         // https://chrisbitting.com/2013/11/08/overlaying-compositing-images-using-c-system-drawing/
                         g.CompositingMode = CompositingMode.SourceOver;
-                        g.DrawImage(overlayImage, 0, 0);
-                    }
+                        g.DrawImage(overlayImage.Bitmap, 0, 0);
 
+                        // if we have a tracker image draw it as well
+                        if (trackerImage != null)
+                        {
+                            g.DrawImage(trackerImage.Bitmap, 0, 0);
+                        }
+                    }
 
                 }
             }

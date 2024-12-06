@@ -34,8 +34,8 @@ namespace WalnutCommon
     [SerializableAttribute]
     public class SrcTgtData
     {
-        private PointF srcPoint = new PointF(float.NaN, float.NaN);
-        private PointF tgtPoint = new PointF(float.NaN, float.NaN);
+        private Point srcPoint = new Point();
+        private Point tgtPoint = new Point();
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -51,7 +51,7 @@ namespace WalnutCommon
         /// </summary>
         /// <param name="srcPointIn">the source point</param>
         /// <param name="tgtPointIn">the target point</param>
-        public SrcTgtData(PointF srcPointIn, PointF tgtPointIn)
+        public SrcTgtData(Point srcPointIn, Point tgtPointIn)
         {
             SrcPoint = srcPointIn;
             TgtPoint = tgtPointIn;
@@ -63,7 +63,7 @@ namespace WalnutCommon
         /// </summary>
         /// <param name="srcRectIn">the source Rect</param>
         /// <param name="tgtRectIn">the target Rect</param>
-        public SrcTgtData(ColoredRotatedRect srcRectIn, ColoredRotatedRect tgtRectIn)
+        public SrcTgtData(ColoredRotatedObject srcRectIn, ColoredRotatedObject tgtRectIn)
         {
             if(srcRectIn!=null) SrcPoint = srcRectIn.Center;
             if(tgtRectIn!=null) TgtPoint = tgtRectIn.Center;
@@ -121,7 +121,7 @@ namespace WalnutCommon
         /// <summary>
         /// Get/Set the SrcPoint
         /// </summary>
-        public PointF SrcPoint
+        public Point SrcPoint
         {
             get { return srcPoint; }
             set { srcPoint = value; }
@@ -131,7 +131,7 @@ namespace WalnutCommon
         /// <summary>
         /// Get/Set the TgtPoint
         /// </summary>
-        public PointF TgtPoint
+        public Point TgtPoint
         {
             get { return tgtPoint; }
             set { tgtPoint = value; }

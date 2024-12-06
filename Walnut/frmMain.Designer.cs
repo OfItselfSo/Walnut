@@ -31,6 +31,12 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.checkBoxFindGreen = new System.Windows.Forms.CheckBox();
+            this.buttonTest = new System.Windows.Forms.Button();
+            this.groupBoxAction = new System.Windows.Forms.GroupBox();
+            this.radioButtonPathFollow = new System.Windows.Forms.RadioButton();
+            this.radioButtonRedToGreen = new System.Windows.Forms.RadioButton();
+            this.checkBoxActivate = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkBoxPWMBDir = new System.Windows.Forms.CheckBox();
             this.textBoxPWMBSpeed = new System.Windows.Forms.TextBox();
@@ -50,9 +56,6 @@
             this.buttonClientExit = new System.Windows.Forms.Button();
             this.buttonClientMark = new System.Windows.Forms.Button();
             this.textBoxStatus = new System.Windows.Forms.TextBox();
-            this.checkBoxTransmitToClient = new System.Windows.Forms.CheckBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.textBoxFoundObjects = new System.Windows.Forms.TextBox();
             this.labelCount = new System.Windows.Forms.Label();
             this.buttonResetRecNumber = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
@@ -79,8 +82,10 @@
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
+            this.checkBoxMakeTargetTransparent = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
+            this.groupBoxAction.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBoxTestRect.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
@@ -103,6 +108,10 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.checkBoxMakeTargetTransparent);
+            this.tabPageMain.Controls.Add(this.checkBoxFindGreen);
+            this.tabPageMain.Controls.Add(this.buttonTest);
+            this.tabPageMain.Controls.Add(this.groupBoxAction);
             this.tabPageMain.Controls.Add(this.groupBox1);
             this.tabPageMain.Controls.Add(this.checkBoxDrawImageOverlay);
             this.tabPageMain.Controls.Add(this.groupBoxTestRect);
@@ -111,9 +120,6 @@
             this.tabPageMain.Controls.Add(this.buttonClientExit);
             this.tabPageMain.Controls.Add(this.buttonClientMark);
             this.tabPageMain.Controls.Add(this.textBoxStatus);
-            this.tabPageMain.Controls.Add(this.checkBoxTransmitToClient);
-            this.tabPageMain.Controls.Add(this.label8);
-            this.tabPageMain.Controls.Add(this.textBoxFoundObjects);
             this.tabPageMain.Controls.Add(this.labelCount);
             this.tabPageMain.Controls.Add(this.buttonResetRecNumber);
             this.tabPageMain.Controls.Add(this.label5);
@@ -138,6 +144,75 @@
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
             // 
+            // checkBoxFindGreen
+            // 
+            this.checkBoxFindGreen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxFindGreen.AutoSize = true;
+            this.checkBoxFindGreen.Location = new System.Drawing.Point(837, 433);
+            this.checkBoxFindGreen.Name = "checkBoxFindGreen";
+            this.checkBoxFindGreen.Size = new System.Drawing.Size(78, 17);
+            this.checkBoxFindGreen.TabIndex = 69;
+            this.checkBoxFindGreen.Text = "Find Green";
+            this.checkBoxFindGreen.UseVisualStyleBackColor = true;
+            this.checkBoxFindGreen.CheckedChanged += new System.EventHandler(this.checkBoxFindGreen_CheckedChanged);
+            // 
+            // buttonTest
+            // 
+            this.buttonTest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonTest.Location = new System.Drawing.Point(786, 441);
+            this.buttonTest.Name = "buttonTest";
+            this.buttonTest.Size = new System.Drawing.Size(39, 19);
+            this.buttonTest.TabIndex = 68;
+            this.buttonTest.Text = "Test";
+            this.buttonTest.UseVisualStyleBackColor = true;
+            this.buttonTest.Click += new System.EventHandler(this.buttonTest_Click);
+            // 
+            // groupBoxAction
+            // 
+            this.groupBoxAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxAction.Controls.Add(this.radioButtonPathFollow);
+            this.groupBoxAction.Controls.Add(this.radioButtonRedToGreen);
+            this.groupBoxAction.Controls.Add(this.checkBoxActivate);
+            this.groupBoxAction.Location = new System.Drawing.Point(803, 196);
+            this.groupBoxAction.Name = "groupBoxAction";
+            this.groupBoxAction.Size = new System.Drawing.Size(96, 84);
+            this.groupBoxAction.TabIndex = 67;
+            this.groupBoxAction.TabStop = false;
+            this.groupBoxAction.Text = "Action";
+            // 
+            // radioButtonPathFollow
+            // 
+            this.radioButtonPathFollow.AutoSize = true;
+            this.radioButtonPathFollow.Location = new System.Drawing.Point(3, 35);
+            this.radioButtonPathFollow.Name = "radioButtonPathFollow";
+            this.radioButtonPathFollow.Size = new System.Drawing.Size(77, 17);
+            this.radioButtonPathFollow.TabIndex = 51;
+            this.radioButtonPathFollow.Text = "PathFollow";
+            this.radioButtonPathFollow.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonRedToGreen
+            // 
+            this.radioButtonRedToGreen.AutoSize = true;
+            this.radioButtonRedToGreen.Checked = true;
+            this.radioButtonRedToGreen.Location = new System.Drawing.Point(3, 17);
+            this.radioButtonRedToGreen.Name = "radioButtonRedToGreen";
+            this.radioButtonRedToGreen.Size = new System.Drawing.Size(87, 17);
+            this.radioButtonRedToGreen.TabIndex = 50;
+            this.radioButtonRedToGreen.TabStop = true;
+            this.radioButtonRedToGreen.Text = "RedToGreen";
+            this.radioButtonRedToGreen.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxActivate
+            // 
+            this.checkBoxActivate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxActivate.AutoSize = true;
+            this.checkBoxActivate.Location = new System.Drawing.Point(3, 58);
+            this.checkBoxActivate.Name = "checkBoxActivate";
+            this.checkBoxActivate.Size = new System.Drawing.Size(65, 17);
+            this.checkBoxActivate.TabIndex = 49;
+            this.checkBoxActivate.Text = "Activate";
+            this.checkBoxActivate.UseVisualStyleBackColor = true;
+            // 
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -147,7 +222,7 @@
             this.groupBox1.Controls.Add(this.checkBoxPWMADir);
             this.groupBox1.Controls.Add(this.textBoxPWMASpeed);
             this.groupBox1.Controls.Add(this.checkBoxPWMAEnable);
-            this.groupBox1.Location = new System.Drawing.Point(668, 360);
+            this.groupBox1.Location = new System.Drawing.Point(668, 350);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(157, 86);
             this.groupBox1.TabIndex = 66;
@@ -171,7 +246,7 @@
             this.textBoxPWMBSpeed.Name = "textBoxPWMBSpeed";
             this.textBoxPWMBSpeed.Size = new System.Drawing.Size(62, 20);
             this.textBoxPWMBSpeed.TabIndex = 4;
-            this.textBoxPWMBSpeed.Text = "50";
+            this.textBoxPWMBSpeed.Text = "100";
             this.textBoxPWMBSpeed.TextChanged += new System.EventHandler(this.textBoxPWMBSpeed_TextChanged);
             // 
             // checkBoxPWMBEnable
@@ -202,7 +277,7 @@
             this.textBoxPWMASpeed.Name = "textBoxPWMASpeed";
             this.textBoxPWMASpeed.Size = new System.Drawing.Size(62, 20);
             this.textBoxPWMASpeed.TabIndex = 1;
-            this.textBoxPWMASpeed.Text = "50";
+            this.textBoxPWMASpeed.Text = "100";
             this.textBoxPWMASpeed.TextChanged += new System.EventHandler(this.textBoxPWMASpeed_TextChanged);
             // 
             // checkBoxPWMAEnable
@@ -220,7 +295,7 @@
             // 
             this.checkBoxDrawImageOverlay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxDrawImageOverlay.AutoSize = true;
-            this.checkBoxDrawImageOverlay.Location = new System.Drawing.Point(837, 429);
+            this.checkBoxDrawImageOverlay.Location = new System.Drawing.Point(837, 399);
             this.checkBoxDrawImageOverlay.Name = "checkBoxDrawImageOverlay";
             this.checkBoxDrawImageOverlay.Size = new System.Drawing.Size(94, 17);
             this.checkBoxDrawImageOverlay.TabIndex = 65;
@@ -236,7 +311,7 @@
             this.groupBoxTestRect.Controls.Add(this.radioButtonLoc3);
             this.groupBoxTestRect.Controls.Add(this.radioButtonLoc2);
             this.groupBoxTestRect.Controls.Add(this.radioButtonLoc1);
-            this.groupBoxTestRect.Location = new System.Drawing.Point(831, 313);
+            this.groupBoxTestRect.Location = new System.Drawing.Point(831, 283);
             this.groupBoxTestRect.Name = "groupBoxTestRect";
             this.groupBoxTestRect.Size = new System.Drawing.Size(92, 110);
             this.groupBoxTestRect.TabIndex = 64;
@@ -304,7 +379,7 @@
             // 
             this.checkBoxTestStepperDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxTestStepperDir.AutoSize = true;
-            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 339);
+            this.checkBoxTestStepperDir.Location = new System.Drawing.Point(774, 329);
             this.checkBoxTestStepperDir.Name = "checkBoxTestStepperDir";
             this.checkBoxTestStepperDir.Size = new System.Drawing.Size(51, 17);
             this.checkBoxTestStepperDir.TabIndex = 62;
@@ -315,7 +390,7 @@
             // 
             this.checkBoxTestStepper0.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxTestStepper0.AutoSize = true;
-            this.checkBoxTestStepper0.Location = new System.Drawing.Point(679, 339);
+            this.checkBoxTestStepper0.Location = new System.Drawing.Point(679, 329);
             this.checkBoxTestStepper0.Name = "checkBoxTestStepper0";
             this.checkBoxTestStepper0.Size = new System.Drawing.Size(96, 17);
             this.checkBoxTestStepper0.TabIndex = 61;
@@ -326,7 +401,7 @@
             // buttonClientExit
             // 
             this.buttonClientExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonClientExit.Location = new System.Drawing.Point(874, 159);
+            this.buttonClientExit.Location = new System.Drawing.Point(668, 241);
             this.buttonClientExit.Name = "buttonClientExit";
             this.buttonClientExit.Size = new System.Drawing.Size(39, 19);
             this.buttonClientExit.TabIndex = 51;
@@ -337,7 +412,7 @@
             // buttonClientMark
             // 
             this.buttonClientMark.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonClientMark.Location = new System.Drawing.Point(874, 139);
+            this.buttonClientMark.Location = new System.Drawing.Point(713, 241);
             this.buttonClientMark.Name = "buttonClientMark";
             this.buttonClientMark.Size = new System.Drawing.Size(39, 19);
             this.buttonClientMark.TabIndex = 50;
@@ -353,41 +428,11 @@
             this.textBoxStatus.Size = new System.Drawing.Size(231, 20);
             this.textBoxStatus.TabIndex = 49;
             // 
-            // checkBoxTransmitToClient
-            // 
-            this.checkBoxTransmitToClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxTransmitToClient.AutoSize = true;
-            this.checkBoxTransmitToClient.Location = new System.Drawing.Point(806, 151);
-            this.checkBoxTransmitToClient.Name = "checkBoxTransmitToClient";
-            this.checkBoxTransmitToClient.Size = new System.Drawing.Size(66, 17);
-            this.checkBoxTransmitToClient.TabIndex = 48;
-            this.checkBoxTransmitToClient.Text = "Transmit";
-            this.checkBoxTransmitToClient.UseVisualStyleBackColor = true;
-            // 
-            // label8
-            // 
-            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(665, 221);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(76, 13);
-            this.label8.TabIndex = 47;
-            this.label8.Text = "Found Objects";
-            // 
-            // textBoxFoundObjects
-            // 
-            this.textBoxFoundObjects.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxFoundObjects.Location = new System.Drawing.Point(668, 237);
-            this.textBoxFoundObjects.Multiline = true;
-            this.textBoxFoundObjects.Name = "textBoxFoundObjects";
-            this.textBoxFoundObjects.Size = new System.Drawing.Size(231, 56);
-            this.textBoxFoundObjects.TabIndex = 46;
-            // 
             // labelCount
             // 
             this.labelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCount.AutoSize = true;
-            this.labelCount.Location = new System.Drawing.Point(665, 296);
+            this.labelCount.Location = new System.Drawing.Point(665, 450);
             this.labelCount.Name = "labelCount";
             this.labelCount.Size = new System.Drawing.Size(100, 13);
             this.labelCount.TabIndex = 45;
@@ -396,7 +441,7 @@
             // buttonResetRecNumber
             // 
             this.buttonResetRecNumber.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonResetRecNumber.Location = new System.Drawing.Point(847, 193);
+            this.buttonResetRecNumber.Location = new System.Drawing.Point(847, 144);
             this.buttonResetRecNumber.Margin = new System.Windows.Forms.Padding(2);
             this.buttonResetRecNumber.Name = "buttonResetRecNumber";
             this.buttonResetRecNumber.Size = new System.Drawing.Size(52, 20);
@@ -409,7 +454,7 @@
             // 
             this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(797, 177);
+            this.label5.Location = new System.Drawing.Point(797, 128);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(42, 13);
@@ -420,7 +465,7 @@
             // 
             this.textBoxRecNumber.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxRecNumber.Location = new System.Drawing.Point(800, 193);
+            this.textBoxRecNumber.Location = new System.Drawing.Point(800, 144);
             this.textBoxRecNumber.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxRecNumber.Name = "textBoxRecNumber";
             this.textBoxRecNumber.Size = new System.Drawing.Size(43, 20);
@@ -523,7 +568,7 @@
             // buttonRecordingOnOff
             // 
             this.buttonRecordingOnOff.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRecordingOnOff.Location = new System.Drawing.Point(668, 186);
+            this.buttonRecordingOnOff.Location = new System.Drawing.Point(668, 137);
             this.buttonRecordingOnOff.Margin = new System.Windows.Forms.Padding(2);
             this.buttonRecordingOnOff.Name = "buttonRecordingOnOff";
             this.buttonRecordingOnOff.Size = new System.Drawing.Size(128, 29);
@@ -546,7 +591,7 @@
             // buttonStartStopCapture
             // 
             this.buttonStartStopCapture.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonStartStopCapture.Location = new System.Drawing.Point(668, 144);
+            this.buttonStartStopCapture.Location = new System.Drawing.Point(668, 207);
             this.buttonStartStopCapture.Margin = new System.Windows.Forms.Padding(2);
             this.buttonStartStopCapture.Name = "buttonStartStopCapture";
             this.buttonStartStopCapture.Size = new System.Drawing.Size(128, 29);
@@ -669,6 +714,17 @@
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
             // 
+            // checkBoxMakeTargetTransparent
+            // 
+            this.checkBoxMakeTargetTransparent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxMakeTargetTransparent.AutoSize = true;
+            this.checkBoxMakeTargetTransparent.Location = new System.Drawing.Point(837, 416);
+            this.checkBoxMakeTargetTransparent.Name = "checkBoxMakeTargetTransparent";
+            this.checkBoxMakeTargetTransparent.Size = new System.Drawing.Size(86, 17);
+            this.checkBoxMakeTargetTransparent.TabIndex = 70;
+            this.checkBoxMakeTargetTransparent.Text = "Make Trans.";
+            this.checkBoxMakeTargetTransparent.UseVisualStyleBackColor = true;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -686,6 +742,8 @@
             this.tabControlMainFrm.ResumeLayout(false);
             this.tabPageMain.ResumeLayout(false);
             this.tabPageMain.PerformLayout();
+            this.groupBoxAction.ResumeLayout(false);
+            this.groupBoxAction.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBoxTestRect.ResumeLayout(false);
@@ -723,14 +781,11 @@
         private System.Windows.Forms.TextBox textBoxRecNumber;
         private System.Windows.Forms.Button buttonResetRecNumber;
         private System.Windows.Forms.Label labelCount;
-        private System.Windows.Forms.TextBox textBoxFoundObjects;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TabPage tabPageTransporter;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxDataTrace;
         private System.Windows.Forms.Button buttonSendData;
         private System.Windows.Forms.CheckBox checkBoxWaldosEnabled;
-        private System.Windows.Forms.CheckBox checkBoxTransmitToClient;
         private System.Windows.Forms.TextBox textBoxStatus;
         private System.Windows.Forms.Button buttonClientExit;
         private System.Windows.Forms.Button buttonClientMark;
@@ -750,6 +805,13 @@
         private System.Windows.Forms.CheckBox checkBoxPWMBDir;
         private System.Windows.Forms.TextBox textBoxPWMBSpeed;
         private System.Windows.Forms.CheckBox checkBoxPWMBEnable;
+        private System.Windows.Forms.GroupBox groupBoxAction;
+        private System.Windows.Forms.RadioButton radioButtonRedToGreen;
+        private System.Windows.Forms.CheckBox checkBoxActivate;
+        private System.Windows.Forms.RadioButton radioButtonPathFollow;
+        private System.Windows.Forms.Button buttonTest;
+        private System.Windows.Forms.CheckBox checkBoxFindGreen;
+        private System.Windows.Forms.CheckBox checkBoxMakeTargetTransparent;
     }
 }
 

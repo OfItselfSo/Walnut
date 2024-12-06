@@ -97,9 +97,11 @@ namespace Walnut
         public int DEFAULT_FONT_HORIZ_MARGIN = 5; // this many pixels on left, right of the font
         private Rectangle textBackground = new Rectangle();
 
-        // The strings to display in the info bar at the bottom of the image
+        // The strings to display in the chyron at the bottom of the image
         string runInfoStr = "Sample Run";
         string versionInfoStr = "Walnut";
+
+        private int chyronHeight = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -424,8 +426,10 @@ namespace Walnut
 
             // figure out how high our text will be, the length is always full width here 
             Size sizeOfText = TextRenderer.MeasureText("test string", m_fontOverlay);
+            // set the chyron height now
+            chyronHeight = sizeOfText.Height + (2 * DEFAULT_FONT_VERT_MARGIN);
             // now set the rectangle on which we draw the text
-            textBackground = new Rectangle(new Point(0, m_imageHeightInPixels - sizeOfText.Height), new Size(m_imageWidthInPixels, sizeOfText.Height + (2*DEFAULT_FONT_VERT_MARGIN)));
+            textBackground = new Rectangle(new Point(0, m_imageHeightInPixels - sizeOfText.Height), new Size(m_imageWidthInPixels, chyronHeight));
 
             // If the output type isn't set yet, we can pre-populate it, 
             // since output must always exactly equal input.  This can 
@@ -651,7 +655,14 @@ namespace Walnut
             }
 
         }
-
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the height of the chyron at the screen bottom
+        /// </summary>
+        public int ChyronHeight
+        {
+            get { return chyronHeight; }
+        }
         #endregion
 
     }

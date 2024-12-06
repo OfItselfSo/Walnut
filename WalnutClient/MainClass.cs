@@ -90,7 +90,7 @@ namespace WalnutClient
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.05";
+        private const string APPLICATION_VERSION = "00.02.06";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
@@ -395,7 +395,7 @@ namespace WalnutClient
             {
                 if (pwmPortA != null)
                 {
-                    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString());
+                    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString() + ", Dir="+ scData.PWMA_DirState.ToString());
 
                     // set the pwmPercent, the frequency was set to a constant when the port was opened
                     pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
@@ -413,7 +413,7 @@ namespace WalnutClient
             {
                 if (pwmPortB != null)
                 {
-                    Console.WriteLine("PWMB DATA PWMB_Enable=" + scData.PWMB_Enable.ToString() + ",DutyPercent=" + scData.PWMB_PWMPercent.ToString());
+                    Console.WriteLine("PWMB DATA PWMB_Enable=" + scData.PWMB_Enable.ToString() + ",DutyPercent=" + scData.PWMB_PWMPercent.ToString() + ", Dir=" + scData.PWMB_DirState.ToString());
 
                     // set the pwmPercent, the frequency was set to a constant when the port was opened
                     pwmPortB.DutyPercent = scData.PWMB_PWMPercent;
@@ -460,10 +460,15 @@ namespace WalnutClient
                 {
                     Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
                     LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
+                    // send in a dummy, there is code in the called procedure to handle this
+                    MoveSourceToTarget(new SrcTgtData());
                     return;
                 }
-                // now we move the source to the target with the green square. This is a stated goal
-                MoveSourceToTarget(scData.SrcTgtList[0]);
+                else
+                {
+                    // now we move the source to the target with the green square. This is a stated goal
+                    MoveSourceToTarget(scData.SrcTgtList[0]);
+                }
             }
 
             // are we dealing with a flag
@@ -492,19 +497,19 @@ namespace WalnutClient
         /// 
         /// </summary>
         /// <param name="rectList">The list of rectangles</param>
-        private void IdentifySquaresByColor(List<ColoredRotatedRect> rectList)
+        private void IdentifySquaresByColor(List<ColoredRotatedObject> rectList)
         {
             // run through the list to find the first red square
-            foreach (ColoredRotatedRect rectObj in rectList)
+            foreach (ColoredRotatedObject rectObj in rectList)
             {
-                if (rectObj.RectColor != KnownColor.Red) continue;
+                if (rectObj.ObjColor != KnownColor.Red) continue;
                 redSquare.SetCenterLocation(rectObj.Center);
                 break;
             }
             // run through the list to find the first green square
-            foreach (ColoredRotatedRect rectObj in rectList)
+            foreach (ColoredRotatedObject rectObj in rectList)
             {
-                if (rectObj.RectColor != KnownColor.Green) continue;
+                if (rectObj.ObjColor != KnownColor.Green) continue;
                 greenSquare.SetCenterLocation(rectObj.Center);
                 break;
             }
@@ -586,13 +591,13 @@ namespace WalnutClient
             PointF srcCenter = new PointF(float.NaN, float.NaN);
             PointF tgtCenter = new PointF(float.NaN, float.NaN);
 
-            Console.WriteLine("(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
 
             // set up our behaviours if we need to
             if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
             if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
             // set up our target tracker if we need to
-            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(DEFAULT_TARGET_MOVED_THRESHOLD, DEFAULT_TARGET_QUEUE_SIZE);
+            int workingTargetMovedThreshold = 5;
+            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
 
             if (stData == null)
             {
@@ -604,66 +609,36 @@ namespace WalnutClient
                 return;
             }
 
+            Console.WriteLine("*(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
+
             if ((stData == null) || (stData.SrcIsPopulated() == false))
             {
                 // we do not have source data
                 Console.WriteLine("No Src Data");
-                // record this
-                numMissingSrcPoints++;
-
-                // we can sometimes use past coords
-                PointF tmpSrcPoint = new PointF(behaviourMoveLevelX.LastDynamicCoord, behaviourMoveLevelY.LastDynamicCoord);
-                if ((numMissingSrcPoints > MAX_MISSING_SRC_POINTS) ||
-                    (float.IsNaN(tmpSrcPoint.X) == true) ||
-                    (float.IsNaN(tmpSrcPoint.Y) == true))
-                {
-                    // we either have to many missing points or the substitute one we do have is not viable
-                    // turn off the ports
-                    pwmPortA.RunState = false;
-                    pwmPortB.RunState = false;
-                    // and leave
-                    return;
-                }
-                // just use the substitute point
-                srcCenter = tmpSrcPoint;
-            }
-            else
-            {
-                // set the src center now with the real incoming point
-                srcCenter = stData.SrcPoint;
-                // reset this
-                numMissingSrcPoints = 0;
+                // turn off the ports
+                pwmPortA.RunState = false;
+                pwmPortB.RunState = false;
+                // and leave
+                return;
             }
 
-            // it is possible for the tgt not to be populated so this is more complicated
-            if (stData.TgtIsPopulated() == true)
+            // do we have a target
+            if (stData.TgtIsPopulated() == false)
             {
-                // just give it the input target point
-                tgtCenter = stData.TgtPoint;
+                Console.WriteLine("No incoming Tgt Data");
+                // turn off the ports
+                pwmPortA.RunState = false;
+                pwmPortB.RunState = false;
+                // and leave
+                return;
             }
-            else
-            {
-                // it is possible to not have target data. We just use the last one we saw
-                if ((behaviourTrackTarget != null) && (behaviourTrackTarget.TargetQueueCount!=0))
-                {
-                    Console.WriteLine("No incoming Tgt Data Using last target");
-                    tgtCenter = behaviourTrackTarget.LastTargetCoord;
-                }
-                else
-                {
-                    Console.WriteLine("No incoming Tgt Data");
-                    // turn off the ports
-                    pwmPortA.RunState = false;
-                    pwmPortB.RunState = false;
-                    // and leave
-                    return;
-                }
-            }
-
+            srcCenter = stData.SrcPoint;
+            tgtCenter = stData.TgtPoint;
             // feed our target tracker with the static point. We want to be able to see if it has moved
-            behaviourTrackTarget.SetTargetPoint(tgtCenter);
+            behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
 
-            if (behaviourTrackTarget.HasMoved() == true)
+        // tmp   if (behaviourTrackTarget.HasMoved() == true)
+            if ( true)
             {
                 // reset the MoveLevel behaviour
                 behaviourMoveLevelX.Reset();

@@ -16,8 +16,12 @@ The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
 
+- **00.02.06** Commit ID: 
+    - This experiment demonstrates the controlled motion of a movable red circle over a virtual linear path drawn in the color green. The green path is removed as the circle moves over it. As the red circle moves along, it can lay down a colored "trail" which forms a return path. When there is no more of the green path to follow, the red circle will follow the return path back to the start. See the FPath_Ex004 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex004_GraphicalStigmergy.php](http://www.ofitselfso.com/FPath/FPath_Ex004_GraphicalStigmergy.php).
+    
 - **00.02.05** Commit ID: ae0b457
-    - This experiment uses and XY stage to demonstrate 2D control of DC Gear Motors via pulse width modulation. It is designed to identify red and green squares via image recognition and move the red square onto the position of the virtual green square.. See the FPath_Ex003 web page for more details: 
+    - This experiment uses an XY stage to demonstrate 2D control of DC Gear Motors via pulse width modulation. It is designed to identify red and green squares via image recognition and move the red square onto the position of the virtual green square. See the FPath_Ex003 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex003_2DMotion.php](http://www.ofitselfso.com/FPath/FPath_Ex003_2DMotion.php).
 
 - **00.02.04** Commit ID: d9a1b38

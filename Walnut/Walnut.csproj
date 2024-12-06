@@ -80,6 +80,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MFTDetectColoredAreas_Sync.cs" />
+    <Compile Include="MFTDetectColoredCircles_Sync.cs" />
+    <Compile Include="SystemActionEnum.cs" />
     <Compile Include="ApplicationImplicitSettings.cs" />
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
@@ -88,6 +91,7 @@
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="MatExtensions.cs" />
+    <Compile Include="MFTImageRecognitionBase.cs" />
     <Compile Include="MFTTantaSampleGrabber_Sync.cs" />
     <Compile Include="MFTOverlayImage_Sync.cs" />
     <Compile Include="MFTWriteText_Sync.cs" />
