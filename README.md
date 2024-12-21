@@ -15,6 +15,10 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
+- **00.02.06** Commit ID: 
+   - This code is designed to support the 2D area filling using a technique dubbed Stigmergic Fill. A new WMF transform has been implemented and this code uses various fast bitmaps to overlay, in real-time, an image frame with a virtual area which clearly shows which pixels of a certain color underlie it. Since the pixels on the areas which have not been filled are clearly a different color it is very simple algorithmically to determine which areas remain to be processed. See the FPath_Ex005 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex005_StigmergicFill.php](http://www.ofitselfso.com/FPath/FPath_Ex005_StigmergicFill.php).
+   
 
 - **00.02.06** Commit ID: 424bddc
     - This experiment demonstrates the controlled motion of a movable red circle over a virtual linear path drawn in the color green. The green path is removed as the circle moves over it. As the red circle moves along, it can lay down a colored "trail" which forms a return path. When there is no more of the green path to follow, the red circle will follow the return path back to the start. See the FPath_Ex004 web page for more details: 

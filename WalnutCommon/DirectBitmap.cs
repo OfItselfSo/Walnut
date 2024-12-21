@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Emgu.CV.Reg;
+using System.Drawing.Drawing2D;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -129,10 +130,11 @@ namespace WalnutCommon
             // copy the incoming bitmap over onto the new bitmap
             using (Graphics graphics = Graphics.FromImage(Bitmap))
             {
+                // it appears the default composting mode is SourceOver (ie alpha blend)
+                graphics.CompositingMode = CompositingMode.SourceCopy;
                 Rectangle imageRectangle = new Rectangle(0, 0, dBitmap.Width, dBitmap.Height);
                 graphics.DrawImage(dBitmap.Bitmap, imageRectangle, imageRectangle, GraphicsUnit.Pixel);
             }
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -161,6 +163,18 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// SetPixelByIndex  - sets a color on a pixel
+        /// </summary>
+        /// <param name="colour">the color to set</param>
+        /// <param name="index">the index into the Bits array</param>
+        public void SetPixelByIndex(int index, Color colour)
+        {
+            int col = colour.ToArgb();
+            Bits[index] = col;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// SetPixel  - sets a color on a pixel
         /// </summary>
         /// <param name="colour">the color to set</param>
@@ -184,6 +198,20 @@ namespace WalnutCommon
         public Color GetPixel(int x, int y)
         {
             int index = x + (y * Width);
+            int col = Bits[index];
+            Color result = Color.FromArgb(col);
+
+            return result;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// GetPixelByIndex  - gets a color of a pixel 
+        /// </summary>
+        /// <param name="index">the index into the Bits array</param>
+        /// <returns>the pixel color</returns>
+        public Color GetPixelByIndex(int index)
+        {
             int col = Bits[index];
             Color result = Color.FromArgb(col);
 

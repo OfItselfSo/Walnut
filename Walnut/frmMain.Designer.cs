@@ -31,6 +31,15 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.groupBoxDrawGreenCircle = new System.Windows.Forms.GroupBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.textBoxGreenCircleLineThickness = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.textBoxGreenCircleRadius = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBoxGreenCircleXY = new System.Windows.Forms.TextBox();
+            this.buttonDrawCircle = new System.Windows.Forms.Button();
+            this.checkBoxMakeTargetTransparent = new System.Windows.Forms.CheckBox();
             this.checkBoxFindGreen = new System.Windows.Forms.CheckBox();
             this.buttonTest = new System.Windows.Forms.Button();
             this.groupBoxAction = new System.Windows.Forms.GroupBox();
@@ -82,9 +91,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.buttonSendData = new System.Windows.Forms.Button();
-            this.checkBoxMakeTargetTransparent = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
+            this.groupBoxDrawGreenCircle.SuspendLayout();
             this.groupBoxAction.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBoxTestRect.SuspendLayout();
@@ -108,6 +117,7 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.groupBoxDrawGreenCircle);
             this.tabPageMain.Controls.Add(this.checkBoxMakeTargetTransparent);
             this.tabPageMain.Controls.Add(this.checkBoxFindGreen);
             this.tabPageMain.Controls.Add(this.buttonTest);
@@ -143,6 +153,96 @@
             this.tabPageMain.TabIndex = 0;
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxDrawGreenCircle
+            // 
+            this.groupBoxDrawGreenCircle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxDrawGreenCircle.Controls.Add(this.label9);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxGreenCircleLineThickness);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.label8);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxGreenCircleRadius);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.label6);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxGreenCircleXY);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.buttonDrawCircle);
+            this.groupBoxDrawGreenCircle.Location = new System.Drawing.Point(667, 278);
+            this.groupBoxDrawGreenCircle.Name = "groupBoxDrawGreenCircle";
+            this.groupBoxDrawGreenCircle.Size = new System.Drawing.Size(150, 66);
+            this.groupBoxDrawGreenCircle.TabIndex = 73;
+            this.groupBoxDrawGreenCircle.TabStop = false;
+            this.groupBoxDrawGreenCircle.Text = "Green Circle";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(106, 29);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(27, 13);
+            this.label9.TabIndex = 77;
+            this.label9.Text = "Line";
+            // 
+            // textBoxGreenCircleLineThickness
+            // 
+            this.textBoxGreenCircleLineThickness.Location = new System.Drawing.Point(102, 43);
+            this.textBoxGreenCircleLineThickness.Name = "textBoxGreenCircleLineThickness";
+            this.textBoxGreenCircleLineThickness.Size = new System.Drawing.Size(42, 20);
+            this.textBoxGreenCircleLineThickness.TabIndex = 76;
+            this.textBoxGreenCircleLineThickness.Text = "2";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(6, 44);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(40, 13);
+            this.label8.TabIndex = 75;
+            this.label8.Text = "Radius";
+            // 
+            // textBoxGreenCircleRadius
+            // 
+            this.textBoxGreenCircleRadius.Location = new System.Drawing.Point(49, 41);
+            this.textBoxGreenCircleRadius.Name = "textBoxGreenCircleRadius";
+            this.textBoxGreenCircleRadius.Size = new System.Drawing.Size(42, 20);
+            this.textBoxGreenCircleRadius.TabIndex = 74;
+            this.textBoxGreenCircleRadius.Text = "25";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(6, 22);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(24, 13);
+            this.label6.TabIndex = 73;
+            this.label6.Text = "X,Y";
+            // 
+            // textBoxGreenCircleXY
+            // 
+            this.textBoxGreenCircleXY.Location = new System.Drawing.Point(32, 19);
+            this.textBoxGreenCircleXY.Name = "textBoxGreenCircleXY";
+            this.textBoxGreenCircleXY.Size = new System.Drawing.Size(59, 20);
+            this.textBoxGreenCircleXY.TabIndex = 72;
+            this.textBoxGreenCircleXY.Text = "320,240";
+            // 
+            // buttonDrawCircle
+            // 
+            this.buttonDrawCircle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonDrawCircle.Location = new System.Drawing.Point(101, 8);
+            this.buttonDrawCircle.Name = "buttonDrawCircle";
+            this.buttonDrawCircle.Size = new System.Drawing.Size(43, 19);
+            this.buttonDrawCircle.TabIndex = 69;
+            this.buttonDrawCircle.Text = "Draw";
+            this.buttonDrawCircle.UseVisualStyleBackColor = true;
+            this.buttonDrawCircle.Click += new System.EventHandler(this.buttonDrawCircle_Click);
+            // 
+            // checkBoxMakeTargetTransparent
+            // 
+            this.checkBoxMakeTargetTransparent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxMakeTargetTransparent.AutoSize = true;
+            this.checkBoxMakeTargetTransparent.Location = new System.Drawing.Point(837, 416);
+            this.checkBoxMakeTargetTransparent.Name = "checkBoxMakeTargetTransparent";
+            this.checkBoxMakeTargetTransparent.Size = new System.Drawing.Size(86, 17);
+            this.checkBoxMakeTargetTransparent.TabIndex = 70;
+            this.checkBoxMakeTargetTransparent.Text = "Make Trans.";
+            this.checkBoxMakeTargetTransparent.UseVisualStyleBackColor = true;
             // 
             // checkBoxFindGreen
             // 
@@ -714,17 +814,6 @@
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
             // 
-            // checkBoxMakeTargetTransparent
-            // 
-            this.checkBoxMakeTargetTransparent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxMakeTargetTransparent.AutoSize = true;
-            this.checkBoxMakeTargetTransparent.Location = new System.Drawing.Point(837, 416);
-            this.checkBoxMakeTargetTransparent.Name = "checkBoxMakeTargetTransparent";
-            this.checkBoxMakeTargetTransparent.Size = new System.Drawing.Size(86, 17);
-            this.checkBoxMakeTargetTransparent.TabIndex = 70;
-            this.checkBoxMakeTargetTransparent.Text = "Make Trans.";
-            this.checkBoxMakeTargetTransparent.UseVisualStyleBackColor = true;
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -742,6 +831,8 @@
             this.tabControlMainFrm.ResumeLayout(false);
             this.tabPageMain.ResumeLayout(false);
             this.tabPageMain.PerformLayout();
+            this.groupBoxDrawGreenCircle.ResumeLayout(false);
+            this.groupBoxDrawGreenCircle.PerformLayout();
             this.groupBoxAction.ResumeLayout(false);
             this.groupBoxAction.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -812,6 +903,14 @@
         private System.Windows.Forms.Button buttonTest;
         private System.Windows.Forms.CheckBox checkBoxFindGreen;
         private System.Windows.Forms.CheckBox checkBoxMakeTargetTransparent;
+        private System.Windows.Forms.GroupBox groupBoxDrawGreenCircle;
+        private System.Windows.Forms.TextBox textBoxGreenCircleXY;
+        private System.Windows.Forms.Button buttonDrawCircle;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox textBoxGreenCircleRadius;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox textBoxGreenCircleLineThickness;
     }
 }
 

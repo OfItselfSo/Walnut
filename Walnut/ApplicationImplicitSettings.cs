@@ -182,6 +182,30 @@ namespace Walnut
             set { this["LastRunNumber"] = value; }
         }
 
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public Point LastGreenCircleCenterPoint
+        {
+            get { return (Point)this["LastGreenCircleCenterPoint"]; }
+            set { this["LastGreenCircleCenterPoint"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LastGreenCircleRadius
+        {
+            get { return (int)this["LastGreenCircleRadius"]; }
+            set { this["LastGreenCircleRadius"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LastGreenCircleThickness
+        {
+            get { return (int)this["LastGreenCircleThickness"]; }
+            set { this["LastGreenCircleThickness"] = value; }
+        }
+
         //// the most recently used file list
         //[UserScopedSettingAttribute()]
         //public List<string> MRUFileList

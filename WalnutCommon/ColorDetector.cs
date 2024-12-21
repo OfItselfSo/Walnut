@@ -163,6 +163,44 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Converts a RGB byte array to a known color. Uses the limited selection in
+        /// the colorHueDict for its choices
+        /// 
+        /// Note: will check for greys according to the set detection range
+        /// 
+        /// </summary>
+        /// <param name="colorIn">the Color value</param>
+        /// <returns>the closest known color, or black for fail</returns>
+        public KnownColor GetClosestKnownColorRGB(Color colorIn)
+        {
+            // check for gray, hues don't work well on blacks, grays and whites
+            if (IsGray(colorIn) == true) return KnownColor.Gray;
+
+            KeyValuePair<float, KnownColor> closestMatch = new KeyValuePair<float, KnownColor>(float.MaxValue, KnownColor.Black);
+            float lowestDiff = float.MaxValue;
+
+            // get the Hue of the test color
+            float testHue = colorIn.GetHue();
+
+            // find the closest hue to the input
+            foreach (KeyValuePair<float, KnownColor> pairObj in colorHueDict)
+            {
+                // get the difference
+                float workingHueDiff = Math.Abs(testHue - pairObj.Key);
+
+                // have we have found the closest match so far 
+                if (workingHueDiff < lowestDiff)
+                {
+                    // yes, record it
+                    closestMatch = pairObj;
+                    lowestDiff = workingHueDiff;
+                }
+            }
+            return closestMatch.Value;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Converts a BGR byte array to a color value 
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
@@ -189,10 +227,21 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect if a BGR pixel is likely to be white, grey or black
+        /// Detect if a color is considered grey
+        /// </summary>
+        /// <param name="testColor">the color to test</param>
+        /// <returns>true - is grey, false - is not</returns>
+        public bool IsGray(Color testColor)
+        {
+            // just call this
+            return IsGray(new byte[] { testColor.R, testColor.G, testColor.B});
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detect if a pixel is grey does not matter RGB or BGR
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
-        /// <param name="detectionRange">the range the BGR values can vary from one another </param>
         /// <returns>true - is grey, false - is not</returns>
         public bool IsGray(byte[] pixelValue)
         {
@@ -202,7 +251,7 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect if a BGR pixel is likely to be white, grey or black
+        /// Detect if a pixel is grey does not matter RGB or BGR
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
         /// <param name="detectionRange">the range the BGR values can vary from one another </param>

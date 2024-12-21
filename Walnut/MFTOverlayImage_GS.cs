@@ -71,13 +71,14 @@ namespace Walnut
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An MFT to overlay video frames with data from an image file
+    /// An MFT to overlay video frames with data from an image file. This transform
+    /// has specific support for Graphical Stigmergy (GS)
     /// 
     /// This MFT can handle 1 media types (ARGB). You will also note that it
     /// hard codes the support for this type 
     /// 
     /// </summary>
-    public sealed class MFTOverlayImage_Sync : TantaMFTBase_Sync
+    public sealed class MFTOverlayImage_GS : TantaMFTBase_Sync
     {
         // Format information
         private int m_imageWidthInPixels;
@@ -122,21 +123,21 @@ namespace Walnut
         /// <summary>
         /// Constructor
         /// </summary>
-        public MFTOverlayImage_Sync() : base()
+        public MFTOverlayImage_GS() : base()
         {
             // init this now
             m_FrameCount = 0;
 
-            // DebugMessage("MFTOverlayImage_Sync Constructor");
+            // DebugMessage("MFTOverlayImage_GS Constructor");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Destructor
         /// </summary>
-        ~MFTOverlayImage_Sync()
+        ~MFTOverlayImage_GS()
         {
-            // DebugMessage("MFTOverlayImage_Sync Destructor");
+            // DebugMessage("MFTOverlayImage_GS Destructor");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -174,6 +175,7 @@ namespace Walnut
                 if (versionInfoStr == null) versionInfoStr = "";
             }
         }
+
 
         // ########################################################################
         // ##### TantaMFTBase_Sync Overrides, all child classes must implement these
@@ -474,6 +476,13 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets overlay graphics object. There is no set this is done with the 
+        /// transform is loaded. Will return Null. 
+        /// </summary>
+        public Graphics OverlayGraphicsObj { get => overlayGraphicsObj; }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Draws a line on the overlay bitmap between two points. 
         ///  
         ///  Mostly for diagnostics because they do not get erased
@@ -510,6 +519,43 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        ///  Draws a circle at the specfied point of the specified radius of the 
+        ///  specified width using the specified brush.
+        ///  
+        /// </summary>
+        /// <param name="centerPoint">the centerpoint of the circle</param>
+        /// <param name="radius">the radius of the circle</param>
+        /// <param name="workingBrush">the brush to use</param>
+        public void DrawCircleOnOverlay(SolidBrush workingBrush, Point centerPoint, int radius, int lineThickness)
+        {
+            if (overlayImage == null) return;
+
+            // some sanity checks
+            if (centerPoint.IsEmpty == true) return;
+            if (lineThickness <= 0) return;
+            if (radius <= 0) return;
+            if (radius - lineThickness <= 0) return;
+
+
+            // Create global graphics object for alteration.
+            try
+            {
+                if (overlayGraphicsObj != null)
+                {
+                    // Draw a filled circle on screen.
+                    overlayGraphicsObj.FillEllipse(workingBrush, centerPoint.X - radius, centerPoint.Y - radius, radius * 2, radius * 2);
+                    // transparent a smaller filled circle
+                    overlayGraphicsObj.FillEllipse(whiteTransparentBrush, centerPoint.X - radius + lineThickness, centerPoint.Y - radius + lineThickness, (radius - lineThickness) * 2, (radius - lineThickness) * 2);
+                }
+            }
+            catch { }
+            finally
+            {
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Makes a circular part of the overlay image a specified color. If using 
         ///  a color equivalent to the transparent color, the overlay region will be
         ///  rendered transparent. If already transparent there will be no change. 
@@ -525,7 +571,7 @@ namespace Walnut
             // some sanity checks
             if (centerPoint.IsEmpty == true) return;
 
-            // Create global graphics object for alteration.
+            // Create global grahics object for alteration.
             try
             {
                 if (overlayGraphicsObj != null)
@@ -608,7 +654,22 @@ namespace Walnut
             if (trackerGraphicsObj != null)
             {
                 Rectangle fullRectagle = new Rectangle(new Point(0, 0), new Size(trackerImage.Width, trackerImage.Height));
-                trackerGraphicsObj.FillEllipse(whiteTransparentBrush, fullRectagle);
+                trackerGraphicsObj.FillRectangle(whiteTransparentBrush, fullRectagle);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Clears the overlay DirectBitmap, uses a transparent brush
+        ///  
+        /// </summary>
+        public void ClearOverlay()
+        {
+            if (overlayImage == null) return;
+            if (overlayGraphicsObj != null)
+            {
+                Rectangle fullRectagle = new Rectangle(new Point(0, 0), new Size(overlayImage.Width, overlayImage.Height));
+                overlayGraphicsObj.FillRectangle(whiteTransparentBrush, fullRectagle);
             }
         }
 
