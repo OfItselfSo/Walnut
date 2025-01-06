@@ -15,7 +15,11 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
-- **00.02.06** Commit ID: 1fb9950
+- **00.02.07** Commit ID: 6a96848
+   - This code is intended to support experiment 006 - the goal of which was to demonstrate that closed loop control is a viable error reduction option when having large machines make smaller machines which then make smaller machines. An interesting application of a transparent panel control has also been implemented. This allows mouse events to be intercepted on third party controls. See the FPath_Ex006 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex006_ThePantograph.php](http://www.ofitselfso.com/FPath/FPath_Ex006_ThePantograph.php).
+    
+- **00.02.07** Commit ID: 1fb9950
    - This code is designed to support the 2D area filling using a technique dubbed Stigmergic Fill. A new WMF transform has been implemented and this code uses various fast bitmaps to overlay, in real-time, an image frame with a virtual area which clearly shows which pixels of a certain color underlie it. Since the pixels on the areas which have not been filled are clearly a different color it is very simple algorithmically to determine which areas remain to be processed. See the FPath_Ex005 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex005_StigmergicFill.php](http://www.ofitselfso.com/FPath/FPath_Ex005_StigmergicFill.php).
    
