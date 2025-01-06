@@ -98,7 +98,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.07";
+        private const string APPLICATION_VERSION = "00.02.08";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -191,8 +191,8 @@ namespace Walnut
         private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\AllTransparent.png";
         // private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\CircleLowLeft.png";
         //  private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\SmallGreenDot_LL.png";
-        // private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\AllTransparent640x480.png";
-        private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\Rectangle.png";
+        private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\AllTransparent640x480.png";
+        //private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\Rectangle.png";
        // private const string TRACKER_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex005\WavePath1.png";
         //private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\Walnut_003\CirclePath.png";
         // private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\AllGreen640x480.png";
@@ -388,7 +388,6 @@ namespace Walnut
                 LogMessage("frmMain_Load exception: " + ex.StackTrace);
                 OISMessageBox("Exception setting up the data transporter: " + ex.Message);
             }
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1354,7 +1353,7 @@ namespace Walnut
         private IMFTransform CreateImageOverlayTransform()
         {
             // hard coded to this. 
-            return new MFTOverlayImage_SF();
+            return new MFTOverlayImage_GS();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1370,11 +1369,9 @@ namespace Walnut
         /// <returns> the a new transform object according to the display settings or null for none</returns>
         private MFTDetectColoredAreas_Sync CreateRGBAObjectDetectionTransform()
         {
-            // experiment 005 does not use a recognition transform
-            return null;
             // hard coded to this. If we wished to inject a different one into the pipeline we
             // could put some logic here.
-          //  return new MFTDetectColoredAreas_Sync();
+            return new MFTDetectColoredAreas_Sync();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1967,106 +1964,107 @@ namespace Walnut
             StringBuilder sb = new StringBuilder();
             labelCount.Text = String.Format("Processed Count: {0}", e.UserState);
 
-            //// do we have a recognition transform?
-            //if(RecognitionTransform  != null)
-            //{
-            //    // yes, we do. Get the list of objects from it
-            //    List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
-            //    if (objList == null)
-            //    {
-            //        return;
-            //    }
-            //    // convert to src-tgt format
-            //    List<SrcTgtData> srcTgtDataList = new List<SrcTgtData>();
- 
-            //    // do we want to check for the nearest green point?
-            //    if ((objList.Count != 0) && (imageOverlayTransform != null))
-            //    {
-            //        Point centerPoint = new Point((int)objList[0].Center.X, (int)objList[0].Center.Y);
-            //        int objRadius = (int)objList[0].Radius+3;
+            // do we have a recognition transform?
+            if (RecognitionTransform != null)
+            {
+                // yes, we do. Get the list of objects from it
+                List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
+                if (objList == null)
+                {
+                    return;
+                }
+                // convert to src-tgt format
+                List<SrcTgtData> srcTgtDataList = new List<SrcTgtData>();
 
-            //        // do we want to make it transparent
-            //        if (checkBoxMakeTargetTransparent.Checked == true)
-            //        {
-            //            // make the target transparent
-            //            (imageOverlayTransform as MFTOverlayImage_SF).FillCircularRegionOnOverlay(whiteTransparentBrush, centerPoint, objRadius);
-            //            // only write on the tracker if we are not actually following the track
-            //            if(currentTargetColorARGB != ALT_TARGET_COLOR_ARGB) (imageOverlayTransform as MFTOverlayImage_SF).FillCircularRegionOnTracker(trackerBrush,centerPoint, 1);
-            //        }
-            //        if (checkBoxFindGreen.Checked == true)
-            //        {
-            //            // look for the nearest green point. This is a spiral algorythm from the start point
-            //            // it is faster than a raster scan from (0,0) and because the overlay uses a DirectBitmap
-            //            // the GetPixel() calls are reasonably fast.
-            //            Point nearestGreenPoint = (imageOverlayTransform as MFTOverlayImage_SF).GetNearestColorPointFromOrigin(centerPoint, currentTargetColorARGB, PATH_FOLLOW_MIN_POINTS_NEEDED);
-            //            if (nearestGreenPoint.IsEmpty == false)
-            //            {
-            //                // found one, count it
-            //                countOfDefaultTargetPixelsFound ++;
-            //                // load up the srcTgt object
-            //                srcTgtDataList.Add(new SrcTgtData(centerPoint, nearestGreenPoint));
+                // do we want to check for the nearest green point?
+                if ((objList.Count != 0) && (imageOverlayTransform != null))
+                {
+                    Point centerPoint = new Point((int)objList[0].Center.X, (int)objList[0].Center.Y);
+                 //   int objRadius = (int)objList[0].Radius + 3;
+                    int objRadius = 3;
 
-            //                // temporary
-            //               // (imageOverlayTransform as MFTOverlayImage_SF).DrawLineBetweenPoints(blackPen, centerPoint, nearestGreenPoint);
-            //            }
-            //            else
-            //            {
-            //                // commented out for experiment 005
-            //                //// not found. Have we moved enough to consider switching colors and toggling the 
-            //                //// operation to find our way back.
-            //                //const int MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS = 20;
-            //                //if (countOfDefaultTargetPixelsFound>MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS)
-            //                //{
-            //                //    // switch to the alt color
-            //                //    currentTargetColorARGB = ALT_TARGET_COLOR_ARGB;
-            //                //    countOfDefaultTargetPixelsFound = 0;
-            //                //    (imageOverlayTransform as MFTOverlayImage_SF).CopyTrackerOntoOverlay();
-            //                //    (imageOverlayTransform as MFTOverlayImage_SF).ClearTracker();
-            //                //}
-            //            }
-            //        }                    
-            //    }
+                    // do we want to make it transparent
+                    if (checkBoxMakeTargetTransparent.Checked == true)
+                    {
+                        // make the target transparent
+                        (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnOverlay(whiteTransparentBrush, centerPoint, objRadius);
+                        // only write on the tracker if we are not actually following the track
+                        if (currentTargetColorARGB != ALT_TARGET_COLOR_ARGB) (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnTracker(trackerBrush, centerPoint, 1);
+                    }
+                    if (checkBoxFindGreen.Checked == true)
+                    {
+                        // look for the nearest green point. This is a spiral algorythm from the start point
+                        // it is faster than a raster scan from (0,0) and because the overlay uses a DirectBitmap
+                        // the GetPixel() calls are reasonably fast.
+                        Point nearestGreenPoint = (imageOverlayTransform as MFTOverlayImage_GS).GetNearestColorPointFromOrigin(centerPoint, currentTargetColorARGB, PATH_FOLLOW_MIN_POINTS_NEEDED);
+                        if (nearestGreenPoint.IsEmpty == false)
+                        {
+                            // found one, count it
+                            countOfDefaultTargetPixelsFound++;
+                            // load up the srcTgt object
+                            srcTgtDataList.Add(new SrcTgtData(centerPoint, nearestGreenPoint));
 
-            //    // do we want to transmit this data to the client?
-            //    if (TransmitToClientEnabled==true)
-            //    {
+                            // temporary
+                            // (imageOverlayTransform as MFTOverlayImage_GS).DrawLineBetweenPoints(blackPen, centerPoint, nearestGreenPoint);
+                        }
+                        else
+                        {
+                            // commented out for experiment 006
+                            //// not found. Have we moved enough to consider switching colors and toggling the 
+                            //// operation to find our way back.
+                            //const int MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS = 20;
+                            //if (countOfDefaultTargetPixelsFound>MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS)
+                            //{
+                            //    // switch to the alt color
+                            //    currentTargetColorARGB = ALT_TARGET_COLOR_ARGB;
+                            //    countOfDefaultTargetPixelsFound = 0;
+                            //    (imageOverlayTransform as MFTOverlayImage_GS).CopyTrackerOntoOverlay();
+                            //    (imageOverlayTransform as MFTOverlayImage_GS).ClearTracker();
+                            //}
+                        }
+                    }
+                }
 
-            //        if (dataTransporter == null)
-            //        {
-            //            LogMessage("codeWorker_ProgressChanged, dataTransporter == null");
-            //            return;
-            //        }
-            //        if (IsConnected() == false)
-            //        {
-            //            LogMessage("codeWorker_ProgressChanged, Not connected");
-            //            return;
-            //        }
+                // do we want to transmit this data to the client?
+                if (TransmitToClientEnabled == true)
+                {
 
-            //        // create the data container
-            //        ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
-            //        // tell it we are carrying a srcTgt list
-            //        scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
-            //        scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
-            //        scData.SrcTgtList = srcTgtDataList;
+                    if (dataTransporter == null)
+                    {
+                        LogMessage("codeWorker_ProgressChanged, dataTransporter == null");
+                        return;
+                    }
+                    if (IsConnected() == false)
+                    {
+                        LogMessage("codeWorker_ProgressChanged, Not connected");
+                        return;
+                    }
 
-            //        // display it
-            //        LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
-            //        // send it
-            //        dataTransporter.SendData(scData);
+                    // create the data container
+                    ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
+                    // tell it we are carrying a srcTgt list
+                    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
+                    scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+                    scData.SrcTgtList = srcTgtDataList;
 
-            //        // set diagnostics going
-            //        if (diagnosticMessageCount == 0) diagnosticStartTime = DateTime.Now;
-            //        if (diagnosticMessageCount >= MAX_DIAGNOSTIC_MESSAGE_COUNT)
-            //        {
-            //            TimeSpan timeItTook = DateTime.Now - diagnosticStartTime;
-            //            this.textBoxStatus.Text = "Elapsed=" + timeItTook.TotalSeconds + ", avg/sec=" + diagnosticMessageCount / timeItTook.TotalSeconds;
-            //            diagnosticMessageCount = 0;
-            //            return;
-            //        }
-            //        diagnosticMessageCount++;
+                    // display it
+                    LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
+                    // send it
+                    dataTransporter.SendData(scData);
 
-            //    }
-            //}
+                    // set diagnostics going
+                    if (diagnosticMessageCount == 0) diagnosticStartTime = DateTime.Now;
+                    if (diagnosticMessageCount >= MAX_DIAGNOSTIC_MESSAGE_COUNT)
+                    {
+                        TimeSpan timeItTook = DateTime.Now - diagnosticStartTime;
+                        this.textBoxStatus.Text = "Elapsed=" + timeItTook.TotalSeconds + ", avg/sec=" + diagnosticMessageCount / timeItTook.TotalSeconds;
+                        diagnosticMessageCount = 0;
+                        return;
+                    }
+                    diagnosticMessageCount++;
+
+                }
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2504,9 +2502,9 @@ namespace Walnut
             // some sanity checks
             if (radioButtonLoc1.Checked == false) return;
             if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_SF) == false) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetRectangle(new Point(150, 150));
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(150, 150));
         }
 
         private void radioButtonLoc2_CheckedChanged(object sender, EventArgs e)
@@ -2514,9 +2512,9 @@ namespace Walnut
             // some sanity checks
             if (radioButtonLoc2.Checked == false) return;
             if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_SF) == false) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetRectangle(new Point(200, 200));
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(200, 200));
 
         }
 
@@ -2525,9 +2523,9 @@ namespace Walnut
             // some sanity checks
             if (radioButtonLoc3.Checked == false) return;
             if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_SF) == false) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetRectangle(new Point(350, 100));
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 100));
 
         }
 
@@ -2536,9 +2534,9 @@ namespace Walnut
             // some sanity checks
             if (radioButtonLoc4.Checked == false) return;
             if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_SF) == false) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetRectangle(new Point(350, 200));
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 200));
 
         }
 
@@ -2547,9 +2545,9 @@ namespace Walnut
             // some sanity checks
             if (radioButtonLocNone.Checked == false) return;
             if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_SF) == false) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
             // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetRectangle(new Point(-1, -1));
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(-1, -1));
 
         }
 
@@ -2561,11 +2559,11 @@ namespace Walnut
         {
             if (checkBoxDrawImageOverlay.Checked == false )
             {
-                (ImageOverlayTransform as MFTOverlayImage_SF).SetOverlayImage(null,null);
+                (ImageOverlayTransform as MFTOverlayImage_GS).SetOverlayImage(null,null);
                 return;
             }
             // set the overlay image - just hard coded for now
-            (ImageOverlayTransform as MFTOverlayImage_SF).SetOverlayImage(OVERLAY_IMAGE_FILENAME, TRACKER_IMAGE_FILENAME);
+            (ImageOverlayTransform as MFTOverlayImage_GS).SetOverlayImage(OVERLAY_IMAGE_FILENAME, TRACKER_IMAGE_FILENAME);
 
         }
 
@@ -2577,7 +2575,7 @@ namespace Walnut
         {
             if (checkBoxDrawImageOverlay.Checked == false)
             {
-                (ImageOverlayTransform as MFTOverlayImage_SF).SetOverlayImage(null, null);
+                (ImageOverlayTransform as MFTOverlayImage_GS).SetOverlayImage(null, null);
                 return;
             }
         }
@@ -2818,10 +2816,10 @@ namespace Walnut
 
             //using (SolidBrush brsh = new SolidBrush(ColorTranslator.FromHtml("#ff00ff00")))
             //{
-            //    (ImageOverlayTransform as MFTOverlayImage_SF).DrawCircleOnOverlay(brsh, new Point(125,125), 25, 2);
+            //    (ImageOverlayTransform as MFTOverlayImage_GS).DrawCircleOnOverlay(brsh, new Point(125,125), 25, 2);
             //}
 
-            //Graphics overlayGraphicsObj = (ImageOverlayTransform as MFTOverlayImage_SF).OverlayGraphicsObj;
+            //Graphics overlayGraphicsObj = (ImageOverlayTransform as MFTOverlayImage_GS).OverlayGraphicsObj;
             //if(overlayGraphicsObj == null) return;
             
             //using (Brush brsh = new SolidBrush(ColorTranslator.FromHtml("#ff00ff00")))
@@ -2850,8 +2848,8 @@ namespace Walnut
 
                 using (SolidBrush brsh = new SolidBrush(ColorTranslator.FromHtml("#ff00ff00")))
                 {
-                    (ImageOverlayTransform as MFTOverlayImage_SF).ClearOverlay();
-                    (ImageOverlayTransform as MFTOverlayImage_SF).DrawCircleOnOverlay(brsh, centerPoint, radius, lineThickness);
+                    (ImageOverlayTransform as MFTOverlayImage_GS).ClearOverlay();
+                    (ImageOverlayTransform as MFTOverlayImage_GS).DrawCircleOnOverlay(brsh, centerPoint, radius, lineThickness);
                 }
 
             }
@@ -2982,6 +2980,21 @@ namespace Walnut
 
         }
 
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on our transparent overlay on the EVR display. This allows
+        /// us to get mouse clicks from it. 
+        /// </summary>
+        private void ctlTransparentControl1_MouseClick(object sender, MouseEventArgs e)
+        {
+            //       MessageBox.Show("Mouse Click (" + e.X.ToString() + "," + e.Y.ToString()+")");
+
+            // set the green circle center and simulate a click on the draw button
+            Point outPoint = this.ctlTransparentControl1.ConvertPoint(new Point(e.X, e.Y), new Size(DEFAULT_VIDEO_FRAME_WIDTH, DEFAULT_VIDEO_FRAME_HEIGHT), true);
+            textBoxGreenCircleXY.Text = outPoint.X.ToString() + "," + outPoint.Y.ToString();
+            buttonDrawCircle_Click(this, new EventArgs());
+        }
 
     }
 

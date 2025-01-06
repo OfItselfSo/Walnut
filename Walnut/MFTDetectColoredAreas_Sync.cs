@@ -106,7 +106,7 @@ namespace Walnut
         public static Pen blackPen = new Pen(Color.Black, 1);
   
         // set this up to detect the colors
-        private const uint DEFAULT_GRAY_DETECTION_RANGE = 20;
+        private const uint DEFAULT_GRAY_DETECTION_RANGE = 50;
         private ColorDetector colorDetectorObj = new ColorDetector(DEFAULT_GRAY_DETECTION_RANGE);
 
         // anybody who is interested can pick this up and use it. It is always set to the lastest 
@@ -118,7 +118,8 @@ namespace Walnut
         private int bottomOfScreenSkipHeight = 0;
 
         // used to optimize the circle finding algorythm
-        Point centerLastCircleFound = new Point(0, 0);
+       // Point centerLastCircleFound = new Point(0, 0);
+        Point centerLastCircleFound = new Point(320, 240);
 
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -634,8 +635,7 @@ namespace Walnut
             List<ColoredRotatedObject> circles = new List<ColoredRotatedObject>();
 
             // should be already set
-           // if (colorDetectorObj==null) colorDetectorObj = new ColorDetector(DEFAULT_GRAY_DETECTION_RANGE);
-            if (colorDetectorObj==null) colorDetectorObj = new ColorDetector(50);
+            if (colorDetectorObj==null) colorDetectorObj = new ColorDetector(DEFAULT_GRAY_DETECTION_RANGE);
 
             // Although the actual data is down in unmanaged memory
             // we do not need to use "unsafe" access to get at it. 
@@ -667,6 +667,7 @@ namespace Walnut
                     KnownColor kc = colorDetectorObj.GetClosestKnownColorRGB(bytes);
                     if (kc == SEARCH_COLOR)
                     {
+                        KnownColor xxc = colorDetectorObj.GetClosestKnownColorRGB(bytes);
                         Point centerPoint = DetectCentroidOfObject(dBitmap, SEARCH_DISTANCE, ASSUMED_DIAMETER_OF_CIRCLE, KnownColor.Red, i.X, i.Y, m_imageWidthInPixels, (m_imageHeightInPixels - BottomOfScreenSkipHeight));
                         if (centerPoint.IsEmpty == true) continue;
                         // is good 

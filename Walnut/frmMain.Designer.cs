@@ -87,10 +87,11 @@
             this.ctlTantaVideoPicker1 = new TantaCommon.ctlTantaVideoPicker();
             this.textBoxPickedVideoDeviceURL = new System.Windows.Forms.TextBox();
             this.tabPageTransporter = new System.Windows.Forms.TabPage();
-            this.checkBoxWaldosEnabled = new System.Windows.Forms.CheckBox();
-            this.label7 = new System.Windows.Forms.Label();
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.checkBoxWaldosEnabled = new System.Windows.Forms.CheckBox();
             this.buttonSendData = new System.Windows.Forms.Button();
+            this.ctlTransparentControl1 = new Walnut.ctlTransparentControl();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.groupBoxDrawGreenCircle.SuspendLayout();
@@ -117,6 +118,7 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.ctlTransparentControl1);
             this.tabPageMain.Controls.Add(this.groupBoxDrawGreenCircle);
             this.tabPageMain.Controls.Add(this.checkBoxMakeTargetTransparent);
             this.tabPageMain.Controls.Add(this.checkBoxFindGreen);
@@ -679,13 +681,9 @@
             // 
             // ctlTantaEVRStreamDisplay1
             // 
-            this.ctlTantaEVRStreamDisplay1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ctlTantaEVRStreamDisplay1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.ctlTantaEVRStreamDisplay1.Location = new System.Drawing.Point(5, 10);
             this.ctlTantaEVRStreamDisplay1.Name = "ctlTantaEVRStreamDisplay1";
-            this.ctlTantaEVRStreamDisplay1.Size = new System.Drawing.Size(640, 476);
+            this.ctlTantaEVRStreamDisplay1.Size = new System.Drawing.Size(640, 480);
             this.ctlTantaEVRStreamDisplay1.TabIndex = 30;
             // 
             // buttonStartStopCapture
@@ -755,9 +753,9 @@
             // 
             // tabPageTransporter
             // 
-            this.tabPageTransporter.Controls.Add(this.checkBoxWaldosEnabled);
-            this.tabPageTransporter.Controls.Add(this.label7);
             this.tabPageTransporter.Controls.Add(this.textBoxDataTrace);
+            this.tabPageTransporter.Controls.Add(this.label7);
+            this.tabPageTransporter.Controls.Add(this.checkBoxWaldosEnabled);
             this.tabPageTransporter.Controls.Add(this.buttonSendData);
             this.tabPageTransporter.Location = new System.Drawing.Point(4, 22);
             this.tabPageTransporter.Name = "tabPageTransporter";
@@ -766,6 +764,29 @@
             this.tabPageTransporter.TabIndex = 2;
             this.tabPageTransporter.Text = "Transporter";
             this.tabPageTransporter.UseVisualStyleBackColor = true;
+            // 
+            // textBoxDataTrace
+            // 
+            this.textBoxDataTrace.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxDataTrace.Location = new System.Drawing.Point(108, 282);
+            this.textBoxDataTrace.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxDataTrace.Multiline = true;
+            this.textBoxDataTrace.Name = "textBoxDataTrace";
+            this.textBoxDataTrace.ReadOnly = true;
+            this.textBoxDataTrace.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxDataTrace.Size = new System.Drawing.Size(549, 132);
+            this.textBoxDataTrace.TabIndex = 57;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(93, 218);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(62, 13);
+            this.label7.TabIndex = 59;
+            this.label7.Text = "Diagnostics";
             // 
             // checkBoxWaldosEnabled
             // 
@@ -779,29 +800,6 @@
             this.checkBoxWaldosEnabled.Text = "Waldos Enabled";
             this.checkBoxWaldosEnabled.UseVisualStyleBackColor = true;
             // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(48, 219);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(62, 13);
-            this.label7.TabIndex = 59;
-            this.label7.Text = "Diagnostics";
-            // 
-            // textBoxDataTrace
-            // 
-            this.textBoxDataTrace.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxDataTrace.Location = new System.Drawing.Point(51, 234);
-            this.textBoxDataTrace.Margin = new System.Windows.Forms.Padding(2);
-            this.textBoxDataTrace.Multiline = true;
-            this.textBoxDataTrace.Name = "textBoxDataTrace";
-            this.textBoxDataTrace.ReadOnly = true;
-            this.textBoxDataTrace.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxDataTrace.Size = new System.Drawing.Size(549, 132);
-            this.textBoxDataTrace.TabIndex = 57;
-            // 
             // buttonSendData
             // 
             this.buttonSendData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -813,6 +811,15 @@
             this.buttonSendData.Text = "Force Send Data";
             this.buttonSendData.UseVisualStyleBackColor = true;
             this.buttonSendData.Click += new System.EventHandler(this.buttonSendData_Click);
+            // 
+            // ctlTransparentControl1
+            // 
+            this.ctlTransparentControl1.Location = new System.Drawing.Point(5, 10);
+            this.ctlTransparentControl1.Name = "ctlTransparentControl1";
+            this.ctlTransparentControl1.Opacity = 0;
+            this.ctlTransparentControl1.Size = new System.Drawing.Size(640, 480);
+            this.ctlTransparentControl1.TabIndex = 74;
+            this.ctlTransparentControl1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ctlTransparentControl1_MouseClick);
             // 
             // frmMain
             // 
@@ -911,6 +918,7 @@
         private System.Windows.Forms.TextBox textBoxGreenCircleRadius;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox textBoxGreenCircleLineThickness;
+        private ctlTransparentControl ctlTransparentControl1;
     }
 }
 
