@@ -184,26 +184,106 @@ namespace Walnut
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public Point LastGreenCircleCenterPoint
-        {
-            get { return (Point)this["LastGreenCircleCenterPoint"]; }
-            set { this["LastGreenCircleCenterPoint"] = value; }
-        }
-
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
         public int LastGreenCircleRadius
         {
             get { return (int)this["LastGreenCircleRadius"]; }
             set { this["LastGreenCircleRadius"] = value; }
         }
 
+        //[UserScopedSettingAttribute()]
+        //[DefaultSettingValueAttribute(null)]
+        //public Point LastGreenCircleCenterPoint
+        //{
+        //    get { return (Point)this["LastGreenCircleCenterPoint"]; }
+        //    set { this["LastGreenCircleCenterPoint"] = value; }
+        //}
+
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public int LastGreenCircleThickness
+        public int LastGreenCircleDrawMouseClicks
         {
-            get { return (int)this["LastGreenCircleThickness"]; }
-            set { this["LastGreenCircleThickness"] = value; }
+            get { return (int)this["LastGreenCircleDrawMouseClicks"]; }
+            set { this["LastGreenCircleDrawMouseClicks"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008NumSteps
+        {
+            get { return (String)this["Ex008NumSteps"]; }
+            set { this["Ex008NumSteps"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008StepsPerSecond
+        {
+            get { return (String)this["Ex008StepsPerSecond"]; }
+            set { this["Ex008StepsPerSecond"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public bool Ex008DirIsCW
+        {
+            get { return (bool)this["Ex008DirIsCW"]; }
+            set { this["Ex008DirIsCW"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public double CalibratedPixelsPerMicron
+        {
+            get { return (double)this["CalibratedPixelsPerMicron"]; }
+            set { this["CalibratedPixelsPerMicron"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectHorizTop
+        {
+            get { return (String)this["Ex008ColorDetectHorizTop"]; }
+            set { this["Ex008ColorDetectHorizTop"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectHorizBot
+        {
+            get { return (String)this["Ex008ColorDetectHorizBot"]; }
+            set { this["Ex008ColorDetectHorizBot"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectMinPixelsHoriz
+        {
+            get { return (String)this["Ex008ColorDetectMinPixelsHoriz"]; }
+            set { this["Ex008ColorDetectMinPixelsHoriz"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectVertTop
+        {
+            get { return (String)this["Ex008ColorDetectVertTop"]; }
+            set { this["Ex008ColorDetectVertTop"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectVertBot
+        {
+            get { return (String)this["Ex008ColorDetectVertBot"]; }
+            set { this["Ex008ColorDetectVertBot"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String Ex008ColorDetectMinPixelsVert
+        {
+            get { return (String)this["Ex008ColorDetectMinPixelsVert"]; }
+            set { this["Ex008ColorDetectMinPixelsVert"] = value; }
         }
 
         //// the most recently used file list

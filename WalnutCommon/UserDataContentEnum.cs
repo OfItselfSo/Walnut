@@ -43,7 +43,7 @@ namespace WalnutCommon
     public enum UserDataContentEnum
     {   NO_DATA =0,                // there is no data content
         RECT_DATA = 1,             // rectangle data  is present in the ServerClientData
-        STEP0_DATA = 2,            // step0 data is present in the ServerClientData
+        STEPPER_CONTROL = 2,       // stepper control data is present in the ServerClientData
         PWMA_DATA = 4,             // pwm A data is present in the ServerClientData
         PWMB_DATA = 8,             // pwm B data is present in the ServerClientData
         FLAG_DATA = 16,            // flags are present in the ServerClientData

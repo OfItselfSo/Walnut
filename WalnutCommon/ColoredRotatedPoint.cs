@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
+using Emgu.CV.Structure;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -20,27 +21,69 @@ using System.Threading.Tasks;
 /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
+
 namespace WalnutCommon
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An enum to define the data content of the Server Client Data object.
+    /// Class to contain information regarding a point and its color. 
     /// 
-    /// NOTE that we use the [SerializableAttribute] so that it can be 
-    /// included as a field in the ServerClientData class. This is
-    /// probably not necssary for an enum, but classes in general
-    /// should use it or the erverClientData class will not be serializable
     /// </summary>
+
     [SerializableAttribute]
-    public enum ServerClientDataContentEnum
+    public class ColoredRotatedPoint : ColoredRotatedObject
     {
-        NO_DATA,                // there is no data content
-        REMOTE_CONNECT,         // the remote has connected
-        REMOTE_DISCONNECT,      // the remote is disconnecting
-        CONNECTION_TEST,        // a simple test, requiring an ACK
-        CONNECTION_TEST_ACK,    // an ACK fromn a connectin test
-        USER_DATA               // the data is user provided content
+        private Point centerPoint = new Point();
+        // the color of the center pixel. We use BGR rather than RGB because a lot of stuff
+        // in EMGUCV prefers that
+        private byte[] centerPixelBGRValue = new byte[3];
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="pointObjIn">the point</param>
+        public ColoredRotatedPoint(Point pointObjIn)
+        {
+            CenterPoint = pointObjIn;
+            ObjectType = ColoredObjectType.COLORED_OBJECT_TYPE_POINT;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="pointObjIn">the point</param>
+        /// <param name="objColorIn">the color of the rectangle</param>
+        public ColoredRotatedPoint(Point pointObjIn, KnownColor objColorIn)
+        {
+            CenterPoint = pointObjIn;
+            ObjColor = objColorIn;
+            ObjectType = ColoredObjectType.COLORED_OBJECT_TYPE_POINT;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets point object, will never get/set null
+        /// </summary>
+        public override Point CenterPoint 
+        { 
+            get 
+            {
+                if(centerPoint == null) {centerPoint = new Point(); }   
+                return centerPoint;
+            } 
+            set 
+            {
+                centerPoint = value;
+                if (centerPoint == null) { centerPoint = new Point(); }
+            }
+        }
+        public override string ToString()
+        {
+            return ObjectType.ToString() + ", " + ", center=(" + CenterPoint.X.ToString() + "," + CenterPoint.Y.ToString() + "), " + ObjColor.ToString() + ", BGR=(" + CenterPixelBGRValue[0].ToString() + "," + CenterPixelBGRValue[1].ToString() + "," + CenterPixelBGRValue[2].ToString() + ")";
+        }
 
     }
 }

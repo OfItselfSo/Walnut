@@ -15,6 +15,10 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
+- **00.02.09** Commit ID: 
+   - This code is designed to support the FPath Experiment 008 which demonstrate that the use of small, common off the shelf (COTS), stepper motor driven linear actuators can form a viable positioning mechanism down to about the 50 micron level - if closed loop feedback is used. See the FPath_Ex008 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex008_BorrowedPrecision.php](http://www.ofitselfso.com/FPath/FPath_Ex008_BorrowedPrecision.php).
+
 - **00.02.07** Commit ID: 6a96848
    - This code is intended to support experiment 006 - the goal of which was to demonstrate that closed loop control is a viable error reduction option when having large machines make smaller machines which then make smaller machines. An interesting application of a transparent panel control has also been implemented. This allows mouse events to be intercepted on third party controls. See the FPath_Ex006 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex006_ThePantograph.php](http://www.ofitselfso.com/FPath/FPath_Ex006_ThePantograph.php).

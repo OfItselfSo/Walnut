@@ -65,8 +65,8 @@ namespace WalnutCommon
         /// <param name="tgtRectIn">the target Rect</param>
         public SrcTgtData(ColoredRotatedObject srcRectIn, ColoredRotatedObject tgtRectIn)
         {
-            if(srcRectIn!=null) SrcPoint = srcRectIn.Center;
-            if(tgtRectIn!=null) TgtPoint = tgtRectIn.Center;
+            if(srcRectIn!=null) SrcPoint = srcRectIn.CenterPoint;
+            if(tgtRectIn!=null) TgtPoint = tgtRectIn.CenterPoint;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

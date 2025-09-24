@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="PRU1_Waldo_IO - Original.p" />
     <None Include="PRU1_Waldo_IO.p" />
   </ItemGroup>
   <ItemGroup>

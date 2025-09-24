@@ -72,7 +72,7 @@ namespace WalnutClient
         // normally the behaviour stops if it does not have a dynamic point but if this is nz
         // we can just proceed with the last known point up to this count.
         private const uint MAX_DYNAMICPOINT_SKIP_COUNT = 5;
-        private uint dynamicPointSkipCount = 0;
+   //     private uint dynamicPointSkipCount = 0;
 
         // if this goes true we assume we are starting the calculations from scratch
         // it is initialized to true.

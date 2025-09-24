@@ -25,6 +25,10 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using MediaFoundation.OPM;
 using Emgu.CV;
+using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Reflection;
+
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -98,7 +102,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.08";
+        private const string APPLICATION_VERSION = "00.02.09";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -111,11 +115,13 @@ namespace Walnut
         private const string RECORDING_IS_ON = "Recording is ON";
         private const string RECORDING_IS_OFF = "Recording is OFF";
 
-        private const string DEFAULT_VIDEO_DEVICE = "HD Pro Webcam C920";
+        private const string DEFAULT_VIDEO_DEVICE = "USB camera";
+//        private const string DEFAULT_VIDEO_DEVICE = "HD Pro Webcam C920";
         private const string DEFAULT_VIDEO_FORMAT = "YUY2";
         private const int DEFAULT_VIDEO_FRAME_WIDTH = 640;
         private const int DEFAULT_VIDEO_FRAME_HEIGHT = 480;
-        private const int DEFAULT_VIDEO_FRAMES_PER_SEC = 10;
+//        private const int DEFAULT_VIDEO_FRAMES_PER_SEC = 10;
+        private const int DEFAULT_VIDEO_FRAMES_PER_SEC = 30;
 
         private const string DEFAULT_SOURCE_DEVICE = @"<No Video Device Selected>";
 
@@ -154,7 +160,7 @@ namespace Walnut
         protected IMFTransform imageOverlayTransform = null;
 
         // if we are using an image recognition transform (as a binary) this will be non-null
-        protected MFTDetectColoredAreas_Sync recognitionTransform = null;
+        protected MFTDetectHorizLines recognitionTransform = null;
 
         // this is the current type of the video stream. We need this to set up the sink writer
         // properly. This must be released at the end
@@ -180,11 +186,12 @@ namespace Walnut
 
         //private const int DEFAULT_STEPPER_SPEED_HZ = 60;
         private const int DEFAULT_STEPPER_SPEED_HZ = 200;
+        private const int STEPPER_SPEED_1HZ = 1;
         private const int DEFAULT_STEPPER_DIR = 0;
 
         // used for diagnostics message speed testing
-        DateTime diagnosticStartTime = DateTime.Now;
-        int diagnosticMessageCount = 0;
+   //     DateTime diagnosticStartTime = DateTime.Now;
+   //     int diagnosticMessageCount = 0;
         const int MAX_DIAGNOSTIC_MESSAGE_COUNT = 100;
         //   private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\Line1.png";
         //  private const string OVERLAY_IMAGE_FILENAME = @"D:\Dump\FPathData\FPath_Ex004\WavePath1.png";
@@ -215,6 +222,15 @@ namespace Walnut
         // make a transparent white brush, note this has an alpha channel of 0
         private SolidBrush whiteTransparentBrush = new SolidBrush(Color.FromArgb(0, 255, 255, 255));
 
+        // some colors
+        private const string HTML_GREEN = "#ff00ff00";
+        private const string HTML_RED = "#ffff0000";
+
+        private Point lastGreenPoint = new Point();
+
+        // we have the ability to draw virtual object on the screen this is the data for them
+        private int greenCircleDrawCount = 0;    // if +ve we draw a green circle on the mouse click point and decrement
+        private int redLineDrawCount = 0;        // if +ve we draw a red line on the mouse click point and decrement
 
         private const int SMALL_CIRCLE_DIAMETER_IN_PIXELS = 23;
         private const int LARGE_CIRCLE_DIAMETER_IN_PIXELS = 37;
@@ -515,11 +531,23 @@ namespace Walnut
             CaptureFileName = ImplicitUserSettings.LastCaptureFileName;
             RunInfoStr = ImplicitUserSettings.LastRunName;
             RunNumberAsInt = ImplicitUserSettings.LastRunNumber;
-            GreenCircleCenterPoint = ImplicitUserSettings.LastGreenCircleCenterPoint;
             GreenCircleRadius = ImplicitUserSettings.LastGreenCircleRadius;
-            GreenCircleThickness = ImplicitUserSettings.LastGreenCircleThickness;
-            // not needed, rec number gets reset to 0 on start
-            //     RecNumberAsInt = ImplicitUserSettings.LastRecNumber;
+            GreenCircleDrawMouseClicks = ImplicitUserSettings.LastGreenCircleDrawMouseClicks;
+//            GreenCircleCenterPoint = ImplicitUserSettings.LastGreenCircleCenterPoint;
+
+            CalibratedPixelsPerMicron = ImplicitUserSettings.CalibratedPixelsPerMicron;
+
+            // experiment 008 settings
+            textBoxStepperControl008NumSteps.Text = ImplicitUserSettings.Ex008NumSteps;
+            textBoxStepperControl008StepsPerSecond.Text = ImplicitUserSettings.Ex008StepsPerSecond;
+            if (ImplicitUserSettings.Ex008DirIsCW == true) radioButtonStepperControl008DirCW.Checked = true;
+            else radioButtonStepperControl008DirCCW.Checked = true;
+            if ((ImplicitUserSettings.Ex008ColorDetectHorizTop!=null) && (ImplicitUserSettings.Ex008ColorDetectHorizTop.Length>0)) textBoxEx008ColorDetectHorizTop.Text = ImplicitUserSettings.Ex008ColorDetectHorizTop;
+            if ((ImplicitUserSettings.Ex008ColorDetectHorizBot != null) && (ImplicitUserSettings.Ex008ColorDetectHorizBot.Length > 0)) textBoxEx008ColorDetectHorizBot.Text = ImplicitUserSettings.Ex008ColorDetectHorizBot;
+            if ((ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz != null) && (ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz.Length > 0))  textBoxEx008ColorDetectMinPixelsHoriz.Text = ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz;
+            if ((ImplicitUserSettings.Ex008ColorDetectVertTop != null) && (ImplicitUserSettings.Ex008ColorDetectVertTop.Length > 0)) textBoxEx008ColorDetectVertTop.Text = ImplicitUserSettings.Ex008ColorDetectVertTop;
+            if ((ImplicitUserSettings.Ex008ColorDetectVertBot != null) && (ImplicitUserSettings.Ex008ColorDetectVertBot.Length > 0)) textBoxEx008ColorDetectVertBot.Text = ImplicitUserSettings.Ex008ColorDetectVertBot;
+            if ((ImplicitUserSettings.Ex008ColorDetectMinPixelsVert != null) && (ImplicitUserSettings.Ex008ColorDetectMinPixelsVert.Length > 0)) textBoxEx008ColorDetectMinPixelsVert.Text = ImplicitUserSettings.Ex008ColorDetectMinPixelsVert;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -534,11 +562,23 @@ namespace Walnut
             ImplicitUserSettings.LastCaptureFileName = CaptureFileName;
             ImplicitUserSettings.LastRunName = RunInfoStr;
             ImplicitUserSettings.LastRunNumber = RunNumberAsInt;
-            ImplicitUserSettings.LastGreenCircleCenterPoint = GreenCircleCenterPoint;
             ImplicitUserSettings.LastGreenCircleRadius = GreenCircleRadius;
-            ImplicitUserSettings.LastGreenCircleThickness = GreenCircleThickness;
-            // not needed, rec number gets reset to 0 on start
-            //ImplicitUserSettings.LastRecNumber = RecNumberAsInt;
+            ImplicitUserSettings.LastGreenCircleDrawMouseClicks = GreenCircleDrawMouseClicks;
+//            ImplicitUserSettings.LastGreenCircleCenterPoint = GreenCircleCenterPoint;
+
+            ImplicitUserSettings.CalibratedPixelsPerMicron = CalibratedPixelsPerMicron;
+
+           // experiment 008 settings
+            ImplicitUserSettings.Ex008NumSteps = textBoxStepperControl008NumSteps.Text;
+            ImplicitUserSettings.Ex008StepsPerSecond = textBoxStepperControl008StepsPerSecond.Text;
+            if (radioButtonStepperControl008DirCW.Checked == true) ImplicitUserSettings.Ex008DirIsCW = true;
+            ImplicitUserSettings.Ex008ColorDetectHorizTop = textBoxEx008ColorDetectHorizTop.Text;
+            ImplicitUserSettings.Ex008ColorDetectHorizBot = textBoxEx008ColorDetectHorizBot.Text;
+            ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz = textBoxEx008ColorDetectMinPixelsHoriz.Text;
+            ImplicitUserSettings.Ex008ColorDetectVertTop = textBoxEx008ColorDetectVertTop.Text;
+            ImplicitUserSettings.Ex008ColorDetectVertBot = textBoxEx008ColorDetectVertBot.Text;
+            ImplicitUserSettings.Ex008ColorDetectMinPixelsVert = textBoxEx008ColorDetectMinPixelsVert.Text;
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -792,20 +832,6 @@ namespace Walnut
             if ((displayText != null) && (displayText.Length != 0))
             {
                 MessageBox.Show(displayText);
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Indicates if it is ok to transmit data to the client
-        /// </summary>
-        private bool TransmitToClientEnabled
-        {
-            get
-            {
-                if(checkBoxActivate.Enabled == false) return false;
-                if(checkBoxActivate.Checked == false) return false;
-                return true;
             }
         }
 
@@ -1119,12 +1145,12 @@ namespace Walnut
                     }
 
                     // set a few things on the VideoTransform now
-                    if ((ImageOverlayTransform is MFTWriteText_Sync) == true)
-                    {
-                        (ImageOverlayTransform as MFTWriteText_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
-                        // the run info gets the run number inserted if the user used the MARKER in the string
-                        (ImageOverlayTransform as MFTWriteText_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
-                    }
+                    //if ((ImageOverlayTransform is MFTWriteText_Sync) == true)
+                    //{
+                    //    (ImageOverlayTransform as MFTWriteText_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                    //    // the run info gets the run number inserted if the user used the MARKER in the string
+                    //    (ImageOverlayTransform as MFTWriteText_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
+                    //}
                 }
 
                 // set the image recognition transform
@@ -1154,13 +1180,13 @@ namespace Walnut
                         throw new Exception("PrepareSessionAndTopology call to pTransformNode.SetObject failed. Err=" + hr.ToString());
                     }
 
-                    // set a few things on the VideoTransform now
-                    if ((RecognitionTransform is MFTDetectColoredAreas_Sync) == true)
-                    {
-                        //(RecognitionTransform as MFTDetectColoredBlobs_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
-                        //// the run info gets the run number inserted if the user used the MARKER in the string
-                        //(RecognitionTransform as MFTDetectColoredBlobs_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
-                    }
+                    //// set a few things on the VideoTransform now
+                    //if ((RecognitionTransform is MFTDetectHorizLines) == true)
+                    //{
+                    //    //(RecognitionTransform as MFTDetectColoredBlobs_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                    //    //// the run info gets the run number inserted if the user used the MARKER in the string
+                    //    //(RecognitionTransform as MFTDetectColoredBlobs_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
+                    //}
                 }
 
                 // Add the nodes to the topology. First the source node
@@ -1192,7 +1218,7 @@ namespace Walnut
                 {
                     throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(textOverlayTransformNode) failed. Err=" + hr.ToString());
                 }
-                // connect first source node to transform node
+                // connect first transform node to the source node
                 hr = sourceVideoNode.ConnectOutput(0, textOverlayTransformNode, 0);
                 if (hr != HResult.S_OK)
                 {
@@ -1211,7 +1237,7 @@ namespace Walnut
                     {
                         throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(recognitionTransformNode) failed. Err=" + hr.ToString());
                     }
-                    // connect last transform node to the recognition transform node
+                    // connect the recognition transform node to the last transform node
                     hr = lastTransformNode.ConnectOutput(0, recognitionTransformNode, 0);
                     if (hr != HResult.S_OK)
                     {
@@ -1236,7 +1262,7 @@ namespace Walnut
                     {
                         throw new Exception("PrepareSessionAndTopology call to topologyObj.AddNode(imageOverlayTransformNode) failed. Err=" + hr.ToString());
                     }
-                    // connect last transform node to the image overlay transform node
+                    // connect the image overlay transform node to the last transform node
                     hr = lastTransformNode.ConnectOutput(0, imageOverlayTransformNode, 0);
                     if (hr != HResult.S_OK)
                     {
@@ -1367,11 +1393,11 @@ namespace Walnut
         /// This can be null if we do not have one.
         /// </summary>
         /// <returns> the a new transform object according to the display settings or null for none</returns>
-        private MFTDetectColoredAreas_Sync CreateRGBAObjectDetectionTransform()
+        private MFTDetectHorizLines CreateRGBAObjectDetectionTransform()
         {
             // hard coded to this. If we wished to inject a different one into the pipeline we
             // could put some logic here.
-            return new MFTDetectColoredAreas_Sync();
+            return new MFTDetectHorizLines();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1379,7 +1405,7 @@ namespace Walnut
         /// Gets/Sets the current image recognition transform object. Can be null
         /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public MFTDetectColoredAreas_Sync RecognitionTransform
+        public MFTDetectHorizLines RecognitionTransform
         {
             get
             {
@@ -1621,6 +1647,10 @@ namespace Walnut
 
             // set this now
             GiveChyronHeightToImageRecognitionTransform();
+            GiveChyronHeightToOverlayTransform();
+
+            // experiment specific setup actions
+            Ex008SpecificSetupActions();
 
             // this is what starts the data moving through the pipeline
             HResult hr = mediaSession.Start(Guid.Empty, new PropVariant());
@@ -1628,6 +1658,18 @@ namespace Walnut
             {
                 throw new Exception("StartVideoCapture call to mediaSession.Start failed. Err=" + hr.ToString());
             }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Perform actions specific to Ex008
+        /// 
+        /// This needs to be done after the topology has been set but before it starts
+        /// </summary>
+        private void Ex008SpecificSetupActions()
+        {
+            // set the color recognition values on the transform
+            SetEx008ColorRecognitionValues();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1642,7 +1684,22 @@ namespace Walnut
             if (RecognitionTransform == null) return;
             if (TextOverlayTransform == null) return;
             // set it now, 
-            (RecognitionTransform as MFTDetectColoredAreas_Sync).BottomOfScreenSkipHeight = (TextOverlayTransform as MFTWriteText_Sync).ChyronHeight;
+            (RecognitionTransform as MFTDetectHorizLines).BottomOfScreenSkipHeight = (TextOverlayTransform as MFTWriteText_Sync).ChyronHeight;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Tell the overlay transform the chyron height. This is so it 
+        /// does not try to process in the bar at the bottom of the screen
+        /// 
+        /// This needs to be done after the topology has been set but before it starts
+        /// </summary>
+        private void GiveChyronHeightToOverlayTransform()
+        {
+            if (ImageOverlayTransform == null) return;
+            if (TextOverlayTransform == null) return;
+            // set it now, 
+            (ImageOverlayTransform as MFTOverlayImage_Base).BottomOfScreenSkipHeight = (TextOverlayTransform as MFTWriteText_Sync).ChyronHeight;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1961,120 +2018,255 @@ namespace Walnut
         /// </summary>
         void codeWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            StringBuilder sb = new StringBuilder();
             labelCount.Text = String.Format("Processed Count: {0}", e.UserState);
 
+            // call the change handler for the current experiment
+            Ex008_ProcessChangedHandler();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles progress reports in a way specific to Ex008
+        /// 
+        /// NOTE we ARE in the form thread here and it is ok to operate on the screen
+        /// controls. 
+        /// </summary>
+        private void Ex008_ProcessChangedHandler()
+        {
             // do we have a recognition transform?
-            if (RecognitionTransform != null)
+            if (RecognitionTransform == null) return;  // we can do nothing
+            // we need the overlayTransform as well
+            if (ImageOverlayTransform == null) return;
+
+            // clear out our existing lines
+            if (checkBoxActions008ClearRedEveryFrame.Checked == true)
             {
-                // yes, we do. Get the list of objects from it
-                List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
-                if (objList == null)
+                (ImageOverlayTransform as MFTOverlayImage_Base).ClearColorFromOverlay(Color.Red);
+            }
+
+            // yes, we do. Get the list of objects from it
+            List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
+            if (objList == null) return;
+
+            Point lastHorizLineCenterPoint=new Point();
+            Point lastVertLineCenterPoint=new Point();
+
+            // run through each object and draw in the identified largest horiz and vert line
+            foreach (ColoredRotatedObject crObj in objList)
+            {
+                if ((crObj is ColoredRotatedLine) == false) return;
+                if ((crObj as ColoredRotatedLine).Angle == ColoredRotatedLine.HORIZONTAL_LINE_ANGLE)
                 {
+                    // remember this
+                    lastHorizLineCenterPoint = (crObj as ColoredRotatedLine).CenterPoint;
+                    // do we want to draw one?
+                    if (checkBoxActions008ShowHorizLine.Checked == true)
+                    {
+                        // yes we do, we draw in the horizontal line
+                        DrawRedLineThroughPoint((crObj as ColoredRotatedLine).CenterPoint, 1, false);
+                    }
+                }
+                if ((crObj as ColoredRotatedLine).Angle == ColoredRotatedLine.VERTICAL_LINE_ANGLE)
+                {
+                    // remember this
+                    lastVertLineCenterPoint = (crObj as ColoredRotatedLine).CenterPoint;
+                    // do we want to draw one?
+                    if (checkBoxActions008ShowVertLine.Checked == true)
+                    {
+                        // we draw in the horizontal line
+                        DrawRedLineThroughPoint((crObj as ColoredRotatedLine).CenterPoint, 1, true);
+                    }
+                }
+            } // bottom of foreach (ColoredRotatedObject crObj in objList)
+
+            // do we want to draw a circle
+            if ((checkBoxActions008DrawCircleOnIntersection.Checked == true) && (lastHorizLineCenterPoint.IsEmpty == false) && (lastVertLineCenterPoint.IsEmpty == false))
+            {
+                // just draw a red circle
+                DrawCircleAtPoint(new Point(lastVertLineCenterPoint.X, lastHorizLineCenterPoint.Y), Ex008RedCircleRadius, HTML_RED);
+            }
+
+            // now we move on to sending the SRC/TGT data container to the Walnut client
+
+            if ((checkBoxActions008MoveRedOntoGreen.Checked == true) && (LastGreenPoint.IsEmpty==false))
+            {
+                // do we have anything to send?
+                if((lastHorizLineCenterPoint.IsEmpty == true) || (lastVertLineCenterPoint.IsEmpty == true))
+                {
+                    // we cannot move red onto green
+                    // create an empty scData obj, this will shut it down
+                    SendSrcTgtData(new SrcTgtData());
                     return;
                 }
-                // convert to src-tgt format
-                List<SrcTgtData> srcTgtDataList = new List<SrcTgtData>();
 
-                // do we want to check for the nearest green point?
-                if ((objList.Count != 0) && (imageOverlayTransform != null))
-                {
-                    Point centerPoint = new Point((int)objList[0].Center.X, (int)objList[0].Center.Y);
-                 //   int objRadius = (int)objList[0].Radius + 3;
-                    int objRadius = 3;
-
-                    // do we want to make it transparent
-                    if (checkBoxMakeTargetTransparent.Checked == true)
-                    {
-                        // make the target transparent
-                        (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnOverlay(whiteTransparentBrush, centerPoint, objRadius);
-                        // only write on the tracker if we are not actually following the track
-                        if (currentTargetColorARGB != ALT_TARGET_COLOR_ARGB) (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnTracker(trackerBrush, centerPoint, 1);
-                    }
-                    if (checkBoxFindGreen.Checked == true)
-                    {
-                        // look for the nearest green point. This is a spiral algorythm from the start point
-                        // it is faster than a raster scan from (0,0) and because the overlay uses a DirectBitmap
-                        // the GetPixel() calls are reasonably fast.
-                        Point nearestGreenPoint = (imageOverlayTransform as MFTOverlayImage_GS).GetNearestColorPointFromOrigin(centerPoint, currentTargetColorARGB, PATH_FOLLOW_MIN_POINTS_NEEDED);
-                        if (nearestGreenPoint.IsEmpty == false)
-                        {
-                            // found one, count it
-                            countOfDefaultTargetPixelsFound++;
-                            // load up the srcTgt object
-                            srcTgtDataList.Add(new SrcTgtData(centerPoint, nearestGreenPoint));
-
-                            // temporary
-                            // (imageOverlayTransform as MFTOverlayImage_GS).DrawLineBetweenPoints(blackPen, centerPoint, nearestGreenPoint);
-                        }
-                        else
-                        {
-                            // commented out for experiment 006
-                            //// not found. Have we moved enough to consider switching colors and toggling the 
-                            //// operation to find our way back.
-                            //const int MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS = 20;
-                            //if (countOfDefaultTargetPixelsFound>MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS)
-                            //{
-                            //    // switch to the alt color
-                            //    currentTargetColorARGB = ALT_TARGET_COLOR_ARGB;
-                            //    countOfDefaultTargetPixelsFound = 0;
-                            //    (imageOverlayTransform as MFTOverlayImage_GS).CopyTrackerOntoOverlay();
-                            //    (imageOverlayTransform as MFTOverlayImage_GS).ClearTracker();
-                            //}
-                        }
-                    }
-                }
-
-                // do we want to transmit this data to the client?
-                if (TransmitToClientEnabled == true)
-                {
-
-                    if (dataTransporter == null)
-                    {
-                        LogMessage("codeWorker_ProgressChanged, dataTransporter == null");
-                        return;
-                    }
-                    if (IsConnected() == false)
-                    {
-                        LogMessage("codeWorker_ProgressChanged, Not connected");
-                        return;
-                    }
-
-                    // create the data container
-                    ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
-                    // tell it we are carrying a srcTgt list
-                    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
-                    scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
-                    scData.SrcTgtList = srcTgtDataList;
-
-                    // display it
-                    LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
-                    // send it
-                    dataTransporter.SendData(scData);
-
-                    // set diagnostics going
-                    if (diagnosticMessageCount == 0) diagnosticStartTime = DateTime.Now;
-                    if (diagnosticMessageCount >= MAX_DIAGNOSTIC_MESSAGE_COUNT)
-                    {
-                        TimeSpan timeItTook = DateTime.Now - diagnosticStartTime;
-                        this.textBoxStatus.Text = "Elapsed=" + timeItTook.TotalSeconds + ", avg/sec=" + diagnosticMessageCount / timeItTook.TotalSeconds;
-                        diagnosticMessageCount = 0;
-                        return;
-                    }
-                    diagnosticMessageCount++;
-
-                }
+                // we are good to go, create and populate an scData obj
+                Point redPoint = new Point(lastVertLineCenterPoint.X, lastHorizLineCenterPoint.Y);
+                SrcTgtData scData = new SrcTgtData(redPoint, LastGreenPoint);
+                // send it
+                SendSrcTgtData(scData);
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Handles completion actions for the CodeWorker
+        /// Send SrcTgtData to the Walnut Client
+        /// 
+        /// </summary>
+        /// <param name="srcTgtData">the srcTgt data container</param>
+        private void SendSrcTgtData(SrcTgtData srcTgtData)
+        {
+            if (srcTgtData == null)
+            {
+                LogMessage("SendSrcTgtData, srcTgtData == null");
+                return;
+            }
+            if (dataTransporter == null)
+            {
+                LogMessage("SendSrcTgtData, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("SendSrcTgtData, Not connected");
+                return;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
+            // tell it we are carrying a srcTgt list
+            scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+            scData.SrcTgtList = new List<SrcTgtData>();
+            scData.SrcTgtList.Add(srcTgtData);
+
+            // display it
+            LogMessage("SendSrcTgtData, OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);            
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles progress reports in a way specific to some older experiments
         /// 
         /// NOTE we ARE in the form thread here and it is ok to operate on the screen
         /// controls. 
         /// </summary>
-        void codeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void ExOLD_ProcessChangedHandler()
+        { 
+            //StringBuilder sb = new StringBuilder();
+
+        //// do we have a recognition transform?
+        //if (RecognitionTransform != null)
+        //{
+        //    // yes, we do. Get the list of objects from it
+        //    List<ColoredRotatedObject> objList = RecognitionTransform.IdentifiedObjects;
+        //    if (objList == null)
+        //    {
+        //        return;
+        //    }
+        //    // convert to src-tgt format
+        //    List<SrcTgtData> srcTgtDataList = new List<SrcTgtData>();
+
+        //    // do we want to check for the nearest green point?
+        //    if ((objList.Count != 0) && (imageOverlayTransform != null))
+        //    {
+        //        Point centerPoint = new Point((int)objList[0].Center.X, (int)objList[0].Center.Y);
+        //     //   int objRadius = (int)objList[0].Radius + 3;
+        //        int objRadius = 3;
+
+        //        // do we want to make it transparent
+        //        if (checkBoxMakeTargetTransparent.Checked == true)
+        //        {
+        //            // make the target transparent
+        //            (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnOverlay(whiteTransparentBrush, centerPoint, objRadius);
+        //            // only write on the tracker if we are not actually following the track
+        //            if (currentTargetColorARGB != ALT_TARGET_COLOR_ARGB) (imageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnTracker(trackerBrush, centerPoint, 1);
+        //        }
+        //        if (checkBoxFindGreen.Checked == true)
+        //        {
+        //            // look for the nearest green point. This is a spiral algorythm from the start point
+        //            // it is faster than a raster scan from (0,0) and because the overlay uses a DirectBitmap
+        //            // the GetPixel() calls are reasonably fast.
+        //            Point nearestGreenPoint = (imageOverlayTransform as MFTOverlayImage_GS).GetNearestColorPointFromOrigin(centerPoint, currentTargetColorARGB, PATH_FOLLOW_MIN_POINTS_NEEDED);
+        //            if (nearestGreenPoint.IsEmpty == false)
+        //            {
+        //                // found one, count it
+        //                countOfDefaultTargetPixelsFound++;
+        //                // load up the srcTgt object
+        //                srcTgtDataList.Add(new SrcTgtData(centerPoint, nearestGreenPoint));
+
+        //                // temporary
+        //                // (imageOverlayTransform as MFTOverlayImage_GS).DrawLineBetweenPoints(blackPen, centerPoint, nearestGreenPoint);
+        //            }
+        //            else
+        //            {
+        //                // commented out for experiment 006
+        //                //// not found. Have we moved enough to consider switching colors and toggling the 
+        //                //// operation to find our way back.
+        //                //const int MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS = 20;
+        //                //if (countOfDefaultTargetPixelsFound>MIN_TARGET_PIXELS_FOUND_TO_SWITCH_COLORS)
+        //                //{
+        //                //    // switch to the alt color
+        //                //    currentTargetColorARGB = ALT_TARGET_COLOR_ARGB;
+        //                //    countOfDefaultTargetPixelsFound = 0;
+        //                //    (imageOverlayTransform as MFTOverlayImage_GS).CopyTrackerOntoOverlay();
+        //                //    (imageOverlayTransform as MFTOverlayImage_GS).ClearTracker();
+        //                //}
+        //            }
+        //        }
+        //    }
+
+        //    // do we want to transmit this data to the client?
+        //    if (TransmitToClientEnabled == true)
+        //    {
+
+        //        if (dataTransporter == null)
+        //        {
+        //            LogMessage("codeWorker_ProgressChanged, dataTransporter == null");
+        //            return;
+        //        }
+        //        if (IsConnected() == false)
+        //        {
+        //            LogMessage("codeWorker_ProgressChanged, Not connected");
+        //            return;
+        //        }
+
+        //        // create the data container
+        //        ServerClientData scData = new ServerClientData("SrcTgt Data from Server to Client");
+        //        // tell it we are carrying a srcTgt list
+        //        scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.SRCTGT_DATA;
+        //        scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+        //        scData.SrcTgtList = srcTgtDataList;
+
+        //        // display it
+        //        LogMessage("codeWorker_ProgressChanged, OUT: dataStr=" + scData.DataStr);
+        //        // send it
+        //        dataTransporter.SendData(scData);
+
+        //        // set diagnostics going
+        //        if (diagnosticMessageCount == 0) diagnosticStartTime = DateTime.Now;
+        //        if (diagnosticMessageCount >= MAX_DIAGNOSTIC_MESSAGE_COUNT)
+        //        {
+        //            TimeSpan timeItTook = DateTime.Now - diagnosticStartTime;
+        //            this.textBoxStatus.Text = "Elapsed=" + timeItTook.TotalSeconds + ", avg/sec=" + diagnosticMessageCount / timeItTook.TotalSeconds;
+        //            diagnosticMessageCount = 0;
+        //            return;
+        //        }
+        //        diagnosticMessageCount++;
+
+        //    }
+        //}
+        }
+
+    /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+    /// <summary>
+    /// Handles completion actions for the CodeWorker
+    /// 
+    /// NOTE we ARE in the form thread here and it is ok to operate on the screen
+    /// controls. 
+    /// </summary>
+    void codeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
             {
@@ -2112,17 +2304,19 @@ namespace Walnut
         private void SetupWalnutControls()
         {
             SyncAllWalnutControlsToScreenState(false);
-
+            // give this a call to set the appearance correctly
+            SetWaldosEnabledCheckBoxAccordingToState();
+            SetRemoteConnectionCheckBoxVisuals(false);
         }
 
  
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Handles presses on the buttonSendData button
+        /// Handles presses on the buttonTestConnection button
         /// </summary>
-        private void buttonSendData_Click(object sender, EventArgs e)
+        private void buttonTestConnection_Click(object sender, EventArgs e)
         {
-            LogMessage("buttonSendData_Click");
+            LogMessage("buttonTestConnection_Click");
 
             if (dataTransporter == null)
             {
@@ -2135,8 +2329,8 @@ namespace Walnut
                 return;
             }
 
-            // sends the data from the screen to the client
-            SendDataFromScreenToClient();
+            // test the connection
+            ConnectionTest();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2160,7 +2354,7 @@ namespace Walnut
             ServerClientData scData = GetSCDataFromScreen("Data from server to client");
 
             // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
 
@@ -2195,8 +2389,8 @@ namespace Walnut
             SrcTgtData workingSrcTgt = new SrcTgtData();
 
             // if we found either a red or a green object then add them
-            if (greenObj != null) workingSrcTgt.TgtPoint = greenObj.Center;
-            if (redObj != null) workingSrcTgt.SrcPoint = redObj.Center;
+            if (greenObj != null) workingSrcTgt.TgtPoint = greenObj.CenterPoint;
+            if (redObj != null) workingSrcTgt.SrcPoint = redObj.CenterPoint;
 
             // do we have at least one of these? if not return empty list
             if(workingSrcTgt.IsMinimallyPopulated() == false) return outList;
@@ -2214,23 +2408,23 @@ namespace Walnut
         /// <returns>a populated ServerClientData container</returns>
         private ServerClientData GetSCDataFromScreen(string scDataText)
         {
-            List<ColoredRotatedObject> rectList = null;
+            //List<ColoredRotatedObject> rectList = null;
 
-            if (scDataText == null) scDataText = "Rect Data from Server to Client";
+            //if (scDataText == null) scDataText = "Rect Data from Server to Client";
             ServerClientData scData = new ServerClientData(scDataText);
 
-            // check if we are recognizing
-            if (RecognitionTransform == null) return scData;
-            else
-            {
-                rectList = RecognitionTransform.IdentifiedObjects;
-                // tell it we are carrying a rect list
-                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.RECT_DATA;
-                scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
-            }
+            //// check if we are recognizing
+            //if (RecognitionTransform == null) return scData;
+            //else
+            //{
+            //    rectList = RecognitionTransform.IdentifiedObjects;
+            //    // tell it we are carrying a rect list
+            //    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.RECT_DATA;
+            //    scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+            //}
 
-            // get the global enable
-            scData.RectList = rectList;
+            //// get the global enable
+            //scData.RectList = rectList;
 
             return scData;
         }
@@ -2272,14 +2466,21 @@ namespace Walnut
                 // it is user defined data, log it
                 LogMessage("ServerClientDataEventHandler dataStr=" + scData.DataStr);
                 // display it
-                AppendDataToTrace("IN: dataInt= dataStr=" + scData.DataStr);
+                AppendDataToConnectionTrace("IN: dataStr=" + scData.DataStr);
+            }
+            else if (scData.DataContent == ServerClientDataContentEnum.CONNECTION_TEST_ACK)
+            {
+                // it is just a connection test ACK, log it
+                LogMessage("ServerClientDataEventHandler " + scData.DataStr);
+                // display it
+                AppendDataToConnectionTrace("IN: " + scData.DataStr);
             }
             else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
             {
                 // the remote side has connected
                 LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
                 // display it
-                AppendDataToTrace("IN: REMOTE_CONNECT");
+                AppendDataToConnectionTrace("IN: REMOTE_CONNECT");
                 // set the screen
                 SetScreenVisualsBasedOnConnectionState(true);
             }
@@ -2288,38 +2489,66 @@ namespace Walnut
                 // the remote side has connected
                 LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
                 // display it
-                AppendDataToTrace("IN: REMOTE_DISCONNECT");
+                AppendDataToConnectionTrace("IN: REMOTE_DISCONNECT");
                 // set the screen
                 SetScreenVisualsBasedOnConnectionState(false);
                 // shut things down on our end
                 ShutdownDataTransporter();
             }
+            else
+            {
+                LogMessage("ServerClientDataEventHandler unknown DataContent = " + scData.DataContent.ToString());
+                Console.WriteLine("ServerClientDataEventHandler  unknown DataContent = " + scData.DataContent.ToString());
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Shutsdown the data transporter safely
+        /// Shuts down the data transporter safely
         /// </summary>
         private void ShutdownDataTransporter()
         {
+            LogMessage("ShutdownDataTransporter called");
+
             // shutdown the data transporter
             if (dataTransporter != null)
             {
                 // are we connected? we want to tell the client to exit 
                 if (IsConnected() == true)
                 {
-                    // get the server client data from the screen
-                    ServerClientData scData = GetSCDataFromScreen("Client close down message");
-
-                    // display it
-                    AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
-                    // send it
-                    dataTransporter.SendData(scData);
+                    // disable all waldos
+                    DisableAllWaldos();
                 }
 
                 dataTransporter.Shutdown();
                 dataTransporter = null;
             }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Disables all Waldos
+        /// </summary>
+        private void DisableAllWaldos()
+        {
+            LogMessage("DisableAllWaldos called");
+            // do we have a data transporter
+            if (dataTransporter == null)
+            {
+                LogMessage("DisableAllWaldos dataTransporter == null");
+                return;
+            }
+
+            // shutdown all waldos
+            ServerClientData scData = new ServerClientData("Disable all Waldos");
+            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+            scData.Waldo_Enable = 0;
+            // send it
+            dataTransporter.SendData(scData);
+
+            // display it
+            AppendDataToConnectionTrace("OUT: Disable All Waldos requested");
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2330,8 +2559,35 @@ namespace Walnut
         {
             if (dataTransporter == null) return false;
             if (dataTransporter.IsConnected() == false) return false;
-            if (buttonSendData.Enabled == false) return false;
+            if (buttonTestConnection.Enabled == false) return false;
             return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sends a connection TEST message
+        /// </summary>
+        private void ConnectionTest()
+        {
+            LogMessage("ConnectionTest called");
+            // do we have a data transporter
+            if (dataTransporter == null)
+            {
+                LogMessage("DisableAllWaldos dataTransporter == null");
+                return;
+            }
+
+            // shutdown all waldos
+            ServerClientData scData = new ServerClientData("Connection Test");
+            scData.DataContent = ServerClientDataContentEnum.CONNECTION_TEST;
+            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+            scData.Waldo_Enable = 0;
+            // send it
+            dataTransporter.SendData(scData);
+
+            // display it
+            AppendDataToConnectionTrace("OUT: Connection test requested");
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2342,25 +2598,25 @@ namespace Walnut
         {
             if (connectionState == true)
             {
-                buttonSendData.Enabled = true;
+                buttonTestConnection.Enabled = true;
             }
             else
             {
-                buttonSendData.Enabled = false;
+                buttonTestConnection.Enabled = false;
             }
+            SetRemoteConnectionCheckBoxVisuals(connectionState);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Appends data to our data trace
+        /// Appends data to our data connection trace
         /// </summary>
-        private void AppendDataToTrace(string dataToAppend)
+        private void AppendDataToConnectionTrace(string dataToAppend)
         {
             if ((dataToAppend == null) || (dataToAppend.Length == 0)) return;
             textBoxDataTrace.Text = textBoxDataTrace.Text + "\r\n" + dataToAppend;
         }
 
- 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Synchronizes all waldo controls to the screen state
@@ -2377,55 +2633,55 @@ namespace Walnut
         /// </summary>
         private void checkBoxTestStepper0_CheckedChanged(object sender, EventArgs e)
         {
-            LogMessage("checkBoxTestStepper0_CheckedChanged");
+            //LogMessage("checkBoxTestStepper0_CheckedChanged");
 
-            if (dataTransporter == null)
-            {
-                OISMessageBox("No data transporter");
-                return;
-            }
-            if (IsConnected() == false)
-            {
-                OISMessageBox("Not connected");
-                return;
-            }
+            //if (dataTransporter == null)
+            //{
+            //    OISMessageBox("No data transporter");
+            //    return;
+            //}
+            //if (IsConnected() == false)
+            //{
+            //    OISMessageBox("Not connected");
+            //    return;
+            //}
 
-            // create the data container
-            ServerClientData scData = new ServerClientData();
-            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
-            scData.UserDataContent = UserDataContentEnum.NO_DATA;
+            //// create the data container
+            //ServerClientData scData = new ServerClientData();
+            //scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            //scData.UserDataContent = UserDataContentEnum.NO_DATA;
 
-            // set up some default speeds and dirs
-            scData.Step0_StepSpeed = Utils.ConvertHzToCycles(DEFAULT_STEPPER_SPEED_HZ/4);
-            if(checkBoxTestStepperDir.Checked==true)
-            {
-                scData.Step0_DirState = 1;
-            }
-            else
-            {
-                scData.Step0_DirState = 0;
+            //// set up some default speeds and dirs
+            //scData.Step0_StepSpeed = Utils.ConvertHzToCycles(DEFAULT_STEPPER_SPEED_HZ/4);
+            //if(checkBoxTestStepperDir.Checked==true)
+            //{
+            //    scData.Step0_DirState = 1;
+            //}
+            //else
+            //{
+            //    scData.Step0_DirState = 0;
 
-            }
-            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked?1:0);
+            //}
+            //scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked?1:0);
 
-            // set stepper 0 state according to the screen
-            if (checkBoxTestStepper0.Checked == true)
-            {
-                scData.Step0_Enable = 1;
-                scData.DataStr = "Toggle Stepper Motor 0 State On";
-                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
-            }
-            else
-            {
-                scData.Step0_Enable = 0;
-                scData.DataStr = "Toggle Stepper Motor 0 State Off";
-                scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
-            }
+            //// set stepper 0 state according to the screen
+            //if (checkBoxTestStepper0.Checked == true)
+            //{
+            //    scData.Step0_Enable = 1;
+            //    scData.DataStr = "Toggle Stepper Motor 0 State On";
+            //    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
+            //}
+            //else
+            //{
+            //    scData.Step0_Enable = 0;
+            //    scData.DataStr = "Toggle Stepper Motor 0 State Off";
+            //    scData.UserDataContent = scData.UserDataContent | UserDataContentEnum.STEP0_DATA;
+            //}
 
-            // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
-            // send it
-            dataTransporter.SendData(scData);
+            //// display it
+            //AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            //// send it
+            //dataTransporter.SendData(scData);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -2455,7 +2711,7 @@ namespace Walnut
             scData.UserFlag = UserDataFlagEnum.MARK_FLAG;
 
             // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
 
@@ -2489,7 +2745,7 @@ namespace Walnut
             scData.UserFlag = UserDataFlagEnum.EXIT_FLAG;
 
             // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
 
@@ -2497,59 +2753,59 @@ namespace Walnut
 
         // detect changes on our draw square radio buttons, these are just temporary
         // for testing
-        private void radioButtonLoc1_CheckedChanged(object sender, EventArgs e)
-        {
-            // some sanity checks
-            if (radioButtonLoc1.Checked == false) return;
-            if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
-            // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(150, 150));
-        }
+        //private void radioButtonLoc1_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    // some sanity checks
+        //    if (radioButtonLoc1.Checked == false) return;
+        //    if (ImageOverlayTransform == null) return;
+        //    if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+        //    // set the rectangle
+        //    (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(150, 150));
+        //}
 
-        private void radioButtonLoc2_CheckedChanged(object sender, EventArgs e)
-        {
-            // some sanity checks
-            if (radioButtonLoc2.Checked == false) return;
-            if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
-            // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(200, 200));
+        //private void radioButtonLoc2_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    // some sanity checks
+        //    if (radioButtonLoc2.Checked == false) return;
+        //    if (ImageOverlayTransform == null) return;
+        //    if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+        //    // set the rectangle
+        //    (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(200, 200));
 
-        }
+        //}
 
-        private void radioButtonLoc3_CheckedChanged(object sender, EventArgs e)
-        {
-            // some sanity checks
-            if (radioButtonLoc3.Checked == false) return;
-            if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
-            // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 100));
+        //private void radioButtonLoc3_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    // some sanity checks
+        //    if (radioButtonLoc3.Checked == false) return;
+        //    if (ImageOverlayTransform == null) return;
+        //    if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+        //    // set the rectangle
+        //    (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 100));
 
-        }
+        //}
 
-        private void radioButtonLoc4_CheckedChanged(object sender, EventArgs e)
-        {
-            // some sanity checks
-            if (radioButtonLoc4.Checked == false) return;
-            if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
-            // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 200));
+        //private void radioButtonLoc4_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    // some sanity checks
+        //    if (radioButtonLoc4.Checked == false) return;
+        //    if (ImageOverlayTransform == null) return;
+        //    if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+        //    // set the rectangle
+        //    (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(350, 200));
 
-        }
+        //}
 
-        private void radioButtonLocNone_CheckedChanged(object sender, EventArgs e)
-        {
-            // some sanity checks
-            if (radioButtonLocNone.Checked == false) return;
-            if (ImageOverlayTransform == null) return;
-            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
-            // set the rectangle
-            (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(-1, -1));
+        //private void radioButtonLocNone_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    // some sanity checks
+        //    if (radioButtonLocNone.Checked == false) return;
+        //    if (ImageOverlayTransform == null) return;
+        //    if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+        //    // set the rectangle
+        //    (ImageOverlayTransform as MFTOverlayImage_GS).SetRectangle(new Point(-1, -1));
 
-        }
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -2711,7 +2967,7 @@ namespace Walnut
             }
 
             // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
 
@@ -2771,7 +3027,7 @@ namespace Walnut
             }
 
             // display it
-            AppendDataToTrace("OUT: dataStr=" + scData.DataStr);
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
             // send it
             dataTransporter.SendData(scData);
 
@@ -2833,41 +3089,149 @@ namespace Walnut
         /// <summary>
         /// Draws a green circle. The overlay must be activated and loaded
         /// </summary>
-        private void buttonDrawCircle_Click(object sender, EventArgs e)
+        private void buttonDrawGreenCircleAtPoint_Click(object sender, EventArgs e)
         {
-            
+            // sanity checks
             if (ImageOverlayTransform == null) return;
-            try
-            {
-                // get the draw point off the screen
-                Point centerPoint = GreenCircleCenterPoint;
-                // get the radius off the screen
-                int radius = GreenCircleRadius;
-                // get the line thickness off the screen
-                int lineThickness = GreenCircleThickness;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
 
-                using (SolidBrush brsh = new SolidBrush(ColorTranslator.FromHtml("#ff00ff00")))
-                {
-                    (ImageOverlayTransform as MFTOverlayImage_GS).ClearOverlay();
-                    (ImageOverlayTransform as MFTOverlayImage_GS).DrawCircleOnOverlay(brsh, centerPoint, radius, lineThickness);
-                }
+            // get the draw point off the screen
+            Point centerPoint = GreenCircleManualDrawCenterPoint;
+            // get the radius off the screen
+            int radius = GreenCircleRadius;
+            // draw the circle
+            DrawCircleAtPoint(centerPoint, radius, HTML_GREEN);
 
-            }
-            catch { return; }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the green circle thickness 
+        /// Clears the green circles and everything else on the overlay
         /// </summary>
-        private int GreenCircleThickness
+        private void buttonDrawClearOverlay_Click(object sender, EventArgs e)
+        {
+            // sanity checks
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+            (ImageOverlayTransform as MFTOverlayImage_GS).ClearOverlay();
+            // also clear this
+            greenCircleDrawCount = 0;
+            redLineDrawCount = 0;
+            LastGreenPoint = new Point();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets up to draw a green circle for every mouse click for a specified
+        /// number of mouse clicks
+        /// </summary>
+        private void buttonDrawGreenCircleAtClicks_Click(object sender, EventArgs e)
+        {
+            greenCircleDrawCount = 0;
+
+            try
+            {
+                // get the value from the screen, and place it in this flag
+                greenCircleDrawCount = GreenCircleDrawMouseClicks;
+            }
+            catch { }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets up to draw a red line for every mouse click for a specified
+        /// number of mouse clicks
+        /// </summary>
+        private void buttonDrawRedLineAtClicks_Click(object sender, EventArgs e)
+        {
+            redLineDrawCount = 0;
+
+            try
+            {
+                // get the value from the screen, and place it in this flag
+                redLineDrawCount = RedLineDrawMouseClicks;
+            }
+            catch { }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a red line through a point. The overlay must be activated and loaded
+        /// </summary>
+        private void buttonDrawRedLineThroughPoint_Click(object sender, EventArgs e)
+        {
+            // sanity checks
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+
+            // get the draw point off the screen
+            Point centerPoint = RedLineManualDrawThroughPoint;
+            // get the width off the screen
+            int radius = RedLineWidth;
+            // do we want it to go vertical
+            bool wantVert = RedLineWantVertLine;
+            // draw the line
+            DrawRedLineThroughPoint(centerPoint, radius, wantVert);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a red line through a point (on the overlay actually) at a specified point
+        /// and of a specified width
+        /// </summary>
+        /// <param name="pointIn">the point</param>
+        /// <param name="width">the line width</param>
+        /// <param name="wantVert">if true we draw a vertical line, otherwise horiz.</param>
+        private void DrawRedLineThroughPoint(Point pointIn, int width, bool wantVert)
+        {
+            // sanity checks
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+            if (pointIn == null) return;
+            if (width <= 0) return;
+
+            using (Pen xPen = new Pen(Color.Red, width))
+            {
+                (ImageOverlayTransform as MFTOverlayImage_GS).DrawLineThroughPointOnOnOverlay(xPen, pointIn, wantVert);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a circle on the screen (on the overlay actuall) at a specified point
+        /// and of a specified radius
+        /// </summary>
+        /// <param name="pointIn">the point</param>
+        /// <param name="radius">the radius</param>
+        /// <param name="colorAsHTML">the color as an HTML string. IE "#ff00ff00" is green</param>
+        private void DrawCircleAtPoint(Point pointIn, int radius, string colorAsHTML)
+        {
+            // sanity checks
+            if (ImageOverlayTransform == null) return;
+            if ((ImageOverlayTransform is MFTOverlayImage_GS) == false) return;
+            if (pointIn == null) return;
+            if (radius <= 0) return;
+            if(colorAsHTML==null) return;
+            if (colorAsHTML.Length == 0) return;
+
+            using (SolidBrush brsh = new SolidBrush(ColorTranslator.FromHtml(colorAsHTML)))
+            {
+                (ImageOverlayTransform as MFTOverlayImage_GS).FillCircularRegionOnOverlay(brsh, pointIn, radius);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the number of mouse clicks we can draw green circles on
+        /// </summary>
+        private int GreenCircleDrawMouseClicks
         {
             get
             {
                 try
                 {
-                    // get the draw point off the screen
-                    return Convert.ToInt32(textBoxGreenCircleLineThickness.Text);
+                    // get the data off the screen
+                    return Convert.ToInt32(textBoxGreenCircleDrawMouseClicks.Text);
                 }
                 catch
                 {
@@ -2877,7 +3241,57 @@ namespace Walnut
             set
             {
                 // simple value
-                textBoxGreenCircleLineThickness.Text = value.ToString();
+                textBoxGreenCircleDrawMouseClicks.Text = value.ToString();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the number of mouse clicks we can draw red lines on
+        /// </summary>
+        private int RedLineDrawMouseClicks
+        {
+            get
+            {
+                try
+                {
+                    // get the data off the screen
+                    return Convert.ToInt32(textBoxRedLineDrawMouseClicks.Text);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+            set
+            {
+                // simple value
+                textBoxRedLineDrawMouseClicks.Text = value.ToString();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the red line width. 
+        /// </summary>
+        private int RedLineWidth
+        {
+            get
+            {
+                try
+                {
+                    // get the draw point off the screen
+                    return Convert.ToInt32(textBoxRedLineWidth.Text);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+            set
+            {
+                // simple value
+                textBoxRedLineWidth.Text = value.ToString();
             }
         }
 
@@ -2910,27 +3324,51 @@ namespace Walnut
         /// <summary>
         /// Gets/Sets the green circle centerpoint. 
         /// </summary>
-        private Point GreenCircleCenterPoint
+        private Point GreenCircleManualDrawCenterPoint
         {
             get
             {
-                try
-                {
-                    // get the draw point off the screen
-                    string[] xAndYCoords = textBoxGreenCircleXY.Text.Split(',');
-                    if (xAndYCoords.Length != 2) return new Point();
-                    Point centerPoint = new Point(Convert.ToInt32(xAndYCoords[0].Replace(" ", "")), Convert.ToInt32(xAndYCoords[1].Replace(" ", "")));
-                    return centerPoint;
-                }
-                catch
-                {
-                    return new Point();
-                }
+                return Utils.ConvertBracketTextToPoint(textBoxDrawGreenCircleXY.Text);
             }
             set
             {
                 // simple comma separated value
-                textBoxGreenCircleXY.Text=value.X.ToString()+","+value.Y.ToString();
+                textBoxDrawGreenCircleXY.Text=value.X.ToString()+","+value.Y.ToString();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the red line through point. 
+        /// </summary>
+        private Point RedLineManualDrawThroughPoint
+        {
+            get
+            {
+                return Utils.ConvertBracketTextToPoint(textBoxDrawRedLineXY.Text);
+            }
+            set
+            {
+                // simple comma separated value
+                textBoxDrawRedLineXY.Text = value.X.ToString() + "," + value.Y.ToString();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the red line should be vertical flag
+        /// </summary>
+        private bool RedLineWantVertLine
+        {
+            get
+            {
+                if (radioButtonDrawRedLineVert.Checked == true) return true;
+                else return false;
+            }
+            set
+            {
+                if (value == true) radioButtonDrawRedLineVert.Checked = true;
+                else radioButtonDrawRedLineHoriz.Checked = true;
             }
         }
 
@@ -2990,12 +3428,755 @@ namespace Walnut
         {
             //       MessageBox.Show("Mouse Click (" + e.X.ToString() + "," + e.Y.ToString()+")");
 
-            // set the green circle center and simulate a click on the draw button
-            Point outPoint = this.ctlTransparentControl1.ConvertPoint(new Point(e.X, e.Y), new Size(DEFAULT_VIDEO_FRAME_WIDTH, DEFAULT_VIDEO_FRAME_HEIGHT), true);
-            textBoxGreenCircleXY.Text = outPoint.X.ToString() + "," + outPoint.Y.ToString();
-            buttonDrawCircle_Click(this, new EventArgs());
+            // we get the click point Y inverted and non Inverted. The ConvertPoint call also takes care of 
+            // stretched images. It will give true non stretched pixel hits so it can be referenced 
+            // back to the video frames
+            Point outPointNonInverted = this.ctlTransparentControl1.ConvertPoint(new Point(e.X, e.Y), new Size(DEFAULT_VIDEO_FRAME_WIDTH, DEFAULT_VIDEO_FRAME_HEIGHT), false);
+            Point outPointInverted = this.ctlTransparentControl1.ConvertPoint(new Point(e.X, e.Y), new Size(DEFAULT_VIDEO_FRAME_WIDTH, DEFAULT_VIDEO_FRAME_HEIGHT), true);
+
+            // Now do various things with mouse clicks
+
+            // ####
+            // Get the color of the pixel and put it over on our  Utils tab. This is just a useful
+            // little utility for debugging and programming
+
+            textBoxRGBAPixelColorLocInverted.Text = outPointInverted.X.ToString() + "," + outPointInverted.Y.ToString();
+            textBoxRGBAPixelColorLocNonInverted.Text = outPointNonInverted.X.ToString() + "," + outPointNonInverted.Y.ToString();
+            // now get the color. We have access to the DisplayPanelHandle down in the ctlTantaEVRStreamDisplay control
+            Color outColor = Utils.GetPixelFromHandle(ctlTantaEVRStreamDisplay1.DisplayPanelHandle, outPointNonInverted.X, outPointNonInverted.Y);
+            // set it on the utils tab
+            textBoxRGBAPixelColor.Text = outColor.R.ToString() + "," + outColor.G.ToString() + "," + outColor.B.ToString() + " (" + outColor.B.ToString() + ")";
+
+            // ####
+            // Now the pixel count difference between mouse clicks
+
+            // we always put the new click in point 2 and the previous click in click 1, the point data is stored in the tag
+            textBoxDistanceClick1.Tag = textBoxDistanceClick2.Tag;
+            textBoxDistanceClick2.Tag = outPointInverted;
+            // set the text, always switch them over
+            textBoxDistanceClick1.Text = "";
+            textBoxDistanceClick2.Text = "";
+            textBoxDistanceHoriz.Text = "";
+            textBoxDistanceVert.Text = "";
+            if (textBoxDistanceClick1.Tag != null)
+            {
+                textBoxDistanceClick1.Text = Utils.ConvertPointToBracketText((Point)textBoxDistanceClick1.Tag);
+            }
+            if (textBoxDistanceClick2.Tag != null) textBoxDistanceClick2.Text = Utils.ConvertPointToBracketText((Point)textBoxDistanceClick2.Tag);
+            // if we have two measurements then calc the difference
+            if ((textBoxDistanceClick1.Tag != null) && (textBoxDistanceClick2.Tag != null))
+            {
+                int c1X = ((Point)textBoxDistanceClick1.Tag).X;
+                int c1Y = ((Point)textBoxDistanceClick1.Tag).Y;
+                int c2X = ((Point)textBoxDistanceClick2.Tag).X;
+                int c2Y = ((Point)textBoxDistanceClick2.Tag).Y;
+                int xDist = Math.Abs(c2X - c1X);
+                int yDist = Math.Abs(c2Y - c1Y);
+                textBoxDistanceHoriz.Text = xDist.ToString();
+                textBoxDistanceVert.Text = yDist.ToString();
+                textBoxDistTotal.Text = Math.Round(Math.Sqrt((xDist * xDist) + (yDist * yDist)),0).ToString();
+            }
+
+            // ####
+            // Now do we need to draw green circles?
+            if(greenCircleDrawCount>0)
+            {
+                // yes, we do.
+                // draw the circle
+                DrawCircleAtPoint(outPointInverted, GreenCircleRadius, HTML_GREEN);
+                greenCircleDrawCount--;
+                // record this
+                LastGreenPoint = outPointInverted;
+            }
+
+            // ####
+            // Now do we need to draw red lines?
+            if (redLineDrawCount > 0)
+            {
+                // yes, we do.
+                // draw the line
+                DrawRedLineThroughPoint(outPointInverted, RedLineWidth, RedLineWantVertLine);
+                redLineDrawCount--;
+            }
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the run button of the Ex008 panel 
+        /// </summary>
+        private void buttonStepperControl008Run_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonStepperControl008Run_Click");
+
+            if (dataTransporter == null)
+            {
+                LogMessage("buttonStepperControl008Run_Click, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("buttonStepperControl008Run_Click, Not connected");
+                return;
+            }
+
+            //  get the data off the screen
+            ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, true, false, 1);
+            if (scData == null)
+            {
+                LogMessage("buttonStepperControl008Run_Click, scData == null");
+                return;
+
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the run stop button of the Ex008 panel 
+        /// </summary>
+        private void buttonStepperControl008Stop_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonStepperControl008Stop_Click");
+
+            if (dataTransporter == null)
+            {
+                LogMessage("buttonStepperControl008Stop_Click, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("buttonStepperControl008Stop_Click, Not connected");
+                return;
+            }
+
+            //  get the data off the screen
+            ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, false, false, 1);
+            if (scData == null)
+            {
+                LogMessage("buttonStepperControl008Stop_Click, scData == null");
+                return;
+
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the nudge 1 button of the Ex008 panel 
+        /// </summary>
+        private void buttonStepperControl008Nudge1_Click(object sender, EventArgs e)
+        {
+            LogMessage("buttonStepperControl008Nudge1_Click");
+
+            if (dataTransporter == null)
+            {
+                LogMessage("buttonStepperControl008Nudge1_Click, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("buttonStepperControl008Nudge1_Click, Not connected");
+                return;
+            }
+
+            // we are hard coded to 1 step here
+            ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, true, true, 1);
+            if(scData == null)
+            {
+                LogMessage("buttonStepperControl008Nudge1_Click, scData == null");
+                return;
+
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a click on the checkBoxStepper0Test checkBox
+        /// </summary>
+        private void checkBoxStepper0Test_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dataTransporter == null)
+            {
+                LogMessage("checkBoxStepper0Test_CheckedChanged, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("checkBoxStepper0Test_CheckedChanged, Not connected");
+                return;
+            }
+
+            // get the server client data from the screen
+            ServerClientData scData = GetTestStepper0DataFromScreen();
+            if (scData == null)
+            {
+                LogMessage("checkBoxStepper0Test_CheckedChanged, scData == null");
+                return;
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a change of state on the test stepper motor CW radio button
+        /// </summary>
+        private void radioButtonStepper0TestCW_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dataTransporter == null)
+            {
+                LogMessage("radioButtonStepper0TestCW_CheckedChanged, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("radioButtonStepper0TestCW_CheckedChanged, Not connected");
+                return;
+            }
+
+            // get the server client data from the screen
+            ServerClientData scData = GetTestStepper0DataFromScreen();
+            if (scData == null)
+            {
+                LogMessage("radioButtonStepper0TestCW_CheckedChanged, scData == null");
+                return;
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a change of state on the test stepper motor CCW radio button
+        /// </summary>
+        private void radioButtonStepper0TestCCW_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dataTransporter == null)
+            {
+                LogMessage("radioButtonStepper0TestCCW_CheckedChanged, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("radioButtonStepper0TestCCW_CheckedChanged, Not connected");
+                return;
+            }
+
+            // get the server client data from the screen
+            ServerClientData scData = GetTestStepper0DataFromScreen();
+            if (scData == null)
+            {
+                LogMessage("radioButtonStepper0TestCCW_CheckedChanged, scData == null");
+                return;
+            }
+
+            // display it
+            AppendDataToConnectionTrace("OUT: dataStr=" + scData.DataStr);
+            // send it
+            dataTransporter.SendData(scData);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the stepper 0 test data from the screen and returns the populated
+        /// container
+        /// </summary>
+        /// <returns>a populated ServerClientData container</returns>
+        private ServerClientData GetTestStepper0DataFromScreen()
+        {
+            const uint DEFAULT_STEPPER_TEST_SPEED_HZ = 10;
+
+            LogMessage("GetTestStepper0DataFromScreen");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return null;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return null;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+            scData.DataStr = "Stepper 0 Test Commands";
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.STEPPER_CONTROL;
+
+            // create a stepper control container
+            SCData_StepperControl stepperControl = new SCData_StepperControl();
+            // tell it which stepper we are operating on
+            stepperControl.Stepper_ID = StepperIDEnum.STEPPER_0;  // always this
+
+            // set the speed
+            stepperControl.Stepper_StepSpeed = DEFAULT_STEPPER_TEST_SPEED_HZ;
+            stepperControl.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+
+            // set the direction
+            if (radioButtonStepper0TestCW.Checked == true) stepperControl.Stepper_DirState = 1;
+            else stepperControl.Stepper_DirState = 0;
+
+            // set enable state according to the screen
+            if (checkBoxStepper0Test.Checked == true)
+            {
+                stepperControl.Stepper_Enable = 1;
+                scData.DataStr = "Toggle Stepper Motor 0 State On";
+            }
+            else
+            {
+                stepperControl.Stepper_Enable = 0;
+                scData.DataStr = "Toggle Stepper Motor 0 State Off";
+            }
+
+            // always turn the waldos state correctly
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+
+            // make up a list for the SCData_StepperControl even though we only have one
+            List< SCData_StepperControl > stControlList = new List< SCData_StepperControl >();
+            // put it in the data container
+            scData.StepperControlList = stControlList;
+            // add the one we have to the list
+            stControlList.Add( stepperControl );
+            return scData;
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the Ex008 stepper data from the screen and returns the populated
+        /// container
+        /// </summary>
+        /// <param name="stepperID">the stepper ID we operate on</param>
+        /// <param name="stepperEnable">if true we enable the stepper</param>
+        /// <param name="wantNumStepsOverride">nz, override the number of steps with numSteps</param>
+        /// <param name="numSteps">the number of steps if overriding</param>
+        /// <returns>a populated ServerClientData container</returns>
+        private ServerClientData GetTestEx008StepperDataFromScreen(StepperIDEnum stepperID, bool stepperEnable, bool wantNumStepsOverride, uint numSteps)
+        {
+            LogMessage("GetTestEx008StepperDataFromScreen");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return null;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return null;
+            }
+
+            // create the data container
+            ServerClientData scData = new ServerClientData();
+            scData.DataStr = "Ex0008 Stepper Commands";
+            scData.DataContent = ServerClientDataContentEnum.USER_DATA;
+            scData.UserDataContent = UserDataContentEnum.STEPPER_CONTROL;
+
+            // create a stepper control container
+            SCData_StepperControl stepperControl = new SCData_StepperControl();
+            // tell it which stepper we are operating on
+            stepperControl.Stepper_ID = stepperID;  
+
+            // set the speed
+            try
+            {
+                stepperControl.Stepper_StepSpeed = Convert.ToUInt32(textBoxStepperControl008StepsPerSecond.Text);
+            }
+            catch(Exception ex)
+            {
+                OISMessageBox("Error converting step speed: "+ex.Message);
+                return null;
+            }
+
+            string tmpNumSteps ="0";
+            // get the number of steps. Do we have an override
+            if (wantNumStepsOverride == false)
+            {
+                // no, we do not, set it this way
+                tmpNumSteps = textBoxStepperControl008NumSteps.Text;
+            }
+            else tmpNumSteps = numSteps.ToString();
+            // now do the the conversion on the true value the user wants
+            try
+            {
+                stepperControl.Num_Steps = Convert.ToUInt32(tmpNumSteps);
+            }
+            catch (Exception ex)
+            {
+                OISMessageBox("Error converting numSteps: " + ex.Message);
+                return null;
+
+            }
+
+            // set the direction
+            if (radioButtonStepperControl008DirCW.Checked == true) stepperControl.Stepper_DirState = 1;
+            else stepperControl.Stepper_DirState = 0;
+
+            // enable the stepper
+            if (stepperEnable == true) stepperControl.Stepper_Enable = 1;
+            else stepperControl.Stepper_Enable = 0;
+            scData.DataStr = "Ex008 Set Stepper Motor State";
+
+            // always turn the waldos state correctly
+            scData.Waldo_Enable = (uint)(checkBoxWaldosEnabled.Checked ? 1 : 0);
+
+            // make up a list for the SCData_StepperControl even though we only have one
+            List<SCData_StepperControl> stControlList = new List<SCData_StepperControl>();
+            // put it in the data container
+            scData.StepperControlList = stControlList;
+            // add the one we have to the list
+            stControlList.Add(stepperControl);
+            return scData;
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Set the commands for a stepper motor
+        /// </summary>
+        /// <param name="numSteps">the number of steps, can use SCData_StepperControl.INFINITE_STEPS</param>
+        /// <param name="stepDir">step direction 0 or 1</param>
+        /// <param name="stepEna">stepper enable state 0 or 1</param>
+        /// <param name="stepID">the id of the stepper</param>
+        /// <param name="stepSpeedHz">the stepper speed in Hz</param>
+        private SCData_StepperControl SetCommandsForStepper(StepperIDEnum stepID, uint stepEna, uint stepSpeedHz, uint numSteps, uint stepDir)
+        {
+            LogMessage("SetCommandsForStepper");
+
+            if (dataTransporter == null)
+            {
+                OISMessageBox("No data transporter");
+                return null;
+            }
+            if (IsConnected() == false)
+            {
+                OISMessageBox("Not connected");
+                return null;
+            }
+
+            // create a stepper control container
+            SCData_StepperControl stepperControl = new SCData_StepperControl();
+            // tell it which stepper we are operating on
+            stepperControl.Stepper_ID = stepID; 
+
+            // set the speed, steps, dir etc
+            stepperControl.Stepper_StepSpeed = stepSpeedHz;
+            stepperControl.Num_Steps = numSteps;
+            stepperControl.Stepper_DirState = stepDir;
+            stepperControl.Stepper_Enable = 1;
+
+            // set enable state 
+            stepperControl.Stepper_Enable = stepEna;
+           
+            return stepperControl;
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle a click on the Waldos enabled check box
+        /// </summary>
+        private void checkBoxWaldosEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            SetWaldosEnabledCheckBoxAccordingToState();
+            // are we newly disabled?
+            if (checkBoxWaldosEnabled.Checked == false)
+            {
+                // yes, we are, we must force a turn off of all waldos. Note that 
+                // turning off all waldos requires each one to be individually re-enabled
+                DisableAllWaldos();
+            }
+            else
+            {
+                // there is no re-enable here. The individual command sent always include
+                // the waldo enable state.
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the visual appearance of the Waldos enabled checkbox according to 
+        /// the state
+        /// </summary>
+        private void SetWaldosEnabledCheckBoxAccordingToState()
+        {
+            if (checkBoxWaldosEnabled.Checked == true)
+            {
+                checkBoxWaldosEnabled.BackColor = Color.LightGreen;
+                checkBoxWaldosEnabled.Text = "Waldos Enabled";
+            }
+            else
+            {
+                checkBoxWaldosEnabled.BackColor = Color.IndianRed;
+                checkBoxWaldosEnabled.Text = "Waldos Disabled";
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the visual appearance of the remote connections state checkbox
+        /// </summary>
+        /// <param name="connState">the connection state</param>
+        private void SetRemoteConnectionCheckBoxVisuals(bool connState)
+        {
+            if (connState == true)
+            {
+                checkBoxRemoteConnectionState.BackColor = Color.LightGreen;
+                checkBoxRemoteConnectionState.Text = "Remote Conn...";
+            }
+            else
+            {
+                checkBoxRemoteConnectionState.BackColor = Color.IndianRed;
+                checkBoxRemoteConnectionState.Text = "Remote DisCon...";
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Calculates the pixels per micron value on the distance calibration panel
+        /// and sets the appropriate fields
+        /// </summary>
+        private void CalcDistanceCalibration()
+        {
+            double knownMicronLen = 0;
+            double knownDist = 0;
+
+            // reset some things
+            textBoxScalePixelsPerMicron.Text = "";
+            try
+            {
+                knownMicronLen = Convert.ToInt32(textBoxDistInKnownMicrons.Text);
+            }
+            catch (Exception ex) 
+            {
+                LogMessage(" CalcDistanceCalibration (knownMicronLen):" + ex.Message);
+                return;
+            }
+
+            if (radioButtonDistVert.Checked == true)
+            {
+                try
+                {
+                    knownDist = Convert.ToDouble(textBoxDistanceVert.Text);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(" CalcDistanceCalibration (knownDist_V):" + ex.Message);
+                    return;
+                }
+
+            }
+            else if (radioButtonDistHoriz.Checked == true)
+            {
+                try
+                {
+                    knownDist = Convert.ToDouble(textBoxDistanceHoriz.Text);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(" CalcDistanceCalibration (knownDist_H):" + ex.Message);
+                    return;
+                }
+
+            }
+            else 
+            {
+                LogMessage(" CalcDistanceCalibration unknown direction");
+                return; 
+            }
+
+            // divide by zero check
+            if(knownMicronLen==0) return; 
+
+            // now do the calc, and load the box
+            textBoxScalePixelsPerMicron.Text = Math.Round((knownDist / knownMicronLen), 5).ToString();
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the get scale from vertical distance radio button
+        /// </summary>
+        private void radioButtonDistVert_CheckedChanged(object sender, EventArgs e)
+        {
+            // just re-do the calcs
+            CalcDistanceCalibration();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the get scale from horizontal distance radio button
+        /// </summary>
+        private void radioButtonDistHoriz_CheckedChanged(object sender, EventArgs e)
+        {
+            // just re-do the calcs
+            CalcDistanceCalibration();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the known microns per distance text box
+        /// </summary>
+        private void textBoxDistInKnownMicrons_TextChanged(object sender, EventArgs e)
+        {
+            // just re-do the calcs
+            CalcDistanceCalibration();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the button which calculates the pixels/micron value
+        /// </summary>
+        private void buttonScaleCalc_Click(object sender, EventArgs e)
+        {
+            // just re-do the calcs
+            CalcDistanceCalibration();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the Calibrated Pixels per micron value on the display. This is 
+        /// derived from the distance and scale panel on the utils tab. This can 
+        /// change all the time with every mouse click so we have a "set" to fix 
+        /// it in place once we have done it accurately.
+        /// </summary>
+        private void buttonScaleSet_Click(object sender, EventArgs e)
+        {
+            // we are sure it is good, copy it over
+            textBoxCalibratedPixelsPerMicron.Text = textBoxScalePixelsPerMicron.Text;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the calibrated number pixels per micron. Pulls this off the 
+        /// screen (which is a text field). Any problems, it returns 0;
+        /// </summary>
+        private double CalibratedPixelsPerMicron
+        {
+            get
+            {
+                double pixelsPerMicron = 0;
+                try
+                {
+                    pixelsPerMicron = Convert.ToDouble(textBoxCalibratedPixelsPerMicron.Text);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(" CalibratedPixelsPerMicron (pixelsPerMicron):" + ex.Message);
+                    return 0;
+                }
+                return pixelsPerMicron;
+
+            }
+            set
+            {
+                textBoxCalibratedPixelsPerMicron.Text = Math.Round(value,5).ToString();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the buttonEx008ColorDetectSet button in which we
+        /// set the colors the line recognition transform triggers on.
+        /// </summary>
+        private void buttonEx008ColorDetectSet_Click(object sender, EventArgs e)
+        {
+            SetEx008ColorRecognitionValues();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the color recognition values used to recognize lines in Ex008
+        /// </summary>
+        private void SetEx008ColorRecognitionValues()
+        { 
+            // do we have a recognition transform?
+            if (RecognitionTransform == null) return;  // we can do nothing
+            if ((RecognitionTransform is MFTDetectHorizLines) == false) return;
+
+            // convert our colors
+            Color? topOfHorizRange = Utils.ConvertBracketTextToColor(textBoxEx008ColorDetectHorizTop.Text);
+            Color? botOfHorizRange = Utils.ConvertBracketTextToColor(textBoxEx008ColorDetectHorizBot.Text);
+            Color? topOfVertRange = Utils.ConvertBracketTextToColor(textBoxEx008ColorDetectVertTop.Text);
+            Color? botOfVertRange = Utils.ConvertBracketTextToColor(textBoxEx008ColorDetectVertBot.Text);
+
+            if (topOfHorizRange == null) return;
+            if (botOfHorizRange == null) return;
+            if (topOfVertRange == null) return;
+            if (botOfVertRange == null) return;
+
+            // Set the color boundaries we trigger on to detect the lines
+            (RecognitionTransform as MFTDetectHorizLines).TopOfHorizRange = (Color)topOfHorizRange;
+            (RecognitionTransform as MFTDetectHorizLines).BotOfHorizRange = (Color)botOfHorizRange;
+            (RecognitionTransform as MFTDetectHorizLines).TopOfVertRange = (Color)topOfVertRange;
+            (RecognitionTransform as MFTDetectHorizLines).BotOfVertRange = (Color)botOfVertRange;
+
+            // also set the minimum number acceptable pixels
+            try
+            {
+                (RecognitionTransform as MFTDetectHorizLines).MinPixelsInLineHoriz = Convert.ToInt32(textBoxEx008ColorDetectMinPixelsHoriz.Text);
+            }
+            catch { }
+            // also set the minimum number acceptable pixels
+            try
+            {
+                (RecognitionTransform as MFTDetectHorizLines).MinPixelsInLineVert = Convert.ToInt32(textBoxEx008ColorDetectMinPixelsVert.Text);
+            }
+            catch { }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the red circle radius for Ex008 
+        /// </summary>
+        private int Ex008RedCircleRadius
+        {
+            get
+            {
+                try
+                {
+                    // get the draw point off the screen
+                    return Convert.ToInt32(textBoxActions008RedCircleRadius.Text);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+            set
+            {
+                // simple value
+                textBoxActions008RedCircleRadius.Text = value.ToString();
+            }
+        }
+
+        public Point LastGreenPoint { get => lastGreenPoint; set => lastGreenPoint = value; }
     }
 
 }

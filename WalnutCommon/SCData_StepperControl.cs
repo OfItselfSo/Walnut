@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -25,22 +27,64 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An enum to define the data content of the Server Client Data object.
+    /// This class inherits from SCData_StepperConfig and adds more control data
     /// 
-    /// NOTE that we use the [SerializableAttribute] so that it can be 
-    /// included as a field in the ServerClientData class. This is
-    /// probably not necssary for an enum, but classes in general
-    /// should use it or the erverClientData class will not be serializable
+    /// A class to contain the data sent between the server and client. Note
+    /// that the [SerializableAttribute] decoration must be present and any 
+    /// user written classes contained within this class must also implement it.
     /// </summary>
     [SerializableAttribute]
-    public enum ServerClientDataContentEnum
+    public class SCData_StepperControl : SCData_StepperConfig
     {
-        NO_DATA,                // there is no data content
-        REMOTE_CONNECT,         // the remote has connected
-        REMOTE_DISCONNECT,      // the remote is disconnecting
-        CONNECTION_TEST,        // a simple test, requiring an ACK
-        CONNECTION_TEST_ACK,    // an ACK fromn a connectin test
-        USER_DATA               // the data is user provided content
+        public const uint INFINITE_STEPS = 0xFFFFFFFF;
 
+        // the number of steps
+        private uint num_Steps = 0;
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public SCData_StepperControl()
+        {
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="stepper_IDIn">the ID of the stepper</param>
+        public SCData_StepperControl(StepperIDEnum stepper_IDIn) : base(stepper_IDIn)
+        {
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="stepperIDIn">the ID of the stepper</param>
+        /// <param name="dirState">the direction 0 or 1</param>
+        /// <param name="enableState">the enabled state 0 or 1</param>
+        /// <param name="stepSpeed">the stepper speed in Hz</param>
+        /// <param name="numSteps">the number of steps to take</param>
+        public SCData_StepperControl(StepperIDEnum stepperIDIn, uint enableState, uint dirState, uint stepSpeed, uint numSteps) : base(stepperIDIn, enableState, dirState, stepSpeed)
+        {
+            Num_Steps = numSteps;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get the current state as a string
+        /// </summary>
+        public override void GetState(StringBuilder sb)
+        {
+            if (sb == null) return;
+            // call the base class
+            base.GetState(sb);  
+            // now our class specific info
+            sb.Append(", Num_Steps=" + Num_Steps.ToString());
+        }
+
+        public uint Num_Steps { get => num_Steps; set => num_Steps = value; }
     }
 }

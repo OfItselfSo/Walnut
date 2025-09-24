@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,7 +32,7 @@ namespace WalnutCommon
     /// </summary>
     public class Utils
     {
-        public const double SECONDS_PER_CYCLE = 660e-9;  // yep, 660 x 10^-9
+        public const double SECONDS_PER_CYCLE = 700e-9;  // yep, 700 x 10^-9
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -40,7 +41,7 @@ namespace WalnutCommon
         /// <param name="cycles">the number of cycles</param>
         public static uint ConvertCyclesToHz(uint cycles)
         {
-            if (cycles == 0) return ConvertCyclesToHz(ServerClientData.DEFAULT_SPEED);
+            if (cycles == 0) return 0;
             return (uint)(1 / (SECONDS_PER_CYCLE * ((double)cycles)));
         }
 
@@ -51,7 +52,7 @@ namespace WalnutCommon
         /// <param name="hz">the number of Hz</param>
         public static uint ConvertHzToCycles(uint hz)
         {
-            if (hz == 0) return ServerClientData.DEFAULT_SPEED;
+            if (hz == 0) return 0;
             return (uint)(1 / (SECONDS_PER_CYCLE * ((double)hz)));
         }
 
@@ -354,5 +355,172 @@ namespace WalnutCommon
         {
             return new byte[4] {pixel.A, pixel.B, pixel.G, pixel.R};            
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a cross at a point in a specific color and length
+        /// </summary>
+        /// <param name="graphicsObj">the grapics object to draw on</param>
+        /// <param name="armLength">the lenght of the arm in the cross</param>
+        /// <param name="centerPoint">the centerpoint of the cross</param>
+        /// <param name="colorOfCross">the color of the cross</param>
+        public static void DrawCrossOnPoint(Graphics graphicsObj, Point centerPoint, int armLength, Pen colorOfCross)
+        {
+            if (graphicsObj == null) return;
+            if (centerPoint == null) return;
+            if (armLength <= 0) return;
+
+            // apparently we do not need bounds checking here. The call to DrawLine does it
+            Point horizStartPoint = new Point(centerPoint.X - armLength, centerPoint.Y);
+            Point horizEndPoint = new Point(centerPoint.X + armLength, centerPoint.Y);
+            Point vertStartPoint = new Point(centerPoint.X, centerPoint.Y - armLength);
+            Point vertEndPoint = new Point(centerPoint.X, centerPoint.Y + armLength);
+
+            // draw the horizontal line
+            graphicsObj.DrawLine(colorOfCross, horizStartPoint, horizEndPoint);
+            // draw the vertical line
+            graphicsObj.DrawLine(colorOfCross, vertStartPoint, vertEndPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a horizontal line at a center point in a specific color and length
+        /// </summary>
+        /// <param name="graphicsObj">the grapics object to draw on</param>
+        /// <param name="lineLength">the length of the line</param>
+        /// <param name="centerPoint">the centerpoint of the cross</param>
+        /// <param name="colorOfCross">the color of the cross</param>
+        public static void DrawHorizLineFromCenterPoint(Graphics graphicsObj, Point centerPoint, int lineLength, Pen colorOfCross)
+        {
+            if (graphicsObj == null) return;
+            if (centerPoint == null) return;
+            if (lineLength <= 0) return;
+
+            // apparently we do not need bounds checking here. The call to DrawLine does it
+            Point horizStartPoint = new Point(centerPoint.X - lineLength/2, centerPoint.Y);
+            Point horizEndPoint = new Point(centerPoint.X + lineLength/2, centerPoint.Y);
+
+            // draw the horizontal line
+            graphicsObj.DrawLine(colorOfCross, horizStartPoint, horizEndPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws a vertical line at a center point in a specific color and length
+        /// </summary>
+        /// <param name="graphicsObj">the grapics object to draw on</param>
+        /// <param name="lineLength">the length of the line</param>
+        /// <param name="centerPoint">the centerpoint of the cross</param>
+        /// <param name="colorOfCross">the color of the cross</param>
+        public static void DrawVerticalLineFromCenterPoint(Graphics graphicsObj, Point centerPoint, int lineLength, Pen colorOfCross)
+        {
+            if (graphicsObj == null) return;
+            if (centerPoint == null) return;
+            if (lineLength <= 0) return;
+
+            // apparently we do not need bounds checking here. The call to DrawLine does it
+            Point vertStartPoint = new Point(centerPoint.X, centerPoint.Y - lineLength / 2);
+            Point vertEndPoint = new Point(centerPoint.X, centerPoint.Y + lineLength / 2);
+
+            // draw the vertical line
+            graphicsObj.DrawLine(colorOfCross, vertStartPoint, vertEndPoint);
+        }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDC(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        [DllImport("gdi32.dll")]
+        static extern int GetPixel(IntPtr hDC, int x, int y);
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the color of a pixel from a controls handle. Fairly resource
+        /// intensive. If you need to get a lot of pixels do it a different way
+        /// 
+        /// Credit: Derived from https://www.csharp411.com/c-getpixel-and-setpixel/
+        /// 
+        /// </summary>
+        /// <param name="handle">the controls handle</param>
+        /// <param name="x">the controls x coord</param>
+        /// <param name="y">the controls y coord</param>
+        /// <returns>The RGBA color of the pixel or Color.Empty for fail</returns>
+        static public Color GetPixelFromHandle(IntPtr handle, int x, int y)
+        {
+            Color color = Color.Empty;
+            if (handle != null)
+            {
+                IntPtr hDC = GetDC(handle);
+                int colorRef = GetPixel(hDC, x, y);
+                color = Color.FromArgb(
+                    (int)(colorRef & 0x000000FF),
+                    (int)(colorRef & 0x0000FF00) >> 8,
+                    (int)(colorRef & 0x00FF0000) >> 16);
+                ReleaseDC(handle, hDC);
+            }
+            return color;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a point to (x,y) text. A slightly more pretty ToString. Will
+        /// test for null input and return "";
+        /// </summary>
+        /// <param name="pointIn">the point to convert</param>
+        static public string ConvertPointToBracketText(Point pointIn)
+        {
+            if (pointIn == null) return "";
+            return "("+pointIn.X.ToString()+","+pointIn.Y.ToString()+")";
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a (x,y) text to a Point. Any problems and we return point()
+        /// </summary>
+        /// <param name="bracketText">the text to convert</param>
+        /// <returns>the converted point or Point() for fail</returns>
+        static public Point ConvertBracketTextToPoint(string bracketText)
+        {
+            if(bracketText==null) return new Point();
+            if(bracketText=="") return new Point();
+
+            try
+            {
+                // get the draw point out of the brackets
+                string[] xAndYCoords = bracketText.Replace("(", "").Replace(")", "").Split(',');
+                if (xAndYCoords.Length != 2) return new Point();
+                Point workingPoint = new Point(Convert.ToInt32(xAndYCoords[0].Replace(" ", "")), Convert.ToInt32(xAndYCoords[1].Replace(" ", "")));
+                return workingPoint;
+            }
+            catch
+            {
+                return new Point();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a (R,G,B) text to a color. Any problems and we return null
+        /// </summary>
+        /// <param name="bracketText">the text to convert</param>
+        /// <returns>the converted color or null for fail</returns>
+        static public Color? ConvertBracketTextToColor(string bracketText)
+        {
+            if (bracketText == null) return null;
+            if (bracketText == "") return null;
+
+            try
+            {
+                // get the draw point out of the brackets
+                string[] rgbColors = bracketText.Replace("(", "").Replace(")", "").Split(',');
+                if (rgbColors.Length != 3) return null;
+                Color workingColor = Color.FromArgb(Convert.ToInt32(rgbColors[0].Replace(" ", "")), Convert.ToInt32(rgbColors[1].Replace(" ", "")), Convert.ToInt32(rgbColors[2].Replace(" ", "")));
+                return workingColor;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }

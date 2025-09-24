@@ -7,6 +7,9 @@ using System.Drawing;
 using WalnutCommon;
 using System.Threading;
 using System.Xml.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Drawing.Text;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -90,7 +93,7 @@ namespace WalnutClient
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.08";
+        private const string APPLICATION_VERSION = "00.02.09";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
@@ -122,46 +125,69 @@ namespace WalnutClient
         // ### each data item is a uint (it is simpler that way)
         // ###
 
+        private const uint NUM_BYTES_PER_REGISTER = 4;
+
+        // these are not filled in in the data by the client. The PRU writes the current 
+        // values to these so the client can read them.
+        private const uint STATEFLAG_OFFSET = 0 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP0_NUMPULSES_OFFSET = 1 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP1_NUMPULSES_OFFSET = 2 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP2_NUMPULSES_OFFSET = 3 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP3_NUMPULSES_OFFSET = 4 * NUM_BYTES_PER_REGISTER;
+
+        // this is the current enabled state, it can be disabled by the PRU if 
+        // all steps are complete
+        private const uint STEP0_ENASTATE_OFFSET = 5 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP1_ENASTATE_OFFSET = 6 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP2_ENASTATE_OFFSET = 7 * NUM_BYTES_PER_REGISTER;
+        private const uint STEP3_ENASTATE_OFFSET = 8 * NUM_BYTES_PER_REGISTER;
+
         // our semaphore flag is stored at this offset
-        private const uint SEMAPHORE_OFFSET = 0;
+        private const uint SEMAPHORE_OFFSET = 9 * NUM_BYTES_PER_REGISTER;
         // the all steppers enabled flag is stored at this offset
-        private const uint WALDO_ENABLE_OFFSET = 4;
+        private const uint WALDO_ENABLE_OFFSET = 10 * NUM_BYTES_PER_REGISTER;
 
-        // STEP0
-        private const uint STEP0_ENABLED_OFFSET = 8;     // 0 disabled, 1 enabled
-        private const uint STEP0_FULLCOUNT = 12;         // this is the count we reset to when we toggle
-        private const uint STEP0_DIRSTATE = 16;          // this is the state of the direction pin
+        // the defines below correlate to the PRU registers the PRU program copies from the 
+        // semaphore right up to the end into a contiguous set of PRU registers. These registers
+        // are used as variables. The order matters here and must agree with the PRU program
+        // STEP_ENABLED
+        private const uint STEP0_ENABLED_OFFSET = 11 * NUM_BYTES_PER_REGISTER;   // Slot xx * size_of_registers
+        private const uint STEP1_ENABLED_OFFSET = 12 * NUM_BYTES_PER_REGISTER;   // Slot xx * size_of_registers
+        private const uint STEP2_ENABLED_OFFSET = 13 * NUM_BYTES_PER_REGISTER;   // Slot xx * size_of_registers
+        private const uint STEP3_ENABLED_OFFSET = 14 * NUM_BYTES_PER_REGISTER;   // Slot xx * size_of_registers
 
-        // STEP1
-        private const uint STEP1_ENABLED_OFFSET = 20;     // 1 disabled, 1 enabled
-        private const uint STEP1_FULLCOUNT = 24;          // this is the count we reset to when we toggle
-        private const uint STEP1_DIRSTATE = 28;           // this is the state of the direction pin
+        // this is the number of cycles for half a cycle in the waveform
+        // these are the counts to which we reset to when we toggle
+        private const uint STEP0_FULLHALFCYCLECOUNT_OFFSET = 15 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP1_FULLHALFCYCLECOUNT_OFFSET = 16 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP2_FULLHALFCYCLECOUNT_OFFSET = 17 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP3_FULLHALFCYCLECOUNT_OFFSET = 18 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
 
-        // STEP2
-        private const uint STEP2_ENABLED_OFFSET = 32;     // 1 disabled, 1 enabled
-        private const uint STEP2_FULLCOUNT = 36;          // this is the count we reset to when we toggle
-        private const uint STEP2_DIRSTATE = 40;           // this is the state of the direction pin
+        // STEP_DIRSTATE_OFFSET
+        // this is the state of the direction pin: 0 or 1
+        private const uint STEP0_DIRSTATE_OFFSET = 19 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP1_DIRSTATE_OFFSET = 20 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP2_DIRSTATE_OFFSET = 21 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP3_DIRSTATE_OFFSET = 22 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
 
-        // STEP3
-        private const uint STEP3_ENABLED_OFFSET = 44;     // 1 disabled, 1 enabled
-        private const uint STEP3_FULLCOUNT = 48;          // this is the count we reset to when we toggle
-        private const uint STEP3_DIRSTATE = 52;           // this is the state of the direction pin
-
-        // STEP4
-        private const uint STEP4_ENABLED_OFFSET = 56;     // 1 disabled, 1 enabled
-        private const uint STEP4_FULLCOUNT = 60;          // this is the count we reset to when we toggle
-        private const uint STEP4_DIRSTATE = 64;           // this is the state of the direction pin
-
-        // STEP5
-        private const uint STEP5_ENABLED_OFFSET = 68;     // 1 disabled, 1 enabled
-        private const uint STEP5_FULLCOUNT = 72;          // this is the count we reset to when we toggle
-        private const uint STEP5_DIRSTATE = 76;           // this is the state of the direction pin
+        // these are the number of Low to high pulses we send. 0xffffffff for infinite
+        private const uint STEP0_MAX_NUMPULSES_OFFSET = 23 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP1_MAX_NUMPULSES_OFFSET = 24 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP2_MAX_NUMPULSES_OFFSET = 25 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
+        private const uint STEP3_MAX_NUMPULSES_OFFSET = 26 * NUM_BYTES_PER_REGISTER;  // Slot xx * size_of_registers
 
         // ###
         // ### this is the END of the data items, we need to allocate space for the 
         // ### above number of UINTS
         // ###
-        private const int NUM_DATA_UINTS = 20;
+        private const int NUM_DATA_UINTS = 27;
+
+        // we use these to signal which stepper has changed so we do not 
+        // reset the counts of the other ones which might be operating
+        private const uint STEP0_CHANGED = 0b0000000000000001;
+        private const uint STEP1_CHANGED = 0b0000000000000010;
+        private const uint STEP2_CHANGED = 0b0000000000000100;
+        private const uint STEP3_CHANGED = 0b0000000000001000;
 
         // in this version the software only cares about two squares. These contain the
         // discovered information regarding the squares
@@ -179,7 +205,7 @@ namespace WalnutClient
         // the last outputs (speed and dir) it returned and makes decisions based on them
         private Behaviour_MoveLevel behaviourMoveLevelX = null;
         private Behaviour_MoveLevel behaviourMoveLevelY = null;
-        private const uint MAX_MOTOR_SPEED = 100;
+        private const uint MAX_MOTOR_SPEED = 10;
 
         // this is a point tracker. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past N points it is presented with and can detect
@@ -191,7 +217,7 @@ namespace WalnutClient
         // we can skip over missing src points if we wish to do so. This copes with missing
         // data. 
         private const int MAX_MISSING_SRC_POINTS = 5;
-        private int numMissingSrcPoints = 0;
+    //    private int numMissingSrcPoints = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -307,6 +333,9 @@ namespace WalnutClient
         /// <param name="scData">the server client data object</param>
         private void ServerClientDataEventHandler(object sender, ServerClientData scData)
         {
+            Console.WriteLine("ServerClientDataEventHandler called");
+            LogMessage("ServerClientDataEventHandler, called");
+
             if (scData == null)
             {
                 LogMessage("ServerClientDataEventHandler scData==null");
@@ -317,13 +346,24 @@ namespace WalnutClient
             LogMessage("ServerClientDataEventHandler: Data=" + scData.ToString());
             //  Console.WriteLine("inbound data received:  Data=" + scData.ToString());
 
-            // what type of data is it
-            if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
+            // figure out the class of data and deal with it appropriately
+            if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
             {
-                // user content
-
-                // send the data to the PRU
-                SetWaldosFromServerClientData(scData);
+                // the remote side has connected
+                LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
+                Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
+            }
+            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
+            {
+                // the remote side has disconnected
+                LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
+                Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
+            }
+            else if (scData.DataContent == ServerClientDataContentEnum.CONNECTION_TEST)
+            {
+                // the remote side requested a connection test
+                LogMessage("ServerClientDataEventHandler CONNECTION_TEST");
+                Console.WriteLine("ServerClientDataEventHandler CONNECTION_TEST");
 
                 // for the purposes of demonstration, send an ack now
                 if (dataTransporter == null)
@@ -334,20 +374,39 @@ namespace WalnutClient
                 }
 
                 // send it
-                ServerClientData ackData = new ServerClientData("ACK from client to server");
+                ServerClientData ackData = new ServerClientData("ACK from Walnut client");
+                ackData.DataContent = ServerClientDataContentEnum.CONNECTION_TEST_ACK;
                 dataTransporter.SendData(ackData);
+                LogMessage("ServerClientDataEventHandler CONNECTION_TEST -> ACK sent");
+                Console.WriteLine("ServerClientDataEventHandler CONNECTION_TEST -> ACK sent");
+
+                SCData_StepperStatus statusObj = GetStepperStatus();
+                if (statusObj != null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    statusObj.GetState(sb);
+                    Console.WriteLine("GetStepperStatus" + sb.ToString());
+                }
+
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
+            else if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
             {
-                // the remote side has connected
-                //LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
-                //  Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
+                // user data with a disable waldos flag always does this and nothing else
+                if (scData.Waldo_Enable != 1)
+                {
+                    LogMessage("ServerClientDataEventHandler, Waldos are now disabled");
+                    // just disable them all. Each waldo will need to be individually re-enabled
+                    StopAllWaldos();
+                    return;
+                }
+
+                // the call below should be able to figure out what to do
+                SetWaldosFromServerClientData(scData);
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
+            else
             {
-                // the remote side has disconnected
-                // LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
-                // Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
+                LogMessage("ServerClientDataEventHandler unknown DataContent = " + scData.DataContent.ToString());
+                Console.WriteLine("ServerClientDataEventHandler  unknown DataContent = " + scData.DataContent.ToString());
             }
         }
 
@@ -360,34 +419,43 @@ namespace WalnutClient
         /// <param name="scData">the server client data object</param>
         public void SetWaldosFromServerClientData(ServerClientData scData)
         {
-            // sanity check
+            Console.WriteLine("SetWaldosFromServerClientData called");
+            LogMessage("SetWaldosFromServerClientData, called");
+
+            // sanity checks
+            if (pruDriver == null)
+            {
+                Console.WriteLine("SetWaldosFromServerClientData pruDriver==null");
+                LogMessage("SetWaldosFromServerClientData, pruDriver==null");
+                return;
+            }
+
             if (scData == null)
             {
                 LogMessage("SetWaldosFromServerClientData, scData==null");
+                // we do not permit ill formed commands to be sent to us
+                StopAllWaldos();
                 return;
             }
 
             //Console.WriteLine("SetWaldosFromServerClientData Message Received");
+            Console.WriteLine("SetWaldosFromServerClientData Message Received");
             LogMessage("SetWaldosFromServerClientData Message Received");
 
-            // are we dealing with raw request stepper0 data?
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEP0_DATA))
+            // a disable waldos flag always does this and nothing else
+            if (scData.Waldo_Enable != 1)
             {
-                // write the waldo_enable flag
-                pruDriver.WritePRUDataUInt32(scData.Waldo_Enable, WALDO_ENABLE_OFFSET);
+                LogMessage("SetWaldosFromServerClientData, Waldos are now disabled");
+                // just disable them all. Each waldo will need to be individually re-enabled
+                StopAllWaldos();
+                return;
+            }
 
-                // write the STEP0 enable/disable flag
-                pruDriver.WritePRUDataUInt32(scData.Step0_Enable, STEP0_ENABLED_OFFSET);
-                // write the STEP0 fullcount value
-                pruDriver.WritePRUDataUInt32(scData.Step0_StepSpeed, STEP0_FULLCOUNT);
-                // write the STEP0 direction flag
-                pruDriver.WritePRUDataUInt32(scData.Step0_DirState, STEP0_DIRSTATE);
-                Console.WriteLine("scData.Waldo_Enable=" + scData.Waldo_Enable.ToString());
-
-                // write the semaphore. This must come last, the code running in the 
-                // PRU will see this change and set things up according to the
-                // other configuration items above
-                pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
+            // are we dealing with raw request stepper data?
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEPPER_CONTROL))
+            {
+                // NOTE: at the moment we only process the first SCData_StepperControl object in the list
+                ProcessStepperControlList(scData.StepperControlList);
             }
 
             // are we dealing with PWMA data?
@@ -461,13 +529,15 @@ namespace WalnutClient
                     Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
                     LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
                     // send in a dummy, there is code in the called procedure to handle this
-                    MoveSourceToTarget(new SrcTgtData());
+                   // MoveSourceToTarget_PWM(new SrcTgtData());
+                    MoveSourceToTarget_Stepper(new SrcTgtData());
                     return;
                 }
                 else
                 {
                     // now we move the source to the target with the green square. This is a stated goal
-                    MoveSourceToTarget(scData.SrcTgtList[0]);
+                   // MoveSourceToTarget_PWM(scData.SrcTgtList[0]);
+                    MoveSourceToTarget_Stepper(scData.SrcTgtList[0]);
                 }
             }
 
@@ -492,6 +562,287 @@ namespace WalnutClient
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// A Waldo action to stop all waldos. Basically an emergency stop
+        /// 
+        /// NOTE: that we turn off all steppers because we do not want a subsequent 
+        /// enable of all waldos to turn these back on automatically. If the waldos 
+        /// go off they  must be individually re-enabled. 
+        /// 
+        /// </summary>
+        private void StopAllWaldos()
+        {
+            Console.WriteLine("StopAllWaldos");
+            LogMessage("StopAllWaldos");
+
+            if (pruDriver == null)
+            {
+                Console.WriteLine("StopAllWaldos pruDriver==null");
+                LogMessage("StopAllWaldos, pruDriver==null");
+                return;
+            }
+
+            // write the waldo_enable flag as 0
+            pruDriver.WritePRUDataUInt32(0, WALDO_ENABLE_OFFSET);
+
+            // write the STEP0-3 enable/disable flags. 
+            pruDriver.WritePRUDataUInt32(0, STEP0_ENABLED_OFFSET);
+            pruDriver.WritePRUDataUInt32(0, STEP1_ENABLED_OFFSET);
+            pruDriver.WritePRUDataUInt32(0, STEP2_ENABLED_OFFSET);
+
+            //// write the semaphore. This must come last, the code running in the 
+            //// PRU will see this change and set things up according to the
+            //// other configuration items above
+            pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// A Waldo action to process an incoming StepperControlList.
+        /// 
+        /// NOTE: at the moment we just process the first item in the list and 
+        /// disregard the rest. The full list implemenation is left for the future 
+        /// 
+        /// </summary>
+        /// <param name="stControlList">the stepper control list</param>
+        private void ProcessStepperControlList(List<SCData_StepperControl> stControlList)
+        {
+            Console.WriteLine("ProcessStepperControlList: called");
+
+            // we do not need a behaviour here. We just set the stepper motor parameters right out of the object
+
+            if (pruDriver == null)
+            {
+                Console.WriteLine("ProcessStepperControlList pruDriver==null");
+                LogMessage("ProcessStepperControlList, pruDriver==null");
+                return;
+            }
+
+            if (stControlList == null)
+            {
+                Console.WriteLine("ProcessStepperControlList: No Control List");
+                LogMessage("ProcessStepperControlList: No Control List");
+                // we do not permit ill formed commands to be sent to us
+                StopAllWaldos();
+                return;
+            }
+            uint stepSemaphoreFlag = 0;
+
+            // process each stepper control object in the list. We do not want to write 
+            // multiple commands for multiple steppers one after the other. We can get 
+            // synchronization issues that way. The technique is to set the data for 
+            // every stepper control object in the list all at once then submit them 
+            // to the pruDriver as a batch. This means that if there are multiple 
+            // commands for the same stepper motor in the list then only the last one
+            // will be used
+            foreach (SCData_StepperControl stepCtrlObj in stControlList)
+            {
+                uint stepXFullCountAddress = 0;
+                uint stepXDirStateAddress = 0;
+                uint stepXEnabledStateAddress = 0;
+                uint stepXMaxPulsesAddress = 0;
+
+                // set up for the stepper we use
+                if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_0)
+                {
+                    stepXFullCountAddress = STEP0_FULLHALFCYCLECOUNT_OFFSET;
+                    stepXDirStateAddress = STEP0_DIRSTATE_OFFSET;
+                    stepXEnabledStateAddress = STEP0_ENABLED_OFFSET;
+                    stepXMaxPulsesAddress = STEP0_MAX_NUMPULSES_OFFSET;
+                    stepSemaphoreFlag |= STEP0_CHANGED;   // set the bit flag
+                }
+                else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_1)
+                {
+                    stepXFullCountAddress = STEP1_FULLHALFCYCLECOUNT_OFFSET;
+                    stepXDirStateAddress = STEP1_DIRSTATE_OFFSET;
+                    stepXEnabledStateAddress = STEP1_ENABLED_OFFSET;
+                    stepXMaxPulsesAddress = STEP1_MAX_NUMPULSES_OFFSET;
+                    stepSemaphoreFlag |= STEP1_CHANGED;   // set the bit flag
+                }
+                else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_2)
+                {
+                    stepXFullCountAddress = STEP2_FULLHALFCYCLECOUNT_OFFSET;
+                    stepXDirStateAddress = STEP2_DIRSTATE_OFFSET;
+                    stepXEnabledStateAddress = STEP2_ENABLED_OFFSET;
+                    stepXMaxPulsesAddress = STEP2_MAX_NUMPULSES_OFFSET;
+                    stepSemaphoreFlag |= STEP2_CHANGED;  // set the bit flag
+                }
+                else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_3)
+                {
+                    stepXFullCountAddress = STEP3_FULLHALFCYCLECOUNT_OFFSET;
+                    stepXDirStateAddress = STEP3_DIRSTATE_OFFSET;
+                    stepXEnabledStateAddress = STEP3_ENABLED_OFFSET;
+                    stepXMaxPulsesAddress = STEP3_MAX_NUMPULSES_OFFSET;
+                    stepSemaphoreFlag |= STEP3_CHANGED;  // set the bit flag
+                }
+                else
+                {
+                    Console.WriteLine("ProcessStepperControlList: unknown stepper ID=" + stepCtrlObj.Stepper_ID.ToString());
+                    LogMessage("ProcessStepperControlList: unknown stepper ID=" + stepCtrlObj.Stepper_ID.ToString());
+                    // we do not permit ill formed commands to be sent to us
+                    StopAllWaldos();
+                    return;
+                }
+
+                // write the STEP speed value
+                pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles(stepCtrlObj.Stepper_StepSpeed), stepXFullCountAddress);
+                // write the direction state
+                pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_DirState, stepXDirStateAddress);
+                // write the num pulses
+                pruDriver.WritePRUDataUInt32(stepCtrlObj.Num_Steps, stepXMaxPulsesAddress);
+                // set the stepper enabled flag
+                pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_Enable, stepXEnabledStateAddress);
+Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
+
+            } // bottom of foreach (SCData_StepperControl stepCtrlObj in stControlList)
+
+            // write the waldo enable/disable flag. This is always assumed to be enabled because if it wasn't
+            // this code would never have been called
+            pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
+            // we collected the semaphores for the steppers that were affected in the loop above
+            // set the semaphore last, this makes the PRU pick it up
+            pruDriver.WritePRUDataUInt32(stepSemaphoreFlag, SEMAPHORE_OFFSET);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// A Waldo action to process an incoming StepperControl Object.
+        /// 
+        /// </summary>
+        /// <param name="stepCtrlObj">the stepper control object</param>
+        private void ProcessStepperControlObject(SCData_StepperControl stepCtrlObj)
+        {
+            uint stepXFullCountAddress = 0;
+            uint stepXDirStateAddress = 0;
+            uint stepXEnabledStateAddress = 0;
+            uint stepXMaxPulsesAddress = 0;
+            uint stepXSemaphoreFlag = 0;
+            Console.WriteLine("ProcessStepperControlObject ");
+
+            if (pruDriver == null)
+            {
+                Console.WriteLine("ProcessStepperControlObject pruDriver==null");
+                LogMessage("ProcessStepperControlObject, pruDriver==null");
+                return;
+            }
+
+            if (stepCtrlObj == null)
+            {
+                Console.WriteLine("ProcessStepperControlObject: No Control Obj");
+                LogMessage("ProcessStepperControlObject: No Control Obj");
+                // we do not permit ill formed commands to be sent to us
+                StopAllWaldos();
+                return;
+            }
+
+            // we use these to signal which stepper has changed so we do not 
+            // reset the counts of the other ones which might be operating
+            const uint STEP0_CHANGED = 0b0000000000000001;
+            const uint STEP1_CHANGED = 0b0000000000000010;
+            const uint STEP2_CHANGED = 0b0000000000000100;
+            const uint STEP3_CHANGED = 0b0000000000001000;
+
+            // set up for the stepper we use
+            if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_0)
+            {
+                stepXFullCountAddress = STEP0_FULLHALFCYCLECOUNT_OFFSET;
+                stepXDirStateAddress = STEP0_DIRSTATE_OFFSET;
+                stepXEnabledStateAddress = STEP0_ENABLED_OFFSET;
+                stepXMaxPulsesAddress = STEP0_MAX_NUMPULSES_OFFSET;
+                stepXSemaphoreFlag = STEP0_CHANGED;
+            }
+            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_1)
+            {
+                stepXFullCountAddress = STEP1_FULLHALFCYCLECOUNT_OFFSET;
+                stepXDirStateAddress = STEP1_DIRSTATE_OFFSET;
+                stepXEnabledStateAddress = STEP1_ENABLED_OFFSET;
+                stepXMaxPulsesAddress = STEP1_MAX_NUMPULSES_OFFSET;
+                stepXSemaphoreFlag = STEP1_CHANGED;
+            }
+            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_2)
+            {
+                stepXFullCountAddress = STEP2_FULLHALFCYCLECOUNT_OFFSET;
+                stepXDirStateAddress = STEP2_DIRSTATE_OFFSET;
+                stepXEnabledStateAddress = STEP2_ENABLED_OFFSET;
+                stepXMaxPulsesAddress = STEP2_MAX_NUMPULSES_OFFSET;
+                stepXSemaphoreFlag = STEP2_CHANGED;
+            }
+            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_3)
+            {
+                stepXFullCountAddress = STEP3_FULLHALFCYCLECOUNT_OFFSET;
+                stepXDirStateAddress = STEP3_DIRSTATE_OFFSET;
+                stepXEnabledStateAddress = STEP3_ENABLED_OFFSET;
+                stepXMaxPulsesAddress = STEP3_MAX_NUMPULSES_OFFSET;
+                stepXSemaphoreFlag = STEP3_CHANGED;
+            }
+            else
+            {
+                Console.WriteLine("ProcessStepperControlList: unknown stepper ID="+ stepCtrlObj.Stepper_ID.ToString());
+                LogMessage("ProcessStepperControlList: unknown stepper ID="+ stepCtrlObj.Stepper_ID.ToString());
+                // we do not permit ill formed commands to be sent to us
+                StopAllWaldos();
+                return;
+            }
+
+            // we do not need a behaviour here. We just set the stepper motor parameters right out of the object
+
+            // write the waldo enable/disable flag. This is always assumed to be enabled because if it wasn't
+            // this code would never have been called
+            pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
+            // write the STEP speed value
+            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles(stepCtrlObj.Stepper_StepSpeed), stepXFullCountAddress);
+            // write the direction state
+            pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_DirState, stepXDirStateAddress);
+            // write the num pulses
+            pruDriver.WritePRUDataUInt32(stepCtrlObj.Num_Steps, stepXMaxPulsesAddress);
+            // set the stepper enabled flag
+            pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_Enable, stepXEnabledStateAddress);
+            // set the semaphore last, this makes the PRU pick it up
+            pruDriver.WritePRUDataUInt32(stepXSemaphoreFlag, SEMAPHORE_OFFSET);
+
+ //Console.WriteLine(testTime.TimeOfDay.ToString()+", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the stepper status (enabled, step counts) from the PRU
+        /// 
+        /// </summary>
+        /// <returns>the a filled in stepper status object or null for fail</returns>
+        private SCData_StepperStatus GetStepperStatus()
+        {
+            SCData_StepperStatus outStatusObj = new SCData_StepperStatus();
+
+            if (pruDriver == null)
+            {
+                Console.WriteLine("GetStepperStatus pruDriver==null");
+                LogMessage("GetStepperStatus, pruDriver==null");
+                return null;
+            }
+
+            // the dir register, the bits in here indicate the direction of Step0-3
+            outStatusObj.AllSteppersDirRegister = pruDriver.ReadPRUDataUInt32(STATEFLAG_OFFSET);
+
+            // the step counts
+            outStatusObj.Step0_StepCount = pruDriver.ReadPRUDataUInt32(STEP0_NUMPULSES_OFFSET);
+            outStatusObj.Step1_StepCount = pruDriver.ReadPRUDataUInt32(STEP1_NUMPULSES_OFFSET);
+            outStatusObj.Step2_StepCount = pruDriver.ReadPRUDataUInt32(STEP2_NUMPULSES_OFFSET);
+            outStatusObj.Step3_StepCount = pruDriver.ReadPRUDataUInt32(STEP3_NUMPULSES_OFFSET);
+
+            // the enabled states
+            outStatusObj.Step0_Enabled = pruDriver.ReadPRUDataUInt32(STEP0_ENASTATE_OFFSET);
+            outStatusObj.Step1_Enabled = pruDriver.ReadPRUDataUInt32(STEP1_ENASTATE_OFFSET);
+            outStatusObj.Step2_Enabled = pruDriver.ReadPRUDataUInt32(STEP2_ENASTATE_OFFSET);
+            outStatusObj.Step3_Enabled = pruDriver.ReadPRUDataUInt32(STEP3_ENASTATE_OFFSET);
+
+            return outStatusObj;
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// A Waldo action to identify squares by color. At the moment we just use
         /// the first one we find.
         /// 
@@ -503,14 +854,14 @@ namespace WalnutClient
             foreach (ColoredRotatedObject rectObj in rectList)
             {
                 if (rectObj.ObjColor != KnownColor.Red) continue;
-                redSquare.SetCenterLocation(rectObj.Center);
+                redSquare.SetCenterLocation(rectObj.CenterPoint);
                 break;
             }
             // run through the list to find the first green square
             foreach (ColoredRotatedObject rectObj in rectList)
             {
                 if (rectObj.ObjColor != KnownColor.Green) continue;
-                greenSquare.SetCenterLocation(rectObj.Center);
+                greenSquare.SetCenterLocation(rectObj.CenterPoint);
                 break;
             }
         }
@@ -569,9 +920,9 @@ namespace WalnutClient
             // write the STEP0 enable/disable flag
             pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
             // write the STEP0 speed value
-            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles((uint)outSpeed), STEP0_FULLCOUNT);
+            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles((uint)outSpeed), STEP0_FULLHALFCYCLECOUNT_OFFSET);
             // write the direction state
-            pruDriver.WritePRUDataUInt32(outDirection, STEP0_DIRSTATE);
+            pruDriver.WritePRUDataUInt32(outDirection, STEP0_DIRSTATE_OFFSET);
             pruDriver.WritePRUDataUInt32(1, STEP0_ENABLED_OFFSET);
             pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
 
@@ -579,10 +930,173 @@ namespace WalnutClient
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// A Waldo action to move the source onto the target
+        /// A Waldo action to move the source onto the target. Stepper Version
         /// 
         /// </summary>
-        private void MoveSourceToTarget(SrcTgtData stData)
+        private void MoveSourceToTarget_Stepper(SrcTgtData stData)
+        {
+            uint outSpeedX = 0;
+            uint outDirectionX = 0;
+            uint outSpeedY = 0;
+            uint outDirectionY = 0;
+            PointF srcCenter = new PointF(float.NaN, float.NaN);
+            PointF tgtCenter = new PointF(float.NaN, float.NaN);
+
+            // form up new StepperControl objects, and a list to contain them
+            SCData_StepperControl stepperObjX = new SCData_StepperControl(StepperIDEnum.STEPPER_1);
+            SCData_StepperControl stepperObjY = new SCData_StepperControl(StepperIDEnum.STEPPER_0);
+            List< SCData_StepperControl >stepperList = new List< SCData_StepperControl >();
+            // add our stepper control modules to the list
+            stepperList.Add(stepperObjX);
+            stepperList.Add(stepperObjY);
+
+            // set up our behaviours if we need to
+            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
+            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
+            // set up our target tracker if we need to
+            int workingTargetMovedThreshold = 5;
+            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
+
+            if (stData == null)
+            {
+                Console.WriteLine("No stData");
+                // turn off the steppers
+                stepperObjX.Stepper_Enable = 0;
+                stepperObjY.Stepper_Enable = 0;
+                // set it
+                ProcessStepperControlList(stepperList);
+                // and leave
+                return;
+            }
+
+            Console.WriteLine("**(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
+
+            if ((stData == null) || (stData.SrcIsPopulated() == false))
+            {
+                // we do not have source data
+                Console.WriteLine("No Src Data");
+                // turn off the steppers
+                stepperObjX.Stepper_Enable = 0;
+                stepperObjY.Stepper_Enable = 0;
+                // set it
+                ProcessStepperControlList(stepperList);
+                // and leave
+                return;
+            }
+
+            // do we have a target
+            if (stData.TgtIsPopulated() == false)
+            {
+                Console.WriteLine("No incoming Tgt Data");
+                // turn off the steppers
+                stepperObjX.Stepper_Enable = 0;
+                stepperObjY.Stepper_Enable = 0;
+                // set it
+                ProcessStepperControlList(stepperList);
+                // and leave
+                return;
+            }
+
+            // collect our source and target
+            srcCenter = stData.SrcPoint;
+            tgtCenter = stData.TgtPoint;
+            // feed our target tracker with the static point. We want to be able to see if it has moved
+            behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
+
+            // tmp   if (behaviourTrackTarget.HasMoved() == true)
+            if (true)
+            {
+                // reset the MoveLevel behaviour
+                behaviourMoveLevelX.Reset();
+                behaviourMoveLevelY.Reset();
+                // reset the target point tracker
+                behaviourTrackTarget.Reset();
+                behaviourTrackTarget.SetTargetPoint(tgtCenter);
+            }
+
+// we do not have X axis (horiz) control yet we are only interested in Y axis (up/down)
+stepperObjX.Stepper_Enable = 0;
+
+            //// Process X, have we already reached a point where we can stop?
+            //if (behaviourMoveLevelX.CanStop() == true)
+            //{
+            //    // turn off the stepper
+            //    stepperObjX.Stepper_Enable = 0;
+            //}
+            //else
+            //{
+            //    // can't stop, process this input
+            //    // get the result for X direction
+            //    int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
+            //    if (retVal != 0)
+            //    {
+            //        // turn off the stepper
+            //        stepperObjX.Stepper_Enable = 0;
+            //        return;
+            //    }
+            //    else
+            //    {
+            //        // set the stepper speed
+            //        stepperObjX.Stepper_StepSpeed = outSpeedX;
+            //        // give it infinite steps, the server will turn it off
+            //        stepperObjX.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+
+            //        // set the direction
+            //        if (outDirectionX != 0) stepperObjX.Stepper_DirState=1;
+            //        else stepperObjX.Stepper_DirState = 0;
+
+            //        // turn off the stepper
+            //        stepperObjX.Stepper_Enable = 1;
+            //    }
+            //}
+
+            // Process Y, have we already reached a point where we can stop?
+            if (behaviourMoveLevelY.CanStop() == true)
+            {
+                // turn off the stepper
+                stepperObjY.Stepper_Enable = 0;
+            }
+            else
+            {
+                // can't stop, process this input
+                // get the result for Y direction
+                int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
+                if (retVal != 0)
+                {
+                    // turn off the stepper
+                    stepperObjY.Stepper_Enable = 0;
+                    return;
+                }
+                else
+                {
+                    // set the stepper speed
+                    stepperObjY.Stepper_StepSpeed = outSpeedY;
+                    // give it infinite steps, the server will turn it off
+                    stepperObjY.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+
+                    // set the direction
+                    if (outDirectionY != 0) stepperObjY.Stepper_DirState = 1;
+                    else stepperObjY.Stepper_DirState = 0;
+
+                    // turn off the stepper
+                    stepperObjY.Stepper_Enable = 1;
+                }
+            }
+
+            // our stepper control modules have been setup, now set them
+            ProcessStepperControlList(stepperList);
+
+            // write this out for diagnostics
+            Console.WriteLine("");
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// A Waldo action to move the source onto the target. PWM Version
+        /// 
+        /// </summary>
+        private void MoveSourceToTarget_PWM(SrcTgtData stData)
         {
             uint outSpeedX = 0;
             uint outDirectionX = 0;

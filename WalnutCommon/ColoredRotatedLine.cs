@@ -27,87 +27,94 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// Class to contain information regarding an object and its color. 
-    /// 
-    /// Is abstract - cannot be used standalone
-    /// 
+    /// Class to contain information about a line 
     /// 
     /// </summary>
 
     [SerializableAttribute]
-    public abstract class ColoredRotatedObject
+    public class ColoredRotatedLine : ColoredRotatedObject
     {
-
-        // this is set on the constructor, only one of these object types can be populated
-        private ColoredObjectType objectType = ColoredObjectType.COLORED_OBJECT_TYPE_UNKNOWN;
+        private Point centerPoint = new Point();
+        private int lineLength = 0;
 
         // the color of the center pixel. We use BGR rather than RGB because a lot of stuff
         // in EMGUCV prefers that
         private byte[] centerPixelBGRValue = new byte[3];
 
-        // this is a C# enum, we default it to Black
-        public static KnownColor DEFAULT_COLOR = KnownColor.Black;
-        private KnownColor objColor = DEFAULT_COLOR;
+        public const float HORIZONTAL_LINE_ANGLE = 0;
+        public const float VERTICAL_LINE_ANGLE = 180;
+        private float angle = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets center point of the object, should never get/set null
+        /// Constructor
         /// </summary>
-        public abstract Point CenterPoint
+        /// <param name="centerPointIn">the centerPoint</param>
+        public ColoredRotatedLine(Point centerPointIn)
         {
-            get; set;
+            CenterPoint = centerPointIn;
+            ObjectType = ColoredObjectType.COLORED_OBJECT_TYPE_LINE;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the rotation angle. Exactly what this means depends on the object
+        /// Constructor
+        /// </summary>
+        /// <param name="centerPointIn">the centerPoint</param>
+        /// <param name="lineLengthIn">the Line length</param>
+        public ColoredRotatedLine(Point centerPointIn, int lineLengthIn)
+        {
+            CenterPoint = centerPointIn;
+            LineLength = lineLengthIn;
+            ObjectType = ColoredObjectType.COLORED_OBJECT_TYPE_LINE;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets center point of the object, will never get/set null
+        /// </summary>
+        public override Point CenterPoint
+        {
+            get
+            {
+                if (centerPoint == null) centerPoint = new Point();
+                return centerPoint;
+            }
+            set
+            {
+                centerPoint = value;
+                if (centerPoint == null) centerPoint = new Point();
+            }
+        }
+
+        public int LineLength { get => lineLength; set => lineLength = value; }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// The ToString()
+        /// </summary>
+        public override string ToString()
+        {
+            return "center=(" + CenterPoint.X.ToString() + "," + CenterPoint.Y.ToString() +"), len=" + LineLength.ToString() + ", center=(" + CenterPoint.X.ToString() + "," + CenterPoint.Y.ToString() + "), " + ObjColor.ToString() + ", BGR=(" + CenterPixelBGRValue[0].ToString() + "," + CenterPixelBGRValue[1].ToString() + "," + CenterPixelBGRValue[2].ToString() + ")";
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the angle between the horizontal axis and the first side (i.e. width) in degrees
         /// 
+        /// Always 0 for circles.
         /// </summary>
-        public virtual float Angle
+        public override float Angle
         {
             get
             {
-                // always zero here
-                return 0;
+                return angle;
             }
             set
             {
+                angle = value;
             }
         }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the RGB color of the center pixel of the object
-        /// </summary>
-        public byte[] CenterPixelBGRValue
-        {
-            get
-            { 
-                if(centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-                return centerPixelBGRValue;
-            }
-            set
-            {
-                centerPixelBGRValue = value;
-                if (centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the color
-        /// </summary>
-        public KnownColor ObjColor
-        {
-            get { return objColor; }
-            set { objColor = value; }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        //
-        //  The type of object this is
-        //
-        public ColoredObjectType ObjectType { get => objectType; set => objectType = value; }
 
     }
 }

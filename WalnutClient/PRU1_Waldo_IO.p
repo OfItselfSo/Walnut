@@ -39,10 +39,11 @@
 ///                     0x0B4 0x25  /* P8_42 75   OUTPUT MODE5 - pr1_pru1_pru_r30_5 */
 ///                     0x0B8 0x25  /* P8_39 74   OUTPUT MODE5 - pr1_pru1_pru_r30_6 */
 ///                     0x0BC 0x25  /* P8_40 75   OUTPUT MODE5 - pr1_pru1_pru_r30_7 */
-///                     0x0E0 0x25  /* P8_27 86   OUTPUT MODE5 - pr1_pru1_pru_r30_8 */
-///                     0x0E8 0x25  /* P8_28 88   OUTPUT MODE5 - pr1_pru1_pru_r30_10 */
-///                     0x0E4 0x25  /* P8_29 87   OUTPUT MODE5 - pr1_pru1_pru_r30_9 */
-///                     0x0EC 0x25  /* P8_30 89   OUTPUT MODE5 - pr1_pru1_pru_r30_11 */
+///                currently not used, steppers 4 and 5 removed
+///                 //    0x0E0 0x25  /* P8_27 86   OUTPUT MODE5 - pr1_pru1_pru_r30_8 */
+///                 //    0x0E8 0x25  /* P8_28 88   OUTPUT MODE5 - pr1_pru1_pru_r30_10 */
+///                 //    0x0E4 0x25  /* P8_29 87   OUTPUT MODE5 - pr1_pru1_pru_r30_9 */
+///                 //    0x0EC 0x25  /* P8_30 89   OUTPUT MODE5 - pr1_pru1_pru_r30_11 */
 
 ///                     The general mode of operation is to setup a series
 ///                     six blocks (one for each stepper) in which the path
@@ -71,12 +72,9 @@
 ///               References to the PRM refer to the AM335x PRU-ICSS Reference Guide
 ///               References to the TRM refer to the AM335x Sitara Processors
 ///                   Technical Reference Manual
-///            
-///               History
-///                   19 Nov 18  Cynic - Originally Written
 ///
 ///               Home Page
-///                   http://www.OfItselfSo.com/Tilo/Tilo.php
+///                   http://www.OfItselfSo.com/Walnut/Walnut.php
 /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 
 .origin 0
@@ -85,12 +83,14 @@
 // this defines the data RAM memory location inside the PRUs address space. 
 #define PRU_DATARAM 0        // yep, starts at address zero no matter which PRU you are using
 #define BYTES_IN_REG 4       // there are 4 bytes in a register. This is only
-                             // defined as a constant so its use is obviious
+                             // defined as a constant so its use is obvious
                              // in the BYTES_IN_CLIENT_DATA (and other) values below
 
-#define DEFAULT_STARTCOUNT 5000000 // should not (or ever) be zero
+#define DEFAULT_HALFCYCLEFULLCOUNT 5000000 // should not (or ever) be zero
 #define DEFAULT_STARTSTATE 0 
 #define DEFAULT_ENABLEDSTATE 0
+#define INFINITE_PULSES_VALUE 0xFFFFFFFF
+#define DEFAULT_CURRENTNUMPULSESCOUNT 0
 
 // Note we do NOT need to enable the OCP master port. This is because this 
 // code does not read directly out to the BBB's userspace memory. It reads 
@@ -98,7 +98,6 @@
 // file by the UIO driver.
 
 // these define the pins we update for the various outputs
-
 #define STEP0_OUTPUTREG r30.t0           // P8_45 the bit in R30 we toggle to set the state
 #define STEP0_DIRREG    r30.t1           // P8_46 the bit in R30 we toggle to set the direction
 #define STEP1_OUTPUTREG r30.t2           // P8_43 the bit in R30 we toggle to set the state
@@ -107,53 +106,88 @@
 #define STEP2_DIRREG    r30.t5           // P8_42 the bit in R30 we toggle to set the direction
 #define STEP3_OUTPUTREG r30.t6           // P8_39 the bit in R30 we toggle to set the state
 #define STEP3_DIRREG    r30.t7           // P8_40 the bit in R30 we toggle to set the direction
-#define STEP4_OUTPUTREG r30.t9           // P8_29 the bit in R30 we toggle to set the state
-#define STEP4_DIRREG    r30.t11          // P8_30 the bit in R30 we toggle to set the direction
-#define STEP5_OUTPUTREG r30.t8           // P8_27 the bit in R30 we toggle to set the state
-#define STEP5_DIRREG    r30.t10          // P8_28 the bit in R30 we toggle to set the direction
+
+#define OUT_AND_DIR_BITREG R30           // the register we use for all output state bits (see above)
 
 // these registers are used as temporary variables and the code updates them dynamically
 
-#define STEP0_DOWNCOUNT R4              // downcounter, 0 means toggle line state
-#define STEP1_DOWNCOUNT R5              // downcounter, 0 means toggle line state
-#define STEP2_DOWNCOUNT R6              // downcounter, 0 means toggle line state
-#define STEP3_DOWNCOUNT R7              // downcounter, 0 means toggle line state
-#define STEP4_DOWNCOUNT R8              // downcounter, 0 means toggle line state
-#define STEP5_DOWNCOUNT R9              // downcounter, 0 means toggle line state
+#define INFINITE_PULSES_FLAG        R2              // contains a value which indicates if we 
+                                                    // should do infinite steps (0xFFFFFFFF)
+#define DATA_COPY_REG               R3              // register we use when copying data from 
+                                                    // client to PRU and vice versa
+
+#define STEP0_CURRENTHALFCYCLECOUNT R4              // downcounter, 0 means toggle line state
+#define STEP1_CURRENTHALFCYCLECOUNT R5              // downcounter, 0 means toggle line state
+#define STEP2_CURRENTHALFCYCLECOUNT R6              // downcounter, 0 means toggle line state
+#define STEP3_CURRENTHALFCYCLECOUNT R7              // downcounter, 0 means toggle line state
+
+#define STEP0_CURRENTNUMPULSESCOUNT R8              // upcounter, ge MAX_NUMPULSES means stop
+#define STEP1_CURRENTNUMPULSESCOUNT R9              // upcounter, ge MAX_NUMPULSES means stop
+#define STEP2_CURRENTNUMPULSESCOUNT R10             // upcounter, ge MAX_NUMPULSES means stop
+#define STEP3_CURRENTNUMPULSESCOUNT R11             // upcounter, ge MAX_NUMPULSES means stop
 
 // the content of these registers is obtained from the client and, other than the semaphore,
 // this code does not update them once they have been read. Think of them as temporary constants
 // NOTE: the registers below MUST be sequential. They are loaded as a block. You can NEVER
 // use the registers R30 and above
 
-#define SEMAPHORE_OFFSET 0               // this is the offset of the semaphore data in the register
-#define SEMAPHORE_REG   R10              // 0 no data to read, 1 data can be read
+#define STATEFLAG_OFFSET 0               // this is an int which always contains the current contents
+                                         // of r30 our PRUDriver can read this and know the current pin state
+#define STEP0_NUMPULSES_OFFSET  4        // the code places a copy of STEP0_CURRENTNUMPULSESCOUNT in so the PRUDriver can read it
+#define STEP1_NUMPULSES_OFFSET  8        // the code places a copy of STEP1_CURRENTNUMPULSESCOUNT in so the PRUDriver can read it
+#define STEP2_NUMPULSES_OFFSET  12       // the code places a copy of STEP2_CURRENTNUMPULSESCOUNT in so the PRUDriver can read it
+#define STEP3_NUMPULSES_OFFSET  16       // the code places a copy of STEP3_CURRENTNUMPULSESCOUNT in so the PRUDriver can read it
+
+// this is the sum of the count of the bytes in all of the registers from STEP0_NUMPULSES_OFFSET to STEP3_NUMPULSES_OFFSET
+#define BYTES_IN_PULSEDATA_WE_WRITE_BACK (4 * BYTES_IN_REG)   // the total number of bytes of write back data 
+
+#define STEP0_ENASTATE_OFFSET  20
+#define STEP1_ENASTATE_OFFSET  24
+#define STEP2_ENASTATE_OFFSET  28
+#define STEP3_ENASTATE_OFFSET  32
+
+// this is the sum of the count of the bytes in all of the registers from STEP0_ENASTATE_OFFSET to STEP3_ENASTATE_OFFSET
+#define BYTES_IN_ENA_DATA_WE_WRITE_BACK (4 * BYTES_IN_REG)   // the total number of bytes of write back data 
+
+#define SEMAPHORE_OFFSET 36              // this is the offset of the semaphore data in the clients dataspace
+
+#define SEMAPHORE_REG   R12              // 0 - no data to read, nz - data can be read
                                          // this is the last byte set by the client
                                          // when it has updated the freq and dir data for the steppers
-#define STEPALL_ENABLED R11              // 0 all steppers disabled, 1 steppers can be enabled
+                                         // are moved into the registers here. The bit set indicates the
+                                         // steppers that changed
+
+#define STEPPER0_CHANGED SEMAPHORE_REG.t0   // a bit flag indicating that stepper0 changed
+#define STEPPER1_CHANGED SEMAPHORE_REG.t1   // a bit flag indicating that stepper1 changed
+#define STEPPER2_CHANGED SEMAPHORE_REG.t2   // a bit flag indicating that stepper2 changed
+#define STEPPER3_CHANGED SEMAPHORE_REG.t3   // a bit flag indicating that stepper3 changed
+
+#define STEPALL_ENABLED R13              // 0 all steppers disabled, 1 steppers can be enabled
                                          // anything other than 0 or 1 means clear all outputs
                                          // clear all dir pins and HALT the PRU
-#define STEP0_ENABLED   R12              // 0 disabled, 1 enabled
-#define STEP0_FULLCOUNT R13              // this is the count we reset to when we toggle
-#define STEP0_DIRSTATE  R14              // this is the state of the direction pin
+#define STEP0_ENABLED   R14              // 0 disabled, 1 enabled
 #define STEP1_ENABLED   R15              // 0 disabled, 1 enabled
-#define STEP1_FULLCOUNT R16              // this is the count we reset to when we toggle
-#define STEP1_DIRSTATE  R17              // this is the state of the direction pin
-#define STEP2_ENABLED   R18              // 0 disabled, 1 enabled
-#define STEP2_FULLCOUNT R19              // this is the count we reset to when we toggle
-#define STEP2_DIRSTATE  R20              // this is the state of the direction pin
-#define STEP3_ENABLED   R21              // 0 disabled, 1 enabled
-#define STEP3_FULLCOUNT R22              // this is the count we reset to when we toggle
-#define STEP3_DIRSTATE  R23              // this is the state of the direction pin
-#define STEP4_ENABLED   R24              // 0 disabled, 1 enabled
-#define STEP4_FULLCOUNT R25              // this is the count we reset to when we toggle
-#define STEP4_DIRSTATE  R26              // this is the state of the direction pin
-#define STEP5_ENABLED   R27              // 0 disabled, 1 enabled
-#define STEP5_FULLCOUNT R28              // this is the count we reset to when we toggle
-#define STEP5_DIRSTATE  R29              // this is the state of the direction pin
+#define STEP2_ENABLED   R16              // 0 disabled, 1 enabled
+#define STEP3_ENABLED   R17              // 0 disabled, 1 enabled
 
-// this is the sum of the count of the bytes in all of the registers from SEMAPHORE_OFFSET to STEP6_DIRSTATE
-#define BYTES_IN_CLIENT_DATA (20 * BYTES_IN_REG)   // the total number of bytes in the client data 
+#define STEP0_FULLHALFCYCLECOUNT R18     // this is the count we reset to when we toggle
+#define STEP1_FULLHALFCYCLECOUNT R19     // this is the count we reset to when we toggle
+#define STEP2_FULLHALFCYCLECOUNT R20     // this is the count we reset to when we toggle
+#define STEP3_FULLHALFCYCLECOUNT R21     // this is the count we reset to when we toggle
+
+#define STEP0_DIRSTATE  R22              // this is the state of the direction pin
+#define STEP1_DIRSTATE  R23              // this is the state of the direction pin
+#define STEP2_DIRSTATE  R24              // this is the state of the direction pin
+#define STEP3_DIRSTATE  R25              // this is the state of the direction pin
+
+#define STEP0_MAX_NUMPULSES   R26        // Max mumber of pulses we send, 0xFFFFFFFF for infinite
+#define STEP1_MAX_NUMPULSES   R27        // Max mumber of pulses we send, 0xFFFFFFFF for infinite
+#define STEP2_MAX_NUMPULSES   R28        // Max mumber of pulses we send, 0xFFFFFFFF for infinite
+#define STEP3_MAX_NUMPULSES   R29        // Max mumber of pulses we send, 0xFFFFFFFF for infinite
+
+
+// this is the sum of the count of the bytes in all of the registers from SEMAPHORE_REG to STEP3_MAX_NUMPULSES
+#define BYTES_IN_CLIENT_DATA (18 * BYTES_IN_REG)   // the total number of bytes in the client data 
 
              // this label is where the code execution starts
 START:
@@ -161,35 +195,32 @@ START:
              // initialize
 INIT:        CLR  STEP0_OUTPUTREG
              MOV  STEP0_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP0_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP0_DOWNCOUNT, STEP0_FULLCOUNT
+             MOV  STEP0_FULLHALFCYCLECOUNT, DEFAULT_HALFCYCLEFULLCOUNT
+             MOV  STEP0_CURRENTHALFCYCLECOUNT, STEP0_FULLHALFCYCLECOUNT
+             MOV  STEP0_CURRENTNUMPULSESCOUNT, DEFAULT_CURRENTNUMPULSESCOUNT  
 
 			 CLR  STEP1_OUTPUTREG
              MOV  STEP1_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP1_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP1_DOWNCOUNT, STEP1_FULLCOUNT
+             MOV  STEP1_FULLHALFCYCLECOUNT, DEFAULT_HALFCYCLEFULLCOUNT
+             MOV  STEP1_CURRENTHALFCYCLECOUNT, STEP1_FULLHALFCYCLECOUNT
+             MOV  STEP1_CURRENTNUMPULSESCOUNT, DEFAULT_CURRENTNUMPULSESCOUNT  
 
 			 CLR  STEP2_OUTPUTREG
              MOV  STEP2_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP2_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP2_DOWNCOUNT, STEP2_FULLCOUNT
+             MOV  STEP2_FULLHALFCYCLECOUNT, DEFAULT_HALFCYCLEFULLCOUNT
+             MOV  STEP2_CURRENTHALFCYCLECOUNT, STEP2_FULLHALFCYCLECOUNT
+             MOV  STEP2_CURRENTNUMPULSESCOUNT, DEFAULT_CURRENTNUMPULSESCOUNT  
 
 			 CLR  STEP3_OUTPUTREG
              MOV  STEP3_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP3_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP3_DOWNCOUNT, STEP3_FULLCOUNT
+             MOV  STEP3_FULLHALFCYCLECOUNT, DEFAULT_HALFCYCLEFULLCOUNT
+             MOV  STEP3_CURRENTHALFCYCLECOUNT, STEP3_FULLHALFCYCLECOUNT
+             MOV  STEP3_CURRENTNUMPULSESCOUNT, DEFAULT_CURRENTNUMPULSESCOUNT  
 
-			 CLR  STEP4_OUTPUTREG
-             MOV  STEP4_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP4_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP4_DOWNCOUNT, STEP4_FULLCOUNT
+             // this is compared against to see if we are doing infinite pulses
+             MOV INFINITE_PULSES_FLAG, INFINITE_PULSES_VALUE
 
-			 CLR  STEP5_OUTPUTREG
-             MOV  STEP5_ENABLED,   DEFAULT_ENABLEDSTATE
-             MOV  STEP5_FULLCOUNT, DEFAULT_STARTCOUNT
-             MOV  STEP5_DOWNCOUNT, STEP5_FULLCOUNT
-
-       // The top of the loop
+// The top of the loop
 LOOP_TOP:      
 
 // there is one block below for each Stepper motor. The code is
@@ -200,206 +231,243 @@ LOOP_TOP:
 // through the block identical for each
 
              // #######
-             // ####### STEPPER 0 specific actions
+             // ####### STEP0 specific actions
              // #######
 STEP0:       QBEQ STEP0_TEST, STEP0_ENABLED, 1        // is STEP0_ENABLED == 1? if yes, then toggle    
              CLR  STEP0_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP0_NOP6                          
-STEP0_TEST:  SUB  STEP0_DOWNCOUNT, STEP0_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP0_NOP6, STEP0_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP0_DOWNCOUNT, STEP0_FULLCOUNT    // reset the count now
-STEP0_TOGG:  QBBC STEP0_HIGH, STEP0_OUTPUTREG         // we need to toggle, are we currently high?
+             JMP  STEP0_NOP09                          
+STEP0_TEST:  SUB  STEP0_CURRENTHALFCYCLECOUNT, STEP0_CURRENTHALFCYCLECOUNT, 1 // decrement the count
+             QBNE STEP0_NOP08, STEP0_CURRENTHALFCYCLECOUNT, 0      // is the downcount == 0? if no, then NOPout
+             MOV  STEP0_CURRENTHALFCYCLECOUNT, STEP0_FULLHALFCYCLECOUNT    // reset the count now
+STEP0_TOGG:  QBBC STEP0_PULSE, STEP0_OUTPUTREG        // we need to toggle, are we currently high?
+             // yes, we are currently high
 STEP0_LOW:   CLR  STEP0_OUTPUTREG                     // clear the pin 
-             JMP  STEP0_NOP2
-STEP0_HIGH:  SET  STEP0_OUTPUTREG                     // set the pin 
-             JMP  STEP0_NOP2
-STEP0_NOP7:  MOV  R0, R0                              // just a NOP
-STEP0_NOP6:  MOV  R0, R0                              // just a NOP
-STEP0_NOP5:  MOV  R0, R0                              // just a NOP
-STEP0_NOP4:  MOV  R0, R0                              // just a NOP
-STEP0_NOP3:  MOV  R0, R0                              // just a NOP
-STEP0_NOP2:  MOV  R0, R0                              // just a NOP
-STEP0_NOP1:  MOV  R0, R0                              // just a NOP
-STEP0_NOP0:  MOV  R0, R0                              // just a NOP
+             JMP  STEP0_NOP06
+             // Now we check to see if we have done enough cycles
+             // first check to see if we need to care about this
+STEP0_PULSE: QBEQ STEP0_HIGH1, STEP0_MAX_NUMPULSES, INFINITE_PULSES_FLAG
+             // we do need to care, if STEP0_CURRENTNUMPULSESCOUNT >= STEP0_MAX_NUMPULSES
+             // we quit otherwise we just count it and set the pin high
+             QBLT STEP0_HIGH, STEP0_MAX_NUMPULSES, STEP0_CURRENTNUMPULSESCOUNT
+             // yes, we have reached the limit, disable
+             MOV  STEP0_ENABLED, 0                    // now not enabled
+             CLR  STEP0_OUTPUTREG                     // clear the pin for sure
+             JMP  STEP0_NOP00
+             // need a nop for the timings
+STEP0_HIGH1: MOV  R0, R0                              // just a NOP
+             // count it always
+STEP0_HIGH:  ADD  STEP0_CURRENTNUMPULSESCOUNT, STEP0_CURRENTNUMPULSESCOUNT, 1
+             SET  STEP0_OUTPUTREG                     // set the pin 
+             JMP  STEP0_NOP00
+STEP0_NOP09: MOV  R0, R0                              // just a NOP
+STEP0_NOP08: MOV  R0, R0                              // just a NOP
+STEP0_NOP07: MOV  R0, R0                              // just a NOP
+STEP0_NOP06: MOV  R0, R0                              // just a NOP
+STEP0_NOP05: MOV  R0, R0                              // just a NOP
+STEP0_NOP04: MOV  R0, R0                              // just a NOP
+STEP0_NOP03: MOV  R0, R0                              // just a NOP
+STEP0_NOP02: MOV  R0, R0                              // just a NOP
+STEP0_NOP01: MOV  R0, R0                              // just a NOP
+STEP0_NOP00: MOV  R0, R0                              // just a NOP
 
              // #######
-             // ####### STEPPER 1 specific actions
+             // ####### STEP1 specific actions
              // #######
 STEP1:       QBEQ STEP1_TEST, STEP1_ENABLED, 1        // is STEP1_ENABLED == 1? if yes, then toggle    
              CLR  STEP1_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP1_NOP6                          
-STEP1_TEST:  SUB  STEP1_DOWNCOUNT, STEP1_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP1_NOP6, STEP1_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP1_DOWNCOUNT, STEP1_FULLCOUNT    // reset the count now
-STEP1_TOGG:  QBBC STEP1_HIGH, STEP1_OUTPUTREG         // we need to toggle, are we currently high?
+             JMP  STEP1_NOP09                          
+STEP1_TEST:  SUB  STEP1_CURRENTHALFCYCLECOUNT, STEP1_CURRENTHALFCYCLECOUNT, 1 // decrement the count
+             QBNE STEP1_NOP08, STEP1_CURRENTHALFCYCLECOUNT, 0      // is the downcount == 0? if no, then NOPout
+             MOV  STEP1_CURRENTHALFCYCLECOUNT, STEP1_FULLHALFCYCLECOUNT    // reset the count now
+STEP1_TOGG:  QBBC STEP1_PULSE, STEP1_OUTPUTREG        // we need to toggle, are we currently high?
+             // yes, we are currently high
 STEP1_LOW:   CLR  STEP1_OUTPUTREG                     // clear the pin 
-             JMP  STEP1_NOP2
-STEP1_HIGH:  SET  STEP1_OUTPUTREG                     // set the pin 
-             JMP  STEP1_NOP2
-STEP1_NOP7:  MOV  R0, R0                              // just a NOP
-STEP1_NOP6:  MOV  R0, R0                              // just a NOP
-STEP1_NOP5:  MOV  R0, R0                              // just a NOP
-STEP1_NOP4:  MOV  R0, R0                              // just a NOP
-STEP1_NOP3:  MOV  R0, R0                              // just a NOP
-STEP1_NOP2:  MOV  R0, R0                              // just a NOP
-STEP1_NOP1:  MOV  R0, R0                              // just a NOP
-STEP1_NOP0:  MOV  R0, R0                              // just a NOP
+             JMP  STEP1_NOP06
+             // Now we check to see if we have done enough cycles
+             // first check to see if we need to care about this
+STEP1_PULSE: QBEQ STEP1_HIGH1, STEP1_MAX_NUMPULSES, INFINITE_PULSES_FLAG
+             // we do need to care, if STEP1_CURRENTNUMPULSESCOUNT >= STEP1_MAX_NUMPULSES
+             // we quit otherwise we just count it and set the pin high
+             QBLT STEP1_HIGH, STEP1_MAX_NUMPULSES, STEP1_CURRENTNUMPULSESCOUNT
+             // yes, we have reached the limit, disable
+             MOV  STEP1_ENABLED, 0                    // now not enabled
+             CLR  STEP1_OUTPUTREG                     // clear the pin for sure
+             JMP  STEP1_NOP00
+             // need a nop for the timings
+STEP1_HIGH1: MOV  R0, R0                              // just a NOP
+             // count it always
+STEP1_HIGH:  ADD  STEP1_CURRENTNUMPULSESCOUNT, STEP1_CURRENTNUMPULSESCOUNT, 1
+             SET  STEP1_OUTPUTREG                     // set the pin 
+             JMP  STEP1_NOP00
+STEP1_NOP09: MOV  R0, R0                              // just a NOP
+STEP1_NOP08: MOV  R0, R0                              // just a NOP
+STEP1_NOP07: MOV  R0, R0                              // just a NOP
+STEP1_NOP06: MOV  R0, R0                              // just a NOP
+STEP1_NOP05: MOV  R0, R0                              // just a NOP
+STEP1_NOP04: MOV  R0, R0                              // just a NOP
+STEP1_NOP03: MOV  R0, R0                              // just a NOP
+STEP1_NOP02: MOV  R0, R0                              // just a NOP
+STEP1_NOP01: MOV  R0, R0                              // just a NOP
+STEP1_NOP00: MOV  R0, R0                              // just a NOP
 
              // #######
-             // ####### STEPPER 2 specific actions
+             // ####### STEP2 specific actions
              // #######
 STEP2:       QBEQ STEP2_TEST, STEP2_ENABLED, 1        // is STEP2_ENABLED == 1? if yes, then toggle    
              CLR  STEP2_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP2_NOP6                          
-STEP2_TEST:  SUB  STEP2_DOWNCOUNT, STEP2_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP2_NOP6, STEP2_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP2_DOWNCOUNT, STEP2_FULLCOUNT    // reset the count now
-STEP2_TOGG:  QBBC STEP2_HIGH, STEP2_OUTPUTREG         // we need to toggle, are we currently high?
+             JMP  STEP2_NOP09                          
+STEP2_TEST:  SUB  STEP2_CURRENTHALFCYCLECOUNT, STEP2_CURRENTHALFCYCLECOUNT, 1 // decrement the count
+             QBNE STEP2_NOP08, STEP2_CURRENTHALFCYCLECOUNT, 0      // is the downcount == 0? if no, then NOPout
+             MOV  STEP2_CURRENTHALFCYCLECOUNT, STEP2_FULLHALFCYCLECOUNT    // reset the count now
+STEP2_TOGG:  QBBC STEP2_PULSE, STEP2_OUTPUTREG        // we need to toggle, are we currently high?
+             // yes, we are currently high
 STEP2_LOW:   CLR  STEP2_OUTPUTREG                     // clear the pin 
-             JMP  STEP2_NOP2
-STEP2_HIGH:  SET  STEP2_OUTPUTREG                     // set the pin 
-             JMP  STEP2_NOP2
-STEP2_NOP7:  MOV  R0, R0                              // just a NOP
-STEP2_NOP6:  MOV  R0, R0                              // just a NOP
-STEP2_NOP5:  MOV  R0, R0                              // just a NOP
-STEP2_NOP4:  MOV  R0, R0                              // just a NOP
-STEP2_NOP3:  MOV  R0, R0                              // just a NOP
-STEP2_NOP2:  MOV  R0, R0                              // just a NOP
-STEP2_NOP1:  MOV  R0, R0                              // just a NOP
-STEP2_NOP0:  MOV  R0, R0                              // just a NOP
+             JMP  STEP2_NOP06
+             // Now we check to see if we have done enough cycles
+             // first check to see if we need to care about this
+STEP2_PULSE: QBEQ STEP2_HIGH1, STEP2_MAX_NUMPULSES, INFINITE_PULSES_FLAG
+             // we do need to care, if STEP2_CURRENTNUMPULSESCOUNT >= STEP2_MAX_NUMPULSES
+             // we quit otherwise we just count it and set the pin high
+             QBLT STEP2_HIGH, STEP2_MAX_NUMPULSES, STEP2_CURRENTNUMPULSESCOUNT
+             // yes, we have reached the limit, disable
+             MOV  STEP2_ENABLED, 0                    // now not enabled
+             CLR  STEP2_OUTPUTREG                     // clear the pin for sure
+             JMP  STEP2_NOP00
+             // need a nop for the timings
+STEP2_HIGH1: MOV  R0, R0                              // just a NOP
+             // count it always
+STEP2_HIGH:  ADD  STEP2_CURRENTNUMPULSESCOUNT, STEP2_CURRENTNUMPULSESCOUNT, 1
+             SET  STEP2_OUTPUTREG                     // set the pin 
+             JMP  STEP2_NOP00
+STEP2_NOP09: MOV  R0, R0                              // just a NOP
+STEP2_NOP08: MOV  R0, R0                              // just a NOP
+STEP2_NOP07: MOV  R0, R0                              // just a NOP
+STEP2_NOP06: MOV  R0, R0                              // just a NOP
+STEP2_NOP05: MOV  R0, R0                              // just a NOP
+STEP2_NOP04: MOV  R0, R0                              // just a NOP
+STEP2_NOP03: MOV  R0, R0                              // just a NOP
+STEP2_NOP02: MOV  R0, R0                              // just a NOP
+STEP2_NOP01: MOV  R0, R0                              // just a NOP
+STEP2_NOP00: MOV  R0, R0                              // just a NOP
 
              // #######
-             // ####### STEPPER 3 specific actions
+             // ####### STEP3 specific actions
              // #######
 STEP3:       QBEQ STEP3_TEST, STEP3_ENABLED, 1        // is STEP3_ENABLED == 1? if yes, then toggle    
              CLR  STEP3_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP3_NOP6                          
-STEP3_TEST:  SUB  STEP3_DOWNCOUNT, STEP3_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP3_NOP6, STEP3_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP3_DOWNCOUNT, STEP3_FULLCOUNT    // reset the count now
-STEP3_TOGG:  QBBC STEP3_HIGH, STEP3_OUTPUTREG         // we need to toggle, are we currently high?
+             JMP  STEP3_NOP09                          
+STEP3_TEST:  SUB  STEP3_CURRENTHALFCYCLECOUNT, STEP3_CURRENTHALFCYCLECOUNT, 1 // decrement the count
+             QBNE STEP3_NOP08, STEP3_CURRENTHALFCYCLECOUNT, 0      // is the downcount == 0? if no, then NOPout
+             MOV  STEP3_CURRENTHALFCYCLECOUNT, STEP3_FULLHALFCYCLECOUNT    // reset the count now
+STEP3_TOGG:  QBBC STEP3_PULSE, STEP3_OUTPUTREG        // we need to toggle, are we currently high?
+             // yes, we are currently high
 STEP3_LOW:   CLR  STEP3_OUTPUTREG                     // clear the pin 
-             JMP  STEP3_NOP2
-STEP3_HIGH:  SET  STEP3_OUTPUTREG                     // set the pin 
-             JMP  STEP3_NOP2
-STEP3_NOP7:  MOV  R0, R0                              // just a NOP
-STEP3_NOP6:  MOV  R0, R0                              // just a NOP
-STEP3_NOP5:  MOV  R0, R0                              // just a NOP
-STEP3_NOP4:  MOV  R0, R0                              // just a NOP
-STEP3_NOP3:  MOV  R0, R0                              // just a NOP
-STEP3_NOP2:  MOV  R0, R0                              // just a NOP
-STEP3_NOP1:  MOV  R0, R0                              // just a NOP
-STEP3_NOP0:  MOV  R0, R0                              // just a NOP
+             JMP  STEP3_NOP06
+             // Now we check to see if we have done enough cycles
+             // first check to see if we need to care about this
+STEP3_PULSE: QBEQ STEP3_HIGH1, STEP3_MAX_NUMPULSES, INFINITE_PULSES_FLAG
+             // we do need to care, if STEP3_CURRENTNUMPULSESCOUNT >= STEP3_MAX_NUMPULSES
+             // we quit otherwise we just count it and set the pin high
+             QBLT STEP3_HIGH, STEP3_MAX_NUMPULSES, STEP3_CURRENTNUMPULSESCOUNT
+             // yes, we have reached the limit, disable
+             MOV  STEP3_ENABLED, 0                    // now not enabled
+             CLR  STEP3_OUTPUTREG                     // clear the pin for sure
+             JMP  STEP3_NOP00
+             // need a nop for the timings
+STEP3_HIGH1: MOV  R0, R0                              // just a NOP
+             // count it always
+STEP3_HIGH:  ADD  STEP3_CURRENTNUMPULSESCOUNT, STEP3_CURRENTNUMPULSESCOUNT, 1
+             SET  STEP3_OUTPUTREG                     // set the pin 
+             JMP  STEP3_NOP00
+STEP3_NOP09: MOV  R0, R0                              // just a NOP
+STEP3_NOP08: MOV  R0, R0                              // just a NOP
+STEP3_NOP07: MOV  R0, R0                              // just a NOP
+STEP3_NOP06: MOV  R0, R0                              // just a NOP
+STEP3_NOP05: MOV  R0, R0                              // just a NOP
+STEP3_NOP04: MOV  R0, R0                              // just a NOP
+STEP3_NOP03: MOV  R0, R0                              // just a NOP
+STEP3_NOP02: MOV  R0, R0                              // just a NOP
+STEP3_NOP01: MOV  R0, R0                              // just a NOP
+STEP3_NOP00: MOV  R0, R0                              // just a NOP
 
-             // #######
-             // ####### STEPPER 4 specific actions
-             // #######
-STEP4:       QBEQ STEP4_TEST, STEP4_ENABLED, 1        // is STEP4_ENABLED == 1? if yes, then toggle    
-             CLR  STEP4_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP4_NOP6                          
-STEP4_TEST:  SUB  STEP4_DOWNCOUNT, STEP4_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP4_NOP6, STEP4_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP4_DOWNCOUNT, STEP4_FULLCOUNT    // reset the count now
-STEP4_TOGG:  QBBC STEP4_HIGH, STEP4_OUTPUTREG         // we need to toggle, are we currently high?
-STEP4_LOW:   CLR  STEP4_OUTPUTREG                     // clear the pin 
-             JMP  STEP4_NOP2
-STEP4_HIGH:  SET  STEP4_OUTPUTREG                     // set the pin 
-             JMP  STEP4_NOP2
-STEP4_NOP7:  MOV  R0, R0                              // just a NOP
-STEP4_NOP6:  MOV  R0, R0                              // just a NOP
-STEP4_NOP5:  MOV  R0, R0                              // just a NOP
-STEP4_NOP4:  MOV  R0, R0                              // just a NOP
-STEP4_NOP3:  MOV  R0, R0                              // just a NOP
-STEP4_NOP2:  MOV  R0, R0                              // just a NOP
-STEP4_NOP1:  MOV  R0, R0                              // just a NOP
-STEP4_NOP0:  MOV  R0, R0                              // just a NOP
-
-             // #######
-             // ####### STEPPER 5 specific actions
-             // #######
-STEP5:       QBEQ STEP5_TEST, STEP5_ENABLED, 1        // is STEP5_ENABLED == 1? if yes, then toggle    
-             CLR  STEP5_OUTPUTREG                     // not enabled, clear the pin 
-             JMP  STEP5_NOP6                          
-STEP5_TEST:  SUB  STEP5_DOWNCOUNT, STEP5_DOWNCOUNT, 1 // decrement the count
-             QBNE STEP5_NOP6, STEP5_DOWNCOUNT, 0      // is the downcount == 0? if no, then NOPout
-             MOV  STEP5_DOWNCOUNT, STEP5_FULLCOUNT    // reset the count now
-STEP5_TOGG:  QBBC STEP5_HIGH, STEP5_OUTPUTREG         // we need to toggle, are we currently high?
-STEP5_LOW:   CLR  STEP5_OUTPUTREG                     // clear the pin 
-             JMP  STEP5_NOP2
-STEP5_HIGH:  SET  STEP5_OUTPUTREG                     // set the pin 
-             JMP  STEP5_NOP2
-STEP5_NOP7:  MOV  R0, R0                              // just a NOP
-STEP5_NOP6:  MOV  R0, R0                              // just a NOP
-STEP5_NOP5:  MOV  R0, R0                              // just a NOP
-STEP5_NOP4:  MOV  R0, R0                              // just a NOP
-STEP5_NOP3:  MOV  R0, R0                              // just a NOP
-STEP5_NOP2:  MOV  R0, R0                              // just a NOP
-STEP5_NOP1:  MOV  R0, R0                              // just a NOP
-STEP5_NOP0:  MOV  R0, R0                              // just a NOP
-
-// this section obtains the data from the Tilo Client, and places it in the
+// this section obtains the data from the Walnut client, and places it in the
 // registers for use. The overhead of this is consistent and will
 // not affect the frequency of the steppers since the timings are calibrated
 // with it in place
 
-CHKPIN:      MOV  R3, PRU_DATARAM                     // put the address of our 8Kb DataRAM space in R3
-             MOV  SEMAPHORE_REG, 0                    // reset this
-             LBBO SEMAPHORE_REG, R3, SEMAPHORE_OFFSET, BYTES_IN_REG    // read in just the semaphore
-             QBNE LOOP_TOP, SEMAPHORE_REG, 1          // is the semaphore set? if not, no new data, 
+STORE_DATA:  MOV  DATA_COPY_REG, PRU_DATARAM          // put the address of our 8Kb DataRAM space in DATA_COPY_REG
+             // copy the pulse count registers to data out
+             SBBO STEP0_CURRENTNUMPULSESCOUNT, DATA_COPY_REG, STEP0_NUMPULSES_OFFSET, BYTES_IN_PULSEDATA_WE_WRITE_BACK    
+             // copy the enabled state registers to data out
+             SBBO STEP0_ENABLED, DATA_COPY_REG, STEP0_ENASTATE_OFFSET, BYTES_IN_ENA_DATA_WE_WRITE_BACK    
+             // copy the out and dir state register to data out
+             SBBO OUT_AND_DIR_BITREG, DATA_COPY_REG, STATEFLAG_OFFSET, BYTES_IN_REG   
+
+
+CHKPIN:      MOV  DATA_COPY_REG, PRU_DATARAM          // put the address of our 8Kb DataRAM space in DATA_COPY_REG
+             MOV  SEMAPHORE_REG, 0                    // reset our local semaphore register
+             LBBO SEMAPHORE_REG, DATA_COPY_REG, SEMAPHORE_OFFSET, BYTES_IN_REG    // read in just the semaphore
+             QBEQ LOOP_TOP, SEMAPHORE_REG, 0          // is the semaphore set? if not, no new data, 
                                                       // carry on processing with what we have
                                                       
-             // else, read in all of the client data
-             LBBO SEMAPHORE_REG, R3, SEMAPHORE_OFFSET, BYTES_IN_CLIENT_DATA    // read in our client data
-                                                                               // this writes to multiple
-                                                                               // contiguous registers
-             MOV  SEMAPHORE_REG, 0                    // reset the semaphore reg
-             SBBO SEMAPHORE_REG, R3, SEMAPHORE_OFFSET, BYTES_IN_REG    // reset the semaphore in memory
+             // else, read in all of the client data, this writes to multiple contiguous registers
+             LBBO SEMAPHORE_REG, DATA_COPY_REG, SEMAPHORE_OFFSET, BYTES_IN_CLIENT_DATA    // read in our client data
+                                                                           
+             // bits are set in the semaphore reg to indicate which steppers are changing. 
+             // we only adjust and reset things on the changed ones
+STEP0_CNG:   QBBC STEP1_CNG, STEPPER0_CHANGED
+             MOV  STEP0_CURRENTNUMPULSESCOUNT, 0      // clear this count
+             MOV  STEP0_CURRENTHALFCYCLECOUNT, STEP0_FULLHALFCYCLECOUNT
+
+STEP1_CNG:   QBBC STEP2_CNG, STEPPER1_CHANGED
+             MOV  STEP1_CURRENTNUMPULSESCOUNT, 0      // clear this count
+             MOV  STEP1_CURRENTHALFCYCLECOUNT, STEP1_FULLHALFCYCLECOUNT
+
+STEP2_CNG:   QBBC STEP3_CNG, STEPPER2_CHANGED
+             MOV  STEP2_CURRENTNUMPULSESCOUNT, 0      // clear this count
+             MOV  STEP2_CURRENTHALFCYCLECOUNT, STEP2_FULLHALFCYCLECOUNT
+
+STEP3_CNG:   QBBC RESET_SEM, STEPPER3_CHANGED
+             MOV  STEP3_CURRENTNUMPULSESCOUNT, 0      // clear this count
+             MOV  STEP3_CURRENTHALFCYCLECOUNT, STEP3_FULLHALFCYCLECOUNT
+
+
+             // now reset the semaphore and test
+RESET_SEM:   MOV  SEMAPHORE_REG, 0                    // reset the semaphore reg
+             SBBO SEMAPHORE_REG, DATA_COPY_REG, SEMAPHORE_OFFSET, BYTES_IN_REG    // reset the semaphore in memory
              QBEQ TEST_COUNT, STEPALL_ENABLED, 1      // all steppers enabled, processing can proceed
              QBEQ ALLLOW, STEPALL_ENABLED, 0          // not 0 or 1? this means exit
 			 JMP  ALLSTOP
 
 	    // here we test the full counts, they can never be zero, we do not permit this
-TEST_COUNT: QBNE STEP0_FCOK, STEP0_FULLCOUNT, 0       // is the fullcount 0?
+TEST_COUNT: QBNE STEP0_FCOK, STEP0_FULLHALFCYCLECOUNT, 0       // is the fullcount 0?
             MOV  STEP0_ENABLED, 0                     // full count sent in as zero? disable stepper
 STEP0_FCOK:                                           // no worries, full count is acceptable
-            QBNE STEP1_FCOK, STEP1_FULLCOUNT, 0       // is the fullcount 0?
+            QBNE STEP1_FCOK, STEP1_FULLHALFCYCLECOUNT, 0       // is the fullcount 0?
             MOV  STEP1_ENABLED, 0                     // full count sent in as zero? disable stepper
 STEP1_FCOK:                                           // no worries, full count is acceptable
-            QBNE STEP2_FCOK, STEP2_FULLCOUNT, 0       // is the fullcount 0?
+            QBNE STEP2_FCOK, STEP2_FULLHALFCYCLECOUNT, 0       // is the fullcount 0?
             MOV  STEP2_ENABLED, 0                     // full count sent in as zero? disable stepper
 STEP2_FCOK:                                           // no worries, full count is acceptable
-            QBNE STEP3_FCOK, STEP3_FULLCOUNT, 0       // is the fullcount 0?
+            QBNE STEP3_FCOK, STEP3_FULLHALFCYCLECOUNT, 0       // is the fullcount 0?
             MOV  STEP3_ENABLED, 0                     // full count sent in as zero? disable stepper
 STEP3_FCOK:                                           // no worries, full count is acceptable
-            QBNE STEP4_FCOK, STEP4_FULLCOUNT, 0       // is the fullcount 0?
-            MOV  STEP4_ENABLED, 0                     // full count sent in as zero? disable stepper
-STEP4_FCOK:                                           // no worries, full count is acceptable
-            QBNE STEP5_FCOK, STEP5_FULLCOUNT, 0       // is the fullcount 0?
-            MOV  STEP5_ENABLED, 0                     // full count sent in as zero? disable stepper
-STEP5_FCOK:                                           // no worries, full count is acceptable
 
-
-        // here we test the current down count is not greater than the new full count
+        // here we test the current full cycle count is not greater than the new full cycle count
 		// this can happen if the user increases the speed suddenly, we do not want
 		// to have to wait for the current cycle to complete before the new count kicks in
-            QBLT STEP0_DCOK, STEP0_FULLCOUNT, STEP0_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP0_DOWNCOUNT, STEP0_FULLCOUNT     // reset the downcount to the new maximum
+            QBLT STEP0_DCOK, STEP0_FULLHALFCYCLECOUNT, STEP0_CURRENTHALFCYCLECOUNT    // is the downcount < fullcount?
+            MOV  STEP0_CURRENTHALFCYCLECOUNT, STEP0_FULLHALFCYCLECOUNT     // reset the downcount to the new maximum
 STEP0_DCOK:                                           // no worries, down count is acceptable
-            QBLT STEP1_DCOK, STEP1_FULLCOUNT, STEP1_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP1_DOWNCOUNT, STEP1_FULLCOUNT     // reset the downcount to the new maximum
+            QBLT STEP1_DCOK, STEP1_FULLHALFCYCLECOUNT, STEP1_CURRENTHALFCYCLECOUNT    // is the downcount < fullcount?
+            MOV  STEP1_CURRENTHALFCYCLECOUNT, STEP1_FULLHALFCYCLECOUNT     // reset the downcount to the new maximum
 STEP1_DCOK:                                           // no worries, down count is acceptable
-            QBLT STEP2_DCOK, STEP2_FULLCOUNT, STEP2_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP2_DOWNCOUNT, STEP2_FULLCOUNT     // reset the downcount to the new maximum
+            QBLT STEP2_DCOK, STEP2_FULLHALFCYCLECOUNT, STEP2_CURRENTHALFCYCLECOUNT    // is the downcount < fullcount?
+            MOV  STEP2_CURRENTHALFCYCLECOUNT, STEP2_FULLHALFCYCLECOUNT     // reset the downcount to the new maximum
 STEP2_DCOK:                                           // no worries, down count is acceptable
-            QBLT STEP3_DCOK, STEP3_FULLCOUNT, STEP3_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP3_DOWNCOUNT, STEP3_FULLCOUNT     // reset the downcount to the new maximum
+            QBLT STEP3_DCOK, STEP3_FULLHALFCYCLECOUNT, STEP3_CURRENTHALFCYCLECOUNT    // is the downcount < fullcount?
+            MOV  STEP3_CURRENTHALFCYCLECOUNT, STEP3_FULLHALFCYCLECOUNT     // reset the downcount to the new maximum
 STEP3_DCOK:                                           // no worries, down count is acceptable
-            QBLT STEP4_DCOK, STEP4_FULLCOUNT, STEP4_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP4_DOWNCOUNT, STEP4_FULLCOUNT     // reset the downcount to the new maximum
-STEP4_DCOK:                                           // no worries, down count is acceptable
-            QBLT STEP5_DCOK, STEP5_FULLCOUNT, STEP5_DOWNCOUNT    // is the downcount < fullcount?
-            MOV  STEP5_DOWNCOUNT, STEP5_FULLCOUNT     // reset the downcount to the new maximum
-STEP5_DCOK:                                           // no worries, down count is acceptable
 
         // here we set the direction pins
 STEP0_SDIR:  QBEQ STEP0_DLOW, STEP0_ENABLED, 0        // not enabled, set it low    
@@ -429,20 +497,6 @@ STEP3_SDIR:  QBEQ STEP3_DLOW, STEP3_ENABLED, 0        // not enabled, set it low
 			 JMP  STEP3_DEND
 STEP3_DLOW:  CLR  STEP3_DIRREG                        // not enabled, clear the pin 
 STEP3_DEND:                                           // the end of the STEP3 direction pin 
-
-STEP4_SDIR:  QBEQ STEP4_DLOW, STEP4_ENABLED, 0        // not enabled, set it low    
-             QBEQ STEP4_DLOW, STEP4_DIRSTATE, 0       // what does the dir state say?
-             SET  STEP4_DIRREG                        // it is nz, set the pin
-			 JMP  STEP4_DEND
-STEP4_DLOW:  CLR  STEP4_DIRREG                        // not enabled, clear the pin 
-STEP4_DEND:     
-
-STEP5_SDIR:  QBEQ STEP5_DLOW, STEP5_ENABLED, 0        // not enabled, set it low    
-             QBEQ STEP5_DLOW, STEP5_DIRSTATE, 0       // what does the dir state say?
-             SET  STEP5_DIRREG                        // it is nz, set the pin
-			 JMP  STEP5_DEND
-STEP5_DLOW:  CLR  STEP5_DIRREG                        // not enabled, clear the pin 
-STEP5_DEND:                                           // the end of the STEP5 direction pin 
              JMP LOOP_TOP                             // go back to the start
 
         // anything else, we put the pin low and stop
@@ -452,12 +506,8 @@ ALLSTOP:    CLR  STEP0_DIRREG                         // clear the direction
             CLR  STEP1_OUTPUTREG                      // clear the output state
 			CLR  STEP2_DIRREG                         // clear the direction
             CLR  STEP2_OUTPUTREG                      // clear the output state
-			CLR  STEP3_DIRREG                         // clear the direction
+ 			CLR  STEP3_DIRREG                         // clear the direction
             CLR  STEP3_OUTPUTREG                      // clear the output state
-			CLR  STEP4_DIRREG                         // clear the direction
-            CLR  STEP4_OUTPUTREG                      // clear the output state
-			CLR  STEP5_DIRREG                         // clear the direction
-            CLR  STEP5_OUTPUTREG                      // clear the output state
             HALT                                      // stop the PRU
             
         // all steppers disabled, set all steppers low
@@ -467,11 +517,6 @@ ALLLOW:     CLR  STEP0_DIRREG                         // clear the direction
             CLR  STEP1_OUTPUTREG                      // clear the output state
 			CLR  STEP2_DIRREG                         // clear the direction
             CLR  STEP2_OUTPUTREG                      // clear the output state
-   			CLR  STEP3_DIRREG                         // clear the direction
+			CLR  STEP3_DIRREG                         // clear the direction
             CLR  STEP3_OUTPUTREG                      // clear the output state
-			CLR  STEP4_DIRREG                         // clear the direction
-            CLR  STEP4_OUTPUTREG                      // clear the output state
-			CLR  STEP5_DIRREG                         // clear the direction
-            CLR  STEP5_OUTPUTREG                      // clear the output state
-
             JMP  CHKPIN                               // look for the re-enable

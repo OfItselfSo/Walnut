@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Emgu.CV.Structure;
+using System.Drawing;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -21,93 +22,58 @@ using Emgu.CV.Structure;
 /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
-
 namespace WalnutCommon
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// Class to contain information regarding an object and its color. 
+    /// This class encapsulates the state of the steppers in the PRU
     /// 
-    /// Is abstract - cannot be used standalone
-    /// 
-    /// 
+    /// A class to contain the data sent between the server and client. Note
+    /// that the [SerializableAttribute] decoration must be present and any 
+    /// user written classes contained within this class must also implement it.
     /// </summary>
-
     [SerializableAttribute]
-    public abstract class ColoredRotatedObject
+    public class SCData_StepperStatus
     {
 
-        // this is set on the constructor, only one of these object types can be populated
-        private ColoredObjectType objectType = ColoredObjectType.COLORED_OBJECT_TYPE_UNKNOWN;
-
-        // the color of the center pixel. We use BGR rather than RGB because a lot of stuff
-        // in EMGUCV prefers that
-        private byte[] centerPixelBGRValue = new byte[3];
-
-        // this is a C# enum, we default it to Black
-        public static KnownColor DEFAULT_COLOR = KnownColor.Black;
-        private KnownColor objColor = DEFAULT_COLOR;
+        private uint allSteppersDirRegister = 0;
+        private uint step0_Enabled = 0;
+        private uint step0_StepCount = 0;
+        private uint step1_Enabled = 0;
+        private uint step1_StepCount = 0;
+        private uint step2_Enabled = 0;
+        private uint step2_StepCount = 0;
+        private uint step3_Enabled = 0;
+        private uint step3_StepCount = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets center point of the object, should never get/set null
+        /// Constructor
         /// </summary>
-        public abstract Point CenterPoint
+        public SCData_StepperStatus()
         {
-            get; set;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the rotation angle. Exactly what this means depends on the object
-        /// 
+        /// Get the current state as a string
         /// </summary>
-        public virtual float Angle
+        public virtual void GetState(StringBuilder sb)
         {
-            get
-            {
-                // always zero here
-                return 0;
-            }
-            set
-            {
-            }
+            if (sb == null) return;
+
+            sb.Append("DirReg=0x"+ AllSteppersDirRegister.ToString("X8") + ", Step0Ena=" + Step0_Enabled.ToString() + ", Step0Cnt=" + Step0_StepCount.ToString() + ", Step1Ena = " + Step1_Enabled.ToString() + ", Step1Cnt = " + Step1_StepCount.ToString() + ", Step2Ena = " + Step2_Enabled.ToString() + ", Step2Cnt = " + Step2_StepCount.ToString() + ", Step3Ena = " + Step3_Enabled.ToString() + ", Step3Cnt = " + Step3_StepCount.ToString());
         }
 
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the RGB color of the center pixel of the object
-        /// </summary>
-        public byte[] CenterPixelBGRValue
-        {
-            get
-            { 
-                if(centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-                return centerPixelBGRValue;
-            }
-            set
-            {
-                centerPixelBGRValue = value;
-                if (centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the color
-        /// </summary>
-        public KnownColor ObjColor
-        {
-            get { return objColor; }
-            set { objColor = value; }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        //
-        //  The type of object this is
-        //
-        public ColoredObjectType ObjectType { get => objectType; set => objectType = value; }
-
+        public uint Step0_Enabled { get => step0_Enabled; set => step0_Enabled = value; }
+        public uint Step0_StepCount { get => step0_StepCount; set => step0_StepCount = value; }
+        public uint Step1_Enabled { get => step1_Enabled; set => step1_Enabled = value; }
+        public uint Step1_StepCount { get => step1_StepCount; set => step1_StepCount = value; }
+        public uint Step2_Enabled { get => step2_Enabled; set => step2_Enabled = value; }
+        public uint Step2_StepCount { get => step2_StepCount; set => step2_StepCount = value; }
+        public uint Step3_Enabled { get => step3_Enabled; set => step3_Enabled = value; }
+        public uint Step3_StepCount { get => step3_StepCount; set => step3_StepCount = value; }
+        public uint AllSteppersDirRegister { get => allSteppersDirRegister; set => allSteppersDirRegister = value; }
     }
 }

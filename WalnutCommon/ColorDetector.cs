@@ -33,7 +33,7 @@ namespace WalnutCommon
     public class ColorDetector
     {
         // if all color values are within this range of each other we assume white gray or black
-        private const uint DEFAULT_GRAY_DETECTION_RANGE = 10;
+        public const uint DEFAULT_GRAY_DETECTION_RANGE = 10;
         private uint grayDetectionRange = DEFAULT_GRAY_DETECTION_RANGE;
 
         // this dictionary correlates our selection of known colors to their hues
@@ -52,7 +52,7 @@ namespace WalnutCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="grayDetectionRangeIn">the grey detection range</param>
+        /// <param name="grayDetectionRangeIn">the gray detection range</param>
         public ColorDetector(uint grayDetectionRangeIn)
         {
             GrayDetectionRange = grayDetectionRangeIn;
@@ -86,7 +86,7 @@ namespace WalnutCommon
         /// Converts a BGR byte array to a known color. Uses the limited selection in
         /// the colorHueDict for its choices
         /// 
-        /// Note: will check for greys according to the set detection range
+        /// Note: will check for grays according to the set detection range
         /// 
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
@@ -126,7 +126,7 @@ namespace WalnutCommon
         /// Converts a RGB byte array to a known color. Uses the limited selection in
         /// the colorHueDict for its choices
         /// 
-        /// Note: will check for greys according to the set detection range
+        /// Note: will check for grays according to the set detection range
         /// 
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
@@ -163,15 +163,15 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Converts a RGB byte array to a known color. Uses the limited selection in
+        /// Converts a Color struct to a known color. Uses the limited selection in
         /// the colorHueDict for its choices
         /// 
-        /// Note: will check for greys according to the set detection range
+        /// Note: will check for grays according to the set detection range
         /// 
         /// </summary>
         /// <param name="colorIn">the Color value</param>
         /// <returns>the closest known color, or black for fail</returns>
-        public KnownColor GetClosestKnownColorRGB(Color colorIn)
+        public KnownColor GetClosestKnownColor(Color colorIn)
         {
             // check for gray, hues don't work well on blacks, grays and whites
             if (IsGray(colorIn) == true) return KnownColor.Gray;
@@ -227,10 +227,10 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect if a color is considered grey
+        /// Detect if a color is considered gray
         /// </summary>
         /// <param name="testColor">the color to test</param>
-        /// <returns>true - is grey, false - is not</returns>
+        /// <returns>true - is gray, false - is not</returns>
         public bool IsGray(Color testColor)
         {
             // just call this
@@ -239,10 +239,10 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect if a pixel is grey does not matter RGB or BGR
+        /// Detect if a pixel is gray does not matter RGB or BGR
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
-        /// <returns>true - is grey, false - is not</returns>
+        /// <returns>true - is gray, false - is not</returns>
         public bool IsGray(byte[] pixelValue)
         {
             // just call this
@@ -251,11 +251,11 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect if a pixel is grey does not matter RGB or BGR
+        /// Detect if a pixel is gray does not matter RGB or BGR
         /// </summary>
         /// <param name="pixelValue">3 byte BGR pixel value</param>
         /// <param name="detectionRange">the range the BGR values can vary from one another </param>
-        /// <returns>true - is grey, false - is not</returns>
+        /// <returns>true - is gray, false - is not</returns>
         public bool IsGray(byte[] pixelValue, uint detectionRange)
         {
             if (pixelValue == null) return false;
@@ -269,11 +269,79 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the grey value detection range
+        /// Gets/Sets the gray value detection range
         /// </summary>
-        /// <returns>true - is grey, false - is not</returns>
+        /// <returns>true - is gray, false - is not</returns>
         public uint GrayDetectionRange { get => grayDetectionRange; set => grayDetectionRange = value; }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detect if a color is considered black
+        /// </summary>
+        /// <param name="testColor">the color to test</param>
+        /// <returns>true - is black, false - is not</returns>
+        public bool IsBlack(Color testColor)
+        {
+            // just call this
+            return IsBlack(new byte[] { testColor.R, testColor.G, testColor.B });
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detect if a pixel is black does not matter RGB or BGR
+        /// </summary>
+        /// <param name="pixelValue">3 byte BGR pixel value</param>
+        /// <returns>true - is black, false - is not</returns>
+        public bool IsBlack(byte[] pixelValue)
+        {
+            // just call this
+            return IsBlack(pixelValue, GrayDetectionRange);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detect if a pixel is black does not matter RGB or BGR
+        /// </summary>
+        /// <param name="pixelValue">3 byte BGR or RGB pixel value</param>
+        /// <param name="detectionRange">the range the BGR or RGB values can vary from one another </param>
+        /// <returns>true - is black, false - is not</returns>
+        public bool IsBlack(byte[] pixelValue, uint detectionRange)
+        {
+            if (pixelValue == null) return false;
+            if (pixelValue.Length != 3) return false;
+            // true black is (0,0,0) if any are out of the detection range we assume not black
+            if (pixelValue[0] > detectionRange) return false;
+            if (pixelValue[1] > detectionRange) return false;
+            if (pixelValue[2] > detectionRange) return false;
+             return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detect if a pixel is close to a specified pixel in range. 
+        /// </summary>
+        /// <param name="colorValue">color we test</param>
+        /// <param name="bottomOfRange">color value with the bottom of range for each color</param>
+        /// <param name="topOfRange">color value with the top of range for each color</param>
+        /// <returns>true - is in range, false - is not</returns>
+        public static bool IsInRange(Color colorValue, Color topOfRange, Color bottomOfRange)
+        {
+            if (colorValue == null) return false;
+            if (bottomOfRange == null) return false;
+            if (topOfRange == null) return false;
+
+            // test for out of range above
+            if (colorValue.R > topOfRange.R) return false;
+            if (colorValue.G > topOfRange.G) return false;
+            if (colorValue.B > topOfRange.B) return false;
+
+            // test for out of range below
+            if (colorValue.R < bottomOfRange.R) return false;
+            if (colorValue.G < bottomOfRange.G) return false;
+            if (colorValue.B < bottomOfRange.B) return false;
+
+            return true;
+        }
 
     }
 }

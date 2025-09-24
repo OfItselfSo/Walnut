@@ -34,5 +34,6 @@ namespace WalnutCommon
         COLORED_OBJECT_TYPE_RECT,
         COLORED_OBJECT_TYPE_CIRCLE,
         COLORED_OBJECT_TYPE_POINT,
+        COLORED_OBJECT_TYPE_LINE,
     }
 }

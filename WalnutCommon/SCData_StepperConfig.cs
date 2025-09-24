@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Emgu.CV.Structure;
+using System.Drawing;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -21,93 +22,79 @@ using Emgu.CV.Structure;
 /// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
-
 namespace WalnutCommon
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// Class to contain information regarding an object and its color. 
+    /// This class encapsulates the configuration (speed, dir etc) for a single
+    /// stepper
     /// 
-    /// Is abstract - cannot be used standalone
-    /// 
-    /// 
+    /// A class to contain the data sent between the server and client. Note
+    /// that the [SerializableAttribute] decoration must be present and any 
+    /// user written classes contained within this class must also implement it.
     /// </summary>
-
     [SerializableAttribute]
-    public abstract class ColoredRotatedObject
+    public class SCData_StepperConfig
     {
 
-        // this is set on the constructor, only one of these object types can be populated
-        private ColoredObjectType objectType = ColoredObjectType.COLORED_OBJECT_TYPE_UNKNOWN;
-
-        // the color of the center pixel. We use BGR rather than RGB because a lot of stuff
-        // in EMGUCV prefers that
-        private byte[] centerPixelBGRValue = new byte[3];
-
-        // this is a C# enum, we default it to Black
-        public static KnownColor DEFAULT_COLOR = KnownColor.Black;
-        private KnownColor objColor = DEFAULT_COLOR;
+        // the enable, direction and step speed values are each is treated as a 4
+        // byte uint. This makes it easy for the client to dig it out
+        // and give it to the PRU
+        private uint stepper_Enable = 0;
+        private uint stepper_DirState = 0;
+        private uint stepper_StepSpeed = 0;
+        private StepperIDEnum stepper_ID = StepperIDEnum.STEPPER_None;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets center point of the object, should never get/set null
+        /// Constructor
         /// </summary>
-        public abstract Point CenterPoint
+        public SCData_StepperConfig()
         {
-            get; set;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the rotation angle. Exactly what this means depends on the object
-        /// 
+        /// Constructor
         /// </summary>
-        public virtual float Angle
+        /// <param name="stepper_IDIn">the ID of the stepper</param>
+        public SCData_StepperConfig(StepperIDEnum stepper_IDIn)
         {
-            get
-            {
-                // always zero here
-                return 0;
-            }
-            set
-            {
-            }
+            Stepper_ID = stepper_IDIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the RGB color of the center pixel of the object
+        /// Constructor
         /// </summary>
-        public byte[] CenterPixelBGRValue
+        /// <param name="stepperIDIn">the ID of the stepper</param>
+        /// <param name="dirState">the direction 0 or 1</param>
+        /// <param name="enableState">the enabled state 0 or 1</param>
+        /// <param name="stepSpeed">the stepper speed in Hz</param>
+        public SCData_StepperConfig(StepperIDEnum stepperIDIn, uint enableState, uint dirState, uint stepSpeed)
         {
-            get
-            { 
-                if(centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-                return centerPixelBGRValue;
-            }
-            set
-            {
-                centerPixelBGRValue = value;
-                if (centerPixelBGRValue == null) centerPixelBGRValue = new byte[3];
-            }
+            // set the values
+            Stepper_ID = stepperIDIn;
+            Stepper_Enable = enableState;
+            Stepper_DirState = dirState;
+            Stepper_StepSpeed = stepSpeed;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the color
+        /// Get the current state as a string
         /// </summary>
-        public KnownColor ObjColor
+        public virtual void GetState(StringBuilder sb)
         {
-            get { return objColor; }
-            set { objColor = value; }
+            if (sb == null) return;
+
+            sb.Append(", StepperID=" + Stepper_ID.ToString() + ", Stepper_Enable=" + Stepper_Enable.ToString() + ", Stepper_StepSpeed=" + Stepper_StepSpeed.ToString() + ", Stepper_DirState=" + Stepper_DirState.ToString());
         }
 
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        //
-        //  The type of object this is
-        //
-        public ColoredObjectType ObjectType { get => objectType; set => objectType = value; }
-
+        public uint Stepper_Enable { get => stepper_Enable; set => stepper_Enable = value; }
+        public uint Stepper_DirState { get => stepper_DirState; set => stepper_DirState = value; }
+        public uint Stepper_StepSpeed { get => stepper_StepSpeed; set => stepper_StepSpeed = value; }
+        public StepperIDEnum Stepper_ID { get => stepper_ID; set => stepper_ID = value; }
     }
 }

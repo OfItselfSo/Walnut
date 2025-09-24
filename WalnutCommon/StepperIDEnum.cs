@@ -25,7 +25,8 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// An enum to define the data content of the Server Client Data object.
+    /// An enum to define the possible steppers supported by the 
+    /// Walnut Client
     /// 
     /// NOTE that we use the [SerializableAttribute] so that it can be 
     /// included as a field in the ServerClientData class. This is
@@ -33,14 +34,12 @@ namespace WalnutCommon
     /// should use it or the erverClientData class will not be serializable
     /// </summary>
     [SerializableAttribute]
-    public enum ServerClientDataContentEnum
+    public enum StepperIDEnum
     {
-        NO_DATA,                // there is no data content
-        REMOTE_CONNECT,         // the remote has connected
-        REMOTE_DISCONNECT,      // the remote is disconnecting
-        CONNECTION_TEST,        // a simple test, requiring an ACK
-        CONNECTION_TEST_ACK,    // an ACK fromn a connectin test
-        USER_DATA               // the data is user provided content
-
+        STEPPER_None,
+        STEPPER_0,              // Stepper 0
+        STEPPER_1,              // Stepper 1
+        STEPPER_2,              // Stepper 2
+        STEPPER_3,              // Stepper 3
     }
 }
