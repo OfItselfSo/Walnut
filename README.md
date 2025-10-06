@@ -15,6 +15,11 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
+- **00.02.10** Commit ID: 
+   - This code is designed to support FPath Experiment 009. This experiment is intended to demonstrate how submillimeter scale calibration is achieved in the Walnut Server software used by the FPath System.
+   See the FPath_Ex009 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex009_CalibrationInterlude.php](http://www.ofitselfso.com/FPath/FPath_Ex009_CalibrationInterlude.php).
+
 - **00.02.09** Commit ID: 38341fb
    - This code is designed to support the FPath Experiment 008 which demonstrate that the use of small, common off the shelf (COTS), stepper motor driven linear actuators can form a viable positioning mechanism down to about the 50 micron level - if closed loop feedback is used. See the FPath_Ex008 web page for more details: 
     [http://www.ofitselfso.com/FPath/FPath_Ex008_BorrowedPrecision.php](http://www.ofitselfso.com/FPath/FPath_Ex008_BorrowedPrecision.php).

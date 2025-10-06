@@ -45,6 +45,7 @@
             this.buttonRecordingOnOff = new System.Windows.Forms.Button();
             this.tabPageEx008 = new System.Windows.Forms.TabPage();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.checkBoxActions008ClearRedEveryFrame = new System.Windows.Forms.CheckBox();
             this.checkBoxActions008MoveRedOntoGreen = new System.Windows.Forms.CheckBox();
             this.label44 = new System.Windows.Forms.Label();
             this.textBoxActions008RedCircleRadius = new System.Windows.Forms.TextBox();
@@ -65,17 +66,6 @@
             this.textBoxEx008ColorDetectHorizBot = new System.Windows.Forms.TextBox();
             this.label38 = new System.Windows.Forms.Label();
             this.textBoxEx008ColorDetectHorizTop = new System.Windows.Forms.TextBox();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.radioButtonStepperControl008DirCW = new System.Windows.Forms.RadioButton();
-            this.radioButtonStepperControl008DirCCW = new System.Windows.Forms.RadioButton();
-            this.buttonStepperControl008Stop = new System.Windows.Forms.Button();
-            this.buttonStepperControl008Run = new System.Windows.Forms.Button();
-            this.buttonStepperControl008Nudge1 = new System.Windows.Forms.Button();
-            this.label17 = new System.Windows.Forms.Label();
-            this.textBoxStepperControl008StepsPerSecond = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.textBoxStepperControl008NumSteps = new System.Windows.Forms.TextBox();
             this.tabPageDraw = new System.Windows.Forms.TabPage();
             this.buttonDrawClearOverlay = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
@@ -102,8 +92,10 @@
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxDrawGreenCircleXY = new System.Windows.Forms.TextBox();
             this.buttonDrawGreenCircleAtPoint = new System.Windows.Forms.Button();
-            this.tabPageUtils = new System.Windows.Forms.TabPage();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.tabPageUtils1 = new System.Windows.Forms.TabPage();
+            this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.buttonScaleClear = new System.Windows.Forms.Button();
+            this.label45 = new System.Windows.Forms.Label();
             this.buttonScaleSet = new System.Windows.Forms.Button();
             this.buttonScaleCalc = new System.Windows.Forms.Button();
             this.label29 = new System.Windows.Forms.Label();
@@ -115,15 +107,22 @@
             this.radioButtonDistHoriz = new System.Windows.Forms.RadioButton();
             this.radioButtonDistVert = new System.Windows.Forms.RadioButton();
             this.label25 = new System.Windows.Forms.Label();
-            this.label24 = new System.Windows.Forms.Label();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.labelDistanceInMicrons = new System.Windows.Forms.Label();
+            this.labelDistanceInMicronsTotal = new System.Windows.Forms.Label();
+            this.textBoxDistInMicronsTotal = new System.Windows.Forms.TextBox();
+            this.labelDistanceInMicronsVert = new System.Windows.Forms.Label();
+            this.textBoxDistanceInMicronsVert = new System.Windows.Forms.TextBox();
+            this.labelDistanceInMicronsHoriz = new System.Windows.Forms.Label();
+            this.textBoxDistanceInMicronsHoriz = new System.Windows.Forms.TextBox();
             this.label23 = new System.Windows.Forms.Label();
             this.label22 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
-            this.textBoxDistTotal = new System.Windows.Forms.TextBox();
+            this.textBoxDistInPixelsTotal = new System.Windows.Forms.TextBox();
             this.label19 = new System.Windows.Forms.Label();
-            this.textBoxDistanceVert = new System.Windows.Forms.TextBox();
+            this.textBoxDistanceInPixelsVert = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
-            this.textBoxDistanceHoriz = new System.Windows.Forms.TextBox();
+            this.textBoxDistanceInPixelsHoriz = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.textBoxDistanceClick2 = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
@@ -137,6 +136,18 @@
             this.textBoxRGBAPixelColor = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.textBoxRGBAPixelColorLocInverted = new System.Windows.Forms.TextBox();
+            this.tabPageUtils2 = new System.Windows.Forms.TabPage();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.radioButtonStepperControlUtilsDirCW = new System.Windows.Forms.RadioButton();
+            this.radioButtonStepperControlUtilsDirCCW = new System.Windows.Forms.RadioButton();
+            this.buttonStepperControlUtilsStop = new System.Windows.Forms.Button();
+            this.buttonStepperControlUtilsRun = new System.Windows.Forms.Button();
+            this.buttonStepperControlUtilsNudge1 = new System.Windows.Forms.Button();
+            this.label17 = new System.Windows.Forms.Label();
+            this.textBoxStepperControlUtilsStepsPerSecond = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.textBoxStepperControlUtilsNumSteps = new System.Windows.Forms.TextBox();
             this.tabPageOld = new System.Windows.Forms.TabPage();
             this.groupBoxStepperTest = new System.Windows.Forms.GroupBox();
             this.radioButtonStepper0TestCCW = new System.Windows.Forms.RadioButton();
@@ -186,7 +197,6 @@
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.buttonTestConnection = new System.Windows.Forms.Button();
-            this.checkBoxActions008ClearRedEveryFrame = new System.Windows.Forms.CheckBox();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.tabControl2.SuspendLayout();
@@ -194,14 +204,16 @@
             this.tabPageEx008.SuspendLayout();
             this.groupBox8.SuspendLayout();
             this.groupBox7.SuspendLayout();
-            this.groupBox3.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.tabPageDraw.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBoxDrawGreenCircle.SuspendLayout();
-            this.tabPageUtils.SuspendLayout();
+            this.tabPageUtils1.SuspendLayout();
+            this.groupBox9.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.tabPageUtils2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.tabPageOld.SuspendLayout();
             this.groupBoxStepperTest.SuspendLayout();
             this.groupBoxTestRect.SuspendLayout();
@@ -257,7 +269,8 @@
             this.tabControl2.Controls.Add(this.tabPageRecordingActions);
             this.tabControl2.Controls.Add(this.tabPageEx008);
             this.tabControl2.Controls.Add(this.tabPageDraw);
-            this.tabControl2.Controls.Add(this.tabPageUtils);
+            this.tabControl2.Controls.Add(this.tabPageUtils1);
+            this.tabControl2.Controls.Add(this.tabPageUtils2);
             this.tabControl2.Controls.Add(this.tabPageOld);
             this.tabControl2.Location = new System.Drawing.Point(663, 3);
             this.tabControl2.Name = "tabControl2";
@@ -388,7 +401,6 @@
             // 
             this.tabPageEx008.Controls.Add(this.groupBox8);
             this.tabPageEx008.Controls.Add(this.groupBox7);
-            this.tabPageEx008.Controls.Add(this.groupBox3);
             this.tabPageEx008.Location = new System.Drawing.Point(4, 22);
             this.tabPageEx008.Name = "tabPageEx008";
             this.tabPageEx008.Size = new System.Drawing.Size(288, 487);
@@ -405,12 +417,22 @@
             this.groupBox8.Controls.Add(this.checkBoxActions008DrawCircleOnIntersection);
             this.groupBox8.Controls.Add(this.checkBoxActions008ShowHorizLine);
             this.groupBox8.Controls.Add(this.checkBoxActions008ShowVertLine);
-            this.groupBox8.Location = new System.Drawing.Point(4, 267);
+            this.groupBox8.Location = new System.Drawing.Point(4, 152);
             this.groupBox8.Name = "groupBox8";
             this.groupBox8.Size = new System.Drawing.Size(280, 146);
             this.groupBox8.TabIndex = 79;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Ex008 Actions";
+            // 
+            // checkBoxActions008ClearRedEveryFrame
+            // 
+            this.checkBoxActions008ClearRedEveryFrame.AutoSize = true;
+            this.checkBoxActions008ClearRedEveryFrame.Location = new System.Drawing.Point(28, 73);
+            this.checkBoxActions008ClearRedEveryFrame.Name = "checkBoxActions008ClearRedEveryFrame";
+            this.checkBoxActions008ClearRedEveryFrame.Size = new System.Drawing.Size(135, 17);
+            this.checkBoxActions008ClearRedEveryFrame.TabIndex = 84;
+            this.checkBoxActions008ClearRedEveryFrame.Text = "Clear Red Every Frame";
+            this.checkBoxActions008ClearRedEveryFrame.UseVisualStyleBackColor = true;
             // 
             // checkBoxActions008MoveRedOntoGreen
             // 
@@ -452,8 +474,6 @@
             // checkBoxActions008ShowHorizLine
             // 
             this.checkBoxActions008ShowHorizLine.AutoSize = true;
-            this.checkBoxActions008ShowHorizLine.Checked = true;
-            this.checkBoxActions008ShowHorizLine.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxActions008ShowHorizLine.Location = new System.Drawing.Point(28, 41);
             this.checkBoxActions008ShowHorizLine.Name = "checkBoxActions008ShowHorizLine";
             this.checkBoxActions008ShowHorizLine.Size = new System.Drawing.Size(106, 17);
@@ -464,8 +484,6 @@
             // checkBoxActions008ShowVertLine
             // 
             this.checkBoxActions008ShowVertLine.AutoSize = true;
-            this.checkBoxActions008ShowVertLine.Checked = true;
-            this.checkBoxActions008ShowVertLine.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxActions008ShowVertLine.Location = new System.Drawing.Point(28, 26);
             this.checkBoxActions008ShowVertLine.Name = "checkBoxActions008ShowVertLine";
             this.checkBoxActions008ShowVertLine.Size = new System.Drawing.Size(101, 17);
@@ -488,7 +506,7 @@
             this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectHorizBot);
             this.groupBox7.Controls.Add(this.label38);
             this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectHorizTop);
-            this.groupBox7.Location = new System.Drawing.Point(4, 122);
+            this.groupBox7.Location = new System.Drawing.Point(4, 7);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(280, 144);
             this.groupBox7.TabIndex = 78;
@@ -606,118 +624,6 @@
             this.textBoxEx008ColorDetectHorizTop.Size = new System.Drawing.Size(81, 20);
             this.textBoxEx008ColorDetectHorizTop.TabIndex = 91;
             this.textBoxEx008ColorDetectHorizTop.Text = "(10,10,10)";
-            // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.panel1);
-            this.groupBox3.Controls.Add(this.buttonStepperControl008Stop);
-            this.groupBox3.Controls.Add(this.buttonStepperControl008Run);
-            this.groupBox3.Controls.Add(this.buttonStepperControl008Nudge1);
-            this.groupBox3.Controls.Add(this.label17);
-            this.groupBox3.Controls.Add(this.textBoxStepperControl008StepsPerSecond);
-            this.groupBox3.Controls.Add(this.label10);
-            this.groupBox3.Controls.Add(this.textBoxStepperControl008NumSteps);
-            this.groupBox3.Location = new System.Drawing.Point(4, 3);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(280, 113);
-            this.groupBox3.TabIndex = 77;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Stepper Control";
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.radioButtonStepperControl008DirCW);
-            this.panel1.Controls.Add(this.radioButtonStepperControl008DirCCW);
-            this.panel1.Location = new System.Drawing.Point(11, 65);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(68, 38);
-            this.panel1.TabIndex = 90;
-            // 
-            // radioButtonStepperControl008DirCW
-            // 
-            this.radioButtonStepperControl008DirCW.AutoSize = true;
-            this.radioButtonStepperControl008DirCW.Checked = true;
-            this.radioButtonStepperControl008DirCW.Location = new System.Drawing.Point(0, 0);
-            this.radioButtonStepperControl008DirCW.Name = "radioButtonStepperControl008DirCW";
-            this.radioButtonStepperControl008DirCW.Size = new System.Drawing.Size(59, 17);
-            this.radioButtonStepperControl008DirCW.TabIndex = 87;
-            this.radioButtonStepperControl008DirCW.TabStop = true;
-            this.radioButtonStepperControl008DirCW.Text = "Dir CW";
-            this.radioButtonStepperControl008DirCW.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonStepperControl008DirCCW
-            // 
-            this.radioButtonStepperControl008DirCCW.AutoSize = true;
-            this.radioButtonStepperControl008DirCCW.Location = new System.Drawing.Point(0, 17);
-            this.radioButtonStepperControl008DirCCW.Name = "radioButtonStepperControl008DirCCW";
-            this.radioButtonStepperControl008DirCCW.Size = new System.Drawing.Size(66, 17);
-            this.radioButtonStepperControl008DirCCW.TabIndex = 86;
-            this.radioButtonStepperControl008DirCCW.Text = "Dir CCW";
-            this.radioButtonStepperControl008DirCCW.UseVisualStyleBackColor = true;
-            // 
-            // buttonStepperControl008Stop
-            // 
-            this.buttonStepperControl008Stop.Location = new System.Drawing.Point(168, 47);
-            this.buttonStepperControl008Stop.Name = "buttonStepperControl008Stop";
-            this.buttonStepperControl008Stop.Size = new System.Drawing.Size(67, 25);
-            this.buttonStepperControl008Stop.TabIndex = 89;
-            this.buttonStepperControl008Stop.Text = "Stop";
-            this.buttonStepperControl008Stop.UseVisualStyleBackColor = true;
-            this.buttonStepperControl008Stop.Click += new System.EventHandler(this.buttonStepperControl008Stop_Click);
-            // 
-            // buttonStepperControl008Run
-            // 
-            this.buttonStepperControl008Run.Location = new System.Drawing.Point(168, 21);
-            this.buttonStepperControl008Run.Name = "buttonStepperControl008Run";
-            this.buttonStepperControl008Run.Size = new System.Drawing.Size(67, 25);
-            this.buttonStepperControl008Run.TabIndex = 88;
-            this.buttonStepperControl008Run.Text = "Run";
-            this.buttonStepperControl008Run.UseVisualStyleBackColor = true;
-            this.buttonStepperControl008Run.Click += new System.EventHandler(this.buttonStepperControl008Run_Click);
-            // 
-            // buttonStepperControl008Nudge1
-            // 
-            this.buttonStepperControl008Nudge1.Location = new System.Drawing.Point(168, 74);
-            this.buttonStepperControl008Nudge1.Name = "buttonStepperControl008Nudge1";
-            this.buttonStepperControl008Nudge1.Size = new System.Drawing.Size(67, 25);
-            this.buttonStepperControl008Nudge1.TabIndex = 87;
-            this.buttonStepperControl008Nudge1.Text = "Nudge 1";
-            this.buttonStepperControl008Nudge1.UseVisualStyleBackColor = true;
-            this.buttonStepperControl008Nudge1.Click += new System.EventHandler(this.buttonStepperControl008Nudge1_Click);
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(79, 43);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(74, 13);
-            this.label17.TabIndex = 83;
-            this.label17.Text = "Steps Second";
-            // 
-            // textBoxStepperControl008StepsPerSecond
-            // 
-            this.textBoxStepperControl008StepsPerSecond.Location = new System.Drawing.Point(11, 40);
-            this.textBoxStepperControl008StepsPerSecond.Name = "textBoxStepperControl008StepsPerSecond";
-            this.textBoxStepperControl008StepsPerSecond.Size = new System.Drawing.Size(62, 20);
-            this.textBoxStepperControl008StepsPerSecond.TabIndex = 82;
-            this.textBoxStepperControl008StepsPerSecond.Text = "1";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(79, 21);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(56, 13);
-            this.label10.TabIndex = 79;
-            this.label10.Text = "NumSteps";
-            // 
-            // textBoxStepperControl008NumSteps
-            // 
-            this.textBoxStepperControl008NumSteps.Location = new System.Drawing.Point(11, 18);
-            this.textBoxStepperControl008NumSteps.Name = "textBoxStepperControl008NumSteps";
-            this.textBoxStepperControl008NumSteps.Size = new System.Drawing.Size(62, 20);
-            this.textBoxStepperControl008NumSteps.TabIndex = 1;
-            this.textBoxStepperControl008NumSteps.Text = "10";
             // 
             // tabPageDraw
             // 
@@ -984,67 +890,75 @@
             this.buttonDrawGreenCircleAtPoint.UseVisualStyleBackColor = true;
             this.buttonDrawGreenCircleAtPoint.Click += new System.EventHandler(this.buttonDrawGreenCircleAtPoint_Click);
             // 
-            // tabPageUtils
+            // tabPageUtils1
             // 
-            this.tabPageUtils.Controls.Add(this.groupBox4);
-            this.tabPageUtils.Controls.Add(this.groupBox2);
-            this.tabPageUtils.Location = new System.Drawing.Point(4, 22);
-            this.tabPageUtils.Name = "tabPageUtils";
-            this.tabPageUtils.Size = new System.Drawing.Size(288, 487);
-            this.tabPageUtils.TabIndex = 2;
-            this.tabPageUtils.Text = "Utils";
-            this.tabPageUtils.UseVisualStyleBackColor = true;
+            this.tabPageUtils1.Controls.Add(this.groupBox9);
+            this.tabPageUtils1.Controls.Add(this.groupBox4);
+            this.tabPageUtils1.Controls.Add(this.groupBox2);
+            this.tabPageUtils1.Location = new System.Drawing.Point(4, 22);
+            this.tabPageUtils1.Name = "tabPageUtils1";
+            this.tabPageUtils1.Size = new System.Drawing.Size(288, 487);
+            this.tabPageUtils1.TabIndex = 2;
+            this.tabPageUtils1.Text = "Utils1";
+            this.tabPageUtils1.UseVisualStyleBackColor = true;
             // 
-            // groupBox4
+            // groupBox9
             // 
-            this.groupBox4.Controls.Add(this.buttonScaleSet);
-            this.groupBox4.Controls.Add(this.buttonScaleCalc);
-            this.groupBox4.Controls.Add(this.label29);
-            this.groupBox4.Controls.Add(this.label28);
-            this.groupBox4.Controls.Add(this.textBoxScalePixelsPerMicron);
-            this.groupBox4.Controls.Add(this.label27);
-            this.groupBox4.Controls.Add(this.textBoxDistInKnownMicrons);
-            this.groupBox4.Controls.Add(this.label26);
-            this.groupBox4.Controls.Add(this.radioButtonDistHoriz);
-            this.groupBox4.Controls.Add(this.radioButtonDistVert);
-            this.groupBox4.Controls.Add(this.label25);
-            this.groupBox4.Controls.Add(this.label24);
-            this.groupBox4.Controls.Add(this.label23);
-            this.groupBox4.Controls.Add(this.label22);
-            this.groupBox4.Controls.Add(this.label21);
-            this.groupBox4.Controls.Add(this.textBoxDistTotal);
-            this.groupBox4.Controls.Add(this.label19);
-            this.groupBox4.Controls.Add(this.textBoxDistanceVert);
-            this.groupBox4.Controls.Add(this.label20);
-            this.groupBox4.Controls.Add(this.textBoxDistanceHoriz);
-            this.groupBox4.Controls.Add(this.label18);
-            this.groupBox4.Controls.Add(this.textBoxDistanceClick2);
-            this.groupBox4.Controls.Add(this.label16);
-            this.groupBox4.Controls.Add(this.textBoxDistanceClick1);
-            this.groupBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox4.Location = new System.Drawing.Point(10, 93);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(275, 187);
-            this.groupBox4.TabIndex = 77;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Distance";
+            this.groupBox9.Controls.Add(this.buttonScaleClear);
+            this.groupBox9.Controls.Add(this.label45);
+            this.groupBox9.Controls.Add(this.buttonScaleSet);
+            this.groupBox9.Controls.Add(this.buttonScaleCalc);
+            this.groupBox9.Controls.Add(this.label29);
+            this.groupBox9.Controls.Add(this.label28);
+            this.groupBox9.Controls.Add(this.textBoxScalePixelsPerMicron);
+            this.groupBox9.Controls.Add(this.label27);
+            this.groupBox9.Controls.Add(this.textBoxDistInKnownMicrons);
+            this.groupBox9.Controls.Add(this.label26);
+            this.groupBox9.Controls.Add(this.radioButtonDistHoriz);
+            this.groupBox9.Controls.Add(this.radioButtonDistVert);
+            this.groupBox9.Controls.Add(this.label25);
+            this.groupBox9.Location = new System.Drawing.Point(6, 152);
+            this.groupBox9.Name = "groupBox9";
+            this.groupBox9.Size = new System.Drawing.Size(275, 122);
+            this.groupBox9.TabIndex = 79;
+            this.groupBox9.TabStop = false;
+            this.groupBox9.Text = "Calibration";
+            // 
+            // buttonScaleClear
+            // 
+            this.buttonScaleClear.Location = new System.Drawing.Point(166, 95);
+            this.buttonScaleClear.Name = "buttonScaleClear";
+            this.buttonScaleClear.Size = new System.Drawing.Size(47, 19);
+            this.buttonScaleClear.TabIndex = 111;
+            this.buttonScaleClear.Text = "Clear";
+            this.buttonScaleClear.UseVisualStyleBackColor = true;
+            this.buttonScaleClear.Click += new System.EventHandler(this.buttonScaleClear_Click);
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(29, 18);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(195, 13);
+            this.label45.TabIndex = 110;
+            this.label45.Text = "Use last two mouse clicks for calibration";
             // 
             // buttonScaleSet
             // 
-            this.buttonScaleSet.Location = new System.Drawing.Point(141, 162);
+            this.buttonScaleSet.Location = new System.Drawing.Point(113, 95);
             this.buttonScaleSet.Name = "buttonScaleSet";
             this.buttonScaleSet.Size = new System.Drawing.Size(47, 19);
-            this.buttonScaleSet.TabIndex = 98;
+            this.buttonScaleSet.TabIndex = 109;
             this.buttonScaleSet.Text = "Set";
             this.buttonScaleSet.UseVisualStyleBackColor = true;
             this.buttonScaleSet.Click += new System.EventHandler(this.buttonScaleSet_Click);
             // 
             // buttonScaleCalc
             // 
-            this.buttonScaleCalc.Location = new System.Drawing.Point(88, 162);
+            this.buttonScaleCalc.Location = new System.Drawing.Point(60, 95);
             this.buttonScaleCalc.Name = "buttonScaleCalc";
             this.buttonScaleCalc.Size = new System.Drawing.Size(47, 19);
-            this.buttonScaleCalc.TabIndex = 97;
+            this.buttonScaleCalc.TabIndex = 108;
             this.buttonScaleCalc.Text = "Calc.";
             this.buttonScaleCalc.UseVisualStyleBackColor = true;
             this.buttonScaleCalc.Click += new System.EventHandler(this.buttonScaleCalc_Click);
@@ -1052,64 +966,64 @@
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(166, 143);
+            this.label29.Location = new System.Drawing.Point(163, 73);
             this.label29.Name = "label29";
-            this.label29.Size = new System.Drawing.Size(60, 12);
-            this.label29.TabIndex = 96;
+            this.label29.Size = new System.Drawing.Size(69, 13);
+            this.label29.TabIndex = 107;
             this.label29.Text = "pixels/micron";
             // 
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(16, 143);
+            this.label28.Location = new System.Drawing.Point(13, 73);
             this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(69, 12);
-            this.label28.TabIndex = 95;
+            this.label28.Size = new System.Drawing.Size(79, 13);
+            this.label28.TabIndex = 106;
             this.label28.Text = "Current scale is";
             // 
             // textBoxScalePixelsPerMicron
             // 
-            this.textBoxScalePixelsPerMicron.Location = new System.Drawing.Point(100, 140);
+            this.textBoxScalePixelsPerMicron.Location = new System.Drawing.Point(97, 70);
             this.textBoxScalePixelsPerMicron.Name = "textBoxScalePixelsPerMicron";
             this.textBoxScalePixelsPerMicron.ReadOnly = true;
-            this.textBoxScalePixelsPerMicron.Size = new System.Drawing.Size(62, 18);
-            this.textBoxScalePixelsPerMicron.TabIndex = 94;
+            this.textBoxScalePixelsPerMicron.Size = new System.Drawing.Size(62, 20);
+            this.textBoxScalePixelsPerMicron.TabIndex = 105;
             // 
             // label27
             // 
             this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(200, 112);
+            this.label27.Location = new System.Drawing.Point(197, 45);
             this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(38, 12);
-            this.label27.TabIndex = 93;
+            this.label27.Size = new System.Drawing.Size(43, 13);
+            this.label27.TabIndex = 104;
             this.label27.Text = "microns";
             this.label27.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // textBoxDistInKnownMicrons
             // 
-            this.textBoxDistInKnownMicrons.Location = new System.Drawing.Point(165, 109);
+            this.textBoxDistInKnownMicrons.Location = new System.Drawing.Point(162, 42);
             this.textBoxDistInKnownMicrons.Name = "textBoxDistInKnownMicrons";
-            this.textBoxDistInKnownMicrons.Size = new System.Drawing.Size(31, 18);
-            this.textBoxDistInKnownMicrons.TabIndex = 92;
+            this.textBoxDistInKnownMicrons.Size = new System.Drawing.Size(31, 20);
+            this.textBoxDistInKnownMicrons.TabIndex = 103;
             this.textBoxDistInKnownMicrons.Text = "100";
             this.textBoxDistInKnownMicrons.TextChanged += new System.EventHandler(this.textBoxDistInKnownMicrons_TextChanged);
             // 
             // label26
             // 
             this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(107, 112);
+            this.label26.Location = new System.Drawing.Point(104, 45);
             this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(51, 12);
-            this.label26.TabIndex = 90;
+            this.label26.Size = new System.Drawing.Size(60, 13);
+            this.label26.TabIndex = 102;
             this.label26.Text = "distance is ";
             // 
             // radioButtonDistHoriz
             // 
             this.radioButtonDistHoriz.AutoSize = true;
-            this.radioButtonDistHoriz.Location = new System.Drawing.Point(61, 117);
+            this.radioButtonDistHoriz.Location = new System.Drawing.Point(58, 50);
             this.radioButtonDistHoriz.Name = "radioButtonDistHoriz";
-            this.radioButtonDistHoriz.Size = new System.Drawing.Size(48, 16);
-            this.radioButtonDistHoriz.TabIndex = 89;
+            this.radioButtonDistHoriz.Size = new System.Drawing.Size(52, 17);
+            this.radioButtonDistHoriz.TabIndex = 101;
             this.radioButtonDistHoriz.TabStop = true;
             this.radioButtonDistHoriz.Text = "Horiz.";
             this.radioButtonDistHoriz.UseVisualStyleBackColor = true;
@@ -1118,10 +1032,10 @@
             // radioButtonDistVert
             // 
             this.radioButtonDistVert.AutoSize = true;
-            this.radioButtonDistVert.Location = new System.Drawing.Point(61, 101);
+            this.radioButtonDistVert.Location = new System.Drawing.Point(58, 34);
             this.radioButtonDistVert.Name = "radioButtonDistVert";
-            this.radioButtonDistVert.Size = new System.Drawing.Size(44, 16);
-            this.radioButtonDistVert.TabIndex = 88;
+            this.radioButtonDistVert.Size = new System.Drawing.Size(47, 17);
+            this.radioButtonDistVert.TabIndex = 100;
             this.radioButtonDistVert.TabStop = true;
             this.radioButtonDistVert.Text = "Vert.";
             this.radioButtonDistVert.UseVisualStyleBackColor = true;
@@ -1130,27 +1044,107 @@
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(15, 112);
+            this.label25.Location = new System.Drawing.Point(21, 45);
             this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(38, 12);
-            this.label25.TabIndex = 87;
-            this.label25.Text = "Current ";
+            this.label25.Size = new System.Drawing.Size(30, 13);
+            this.label25.TabIndex = 99;
+            this.label25.Text = "Click";
             // 
-            // label24
+            // groupBox4
             // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(5, 85);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(49, 12);
-            this.label24.TabIndex = 86;
-            this.label24.Text = "Calibration";
+            this.groupBox4.Controls.Add(this.labelDistanceInMicrons);
+            this.groupBox4.Controls.Add(this.labelDistanceInMicronsTotal);
+            this.groupBox4.Controls.Add(this.textBoxDistInMicronsTotal);
+            this.groupBox4.Controls.Add(this.labelDistanceInMicronsVert);
+            this.groupBox4.Controls.Add(this.textBoxDistanceInMicronsVert);
+            this.groupBox4.Controls.Add(this.labelDistanceInMicronsHoriz);
+            this.groupBox4.Controls.Add(this.textBoxDistanceInMicronsHoriz);
+            this.groupBox4.Controls.Add(this.label23);
+            this.groupBox4.Controls.Add(this.label22);
+            this.groupBox4.Controls.Add(this.label21);
+            this.groupBox4.Controls.Add(this.textBoxDistInPixelsTotal);
+            this.groupBox4.Controls.Add(this.label19);
+            this.groupBox4.Controls.Add(this.textBoxDistanceInPixelsVert);
+            this.groupBox4.Controls.Add(this.label20);
+            this.groupBox4.Controls.Add(this.textBoxDistanceInPixelsHoriz);
+            this.groupBox4.Controls.Add(this.label18);
+            this.groupBox4.Controls.Add(this.textBoxDistanceClick2);
+            this.groupBox4.Controls.Add(this.label16);
+            this.groupBox4.Controls.Add(this.textBoxDistanceClick1);
+            this.groupBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox4.Location = new System.Drawing.Point(6, 3);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(275, 143);
+            this.groupBox4.TabIndex = 77;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Last 2 Clicks Distance";
+            // 
+            // labelDistanceInMicrons
+            // 
+            this.labelDistanceInMicrons.AutoSize = true;
+            this.labelDistanceInMicrons.Location = new System.Drawing.Point(156, 79);
+            this.labelDistanceInMicrons.Name = "labelDistanceInMicrons";
+            this.labelDistanceInMicrons.Size = new System.Drawing.Size(101, 13);
+            this.labelDistanceInMicrons.TabIndex = 92;
+            this.labelDistanceInMicrons.Text = "Distance In Microns";
+            // 
+            // labelDistanceInMicronsTotal
+            // 
+            this.labelDistanceInMicronsTotal.AutoSize = true;
+            this.labelDistanceInMicronsTotal.Location = new System.Drawing.Point(210, 102);
+            this.labelDistanceInMicronsTotal.Name = "labelDistanceInMicronsTotal";
+            this.labelDistanceInMicronsTotal.Size = new System.Drawing.Size(55, 13);
+            this.labelDistanceInMicronsTotal.TabIndex = 91;
+            this.labelDistanceInMicronsTotal.Text = "Dist. Total";
+            // 
+            // textBoxDistInMicronsTotal
+            // 
+            this.textBoxDistInMicronsTotal.Location = new System.Drawing.Point(210, 118);
+            this.textBoxDistInMicronsTotal.Name = "textBoxDistInMicronsTotal";
+            this.textBoxDistInMicronsTotal.ReadOnly = true;
+            this.textBoxDistInMicronsTotal.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistInMicronsTotal.TabIndex = 90;
+            // 
+            // labelDistanceInMicronsVert
+            // 
+            this.labelDistanceInMicronsVert.AutoSize = true;
+            this.labelDistanceInMicronsVert.Location = new System.Drawing.Point(114, 122);
+            this.labelDistanceInMicronsVert.Name = "labelDistanceInMicronsVert";
+            this.labelDistanceInMicronsVert.Size = new System.Drawing.Size(29, 13);
+            this.labelDistanceInMicronsVert.TabIndex = 89;
+            this.labelDistanceInMicronsVert.Text = "Vert:";
+            // 
+            // textBoxDistanceInMicronsVert
+            // 
+            this.textBoxDistanceInMicronsVert.Location = new System.Drawing.Point(145, 118);
+            this.textBoxDistanceInMicronsVert.Name = "textBoxDistanceInMicronsVert";
+            this.textBoxDistanceInMicronsVert.ReadOnly = true;
+            this.textBoxDistanceInMicronsVert.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistanceInMicronsVert.TabIndex = 88;
+            // 
+            // labelDistanceInMicronsHoriz
+            // 
+            this.labelDistanceInMicronsHoriz.AutoSize = true;
+            this.labelDistanceInMicronsHoriz.Location = new System.Drawing.Point(109, 99);
+            this.labelDistanceInMicronsHoriz.Name = "labelDistanceInMicronsHoriz";
+            this.labelDistanceInMicronsHoriz.Size = new System.Drawing.Size(34, 13);
+            this.labelDistanceInMicronsHoriz.TabIndex = 87;
+            this.labelDistanceInMicronsHoriz.Text = "Horiz:";
+            // 
+            // textBoxDistanceInMicronsHoriz
+            // 
+            this.textBoxDistanceInMicronsHoriz.Location = new System.Drawing.Point(145, 95);
+            this.textBoxDistanceInMicronsHoriz.Name = "textBoxDistanceInMicronsHoriz";
+            this.textBoxDistanceInMicronsHoriz.ReadOnly = true;
+            this.textBoxDistanceInMicronsHoriz.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistanceInMicronsHoriz.TabIndex = 86;
             // 
             // label23
             // 
             this.label23.AutoSize = true;
             this.label23.Location = new System.Drawing.Point(156, 15);
             this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(79, 12);
+            this.label23.Size = new System.Drawing.Size(91, 13);
             this.label23.TabIndex = 85;
             this.label23.Text = "Distance In Pixels";
             // 
@@ -1159,7 +1153,7 @@
             this.label22.AutoSize = true;
             this.label22.Location = new System.Drawing.Point(46, 15);
             this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(40, 12);
+            this.label22.Size = new System.Drawing.Size(48, 13);
             this.label22.TabIndex = 84;
             this.label22.Text = "Location";
             // 
@@ -1168,58 +1162,58 @@
             this.label21.AutoSize = true;
             this.label21.Location = new System.Drawing.Point(210, 38);
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(47, 12);
+            this.label21.Size = new System.Drawing.Size(55, 13);
             this.label21.TabIndex = 83;
             this.label21.Text = "Dist. Total";
             // 
-            // textBoxDistTotal
+            // textBoxDistInPixelsTotal
             // 
-            this.textBoxDistTotal.Location = new System.Drawing.Point(210, 54);
-            this.textBoxDistTotal.Name = "textBoxDistTotal";
-            this.textBoxDistTotal.ReadOnly = true;
-            this.textBoxDistTotal.Size = new System.Drawing.Size(59, 18);
-            this.textBoxDistTotal.TabIndex = 82;
+            this.textBoxDistInPixelsTotal.Location = new System.Drawing.Point(210, 54);
+            this.textBoxDistInPixelsTotal.Name = "textBoxDistInPixelsTotal";
+            this.textBoxDistInPixelsTotal.ReadOnly = true;
+            this.textBoxDistInPixelsTotal.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistInPixelsTotal.TabIndex = 82;
             // 
             // label19
             // 
             this.label19.AutoSize = true;
             this.label19.Location = new System.Drawing.Point(114, 58);
             this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(26, 12);
+            this.label19.Size = new System.Drawing.Size(29, 13);
             this.label19.TabIndex = 81;
             this.label19.Text = "Vert:";
             // 
-            // textBoxDistanceVert
+            // textBoxDistanceInPixelsVert
             // 
-            this.textBoxDistanceVert.Location = new System.Drawing.Point(145, 54);
-            this.textBoxDistanceVert.Name = "textBoxDistanceVert";
-            this.textBoxDistanceVert.ReadOnly = true;
-            this.textBoxDistanceVert.Size = new System.Drawing.Size(59, 18);
-            this.textBoxDistanceVert.TabIndex = 80;
+            this.textBoxDistanceInPixelsVert.Location = new System.Drawing.Point(145, 54);
+            this.textBoxDistanceInPixelsVert.Name = "textBoxDistanceInPixelsVert";
+            this.textBoxDistanceInPixelsVert.ReadOnly = true;
+            this.textBoxDistanceInPixelsVert.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistanceInPixelsVert.TabIndex = 80;
             // 
             // label20
             // 
             this.label20.AutoSize = true;
             this.label20.Location = new System.Drawing.Point(109, 35);
             this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(30, 12);
+            this.label20.Size = new System.Drawing.Size(34, 13);
             this.label20.TabIndex = 79;
             this.label20.Text = "Horiz:";
             // 
-            // textBoxDistanceHoriz
+            // textBoxDistanceInPixelsHoriz
             // 
-            this.textBoxDistanceHoriz.Location = new System.Drawing.Point(145, 31);
-            this.textBoxDistanceHoriz.Name = "textBoxDistanceHoriz";
-            this.textBoxDistanceHoriz.ReadOnly = true;
-            this.textBoxDistanceHoriz.Size = new System.Drawing.Size(59, 18);
-            this.textBoxDistanceHoriz.TabIndex = 78;
+            this.textBoxDistanceInPixelsHoriz.Location = new System.Drawing.Point(145, 31);
+            this.textBoxDistanceInPixelsHoriz.Name = "textBoxDistanceInPixelsHoriz";
+            this.textBoxDistanceInPixelsHoriz.ReadOnly = true;
+            this.textBoxDistanceInPixelsHoriz.Size = new System.Drawing.Size(59, 20);
+            this.textBoxDistanceInPixelsHoriz.TabIndex = 78;
             // 
             // label18
             // 
             this.label18.AutoSize = true;
             this.label18.Location = new System.Drawing.Point(6, 58);
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(31, 12);
+            this.label18.Size = new System.Drawing.Size(36, 13);
             this.label18.TabIndex = 77;
             this.label18.Text = "Click2";
             // 
@@ -1228,7 +1222,7 @@
             this.textBoxDistanceClick2.Location = new System.Drawing.Point(42, 54);
             this.textBoxDistanceClick2.Name = "textBoxDistanceClick2";
             this.textBoxDistanceClick2.ReadOnly = true;
-            this.textBoxDistanceClick2.Size = new System.Drawing.Size(59, 18);
+            this.textBoxDistanceClick2.Size = new System.Drawing.Size(59, 20);
             this.textBoxDistanceClick2.TabIndex = 76;
             // 
             // label16
@@ -1236,7 +1230,7 @@
             this.label16.AutoSize = true;
             this.label16.Location = new System.Drawing.Point(6, 35);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(31, 12);
+            this.label16.Size = new System.Drawing.Size(36, 13);
             this.label16.TabIndex = 75;
             this.label16.Text = "Click1";
             // 
@@ -1245,7 +1239,7 @@
             this.textBoxDistanceClick1.Location = new System.Drawing.Point(42, 31);
             this.textBoxDistanceClick1.Name = "textBoxDistanceClick1";
             this.textBoxDistanceClick1.ReadOnly = true;
-            this.textBoxDistanceClick1.Size = new System.Drawing.Size(59, 18);
+            this.textBoxDistanceClick1.Size = new System.Drawing.Size(59, 20);
             this.textBoxDistanceClick1.TabIndex = 74;
             // 
             // groupBox2
@@ -1258,12 +1252,12 @@
             this.groupBox2.Controls.Add(this.textBoxRGBAPixelColor);
             this.groupBox2.Controls.Add(this.label12);
             this.groupBox2.Controls.Add(this.textBoxRGBAPixelColorLocInverted);
-            this.groupBox2.Location = new System.Drawing.Point(10, 3);
+            this.groupBox2.Location = new System.Drawing.Point(6, 280);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(275, 87);
             this.groupBox2.TabIndex = 76;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Pixel Color";
+            this.groupBox2.Text = "Last Click RGBA Pixel Color";
             // 
             // label14
             // 
@@ -1335,6 +1329,128 @@
             this.textBoxRGBAPixelColorLocInverted.Size = new System.Drawing.Size(59, 20);
             this.textBoxRGBAPixelColorLocInverted.TabIndex = 72;
             this.textBoxRGBAPixelColorLocInverted.Text = "0,0";
+            // 
+            // tabPageUtils2
+            // 
+            this.tabPageUtils2.Controls.Add(this.groupBox3);
+            this.tabPageUtils2.Location = new System.Drawing.Point(4, 22);
+            this.tabPageUtils2.Name = "tabPageUtils2";
+            this.tabPageUtils2.Size = new System.Drawing.Size(288, 487);
+            this.tabPageUtils2.TabIndex = 5;
+            this.tabPageUtils2.Text = "Utils2";
+            this.tabPageUtils2.UseVisualStyleBackColor = true;
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.panel1);
+            this.groupBox3.Controls.Add(this.buttonStepperControlUtilsStop);
+            this.groupBox3.Controls.Add(this.buttonStepperControlUtilsRun);
+            this.groupBox3.Controls.Add(this.buttonStepperControlUtilsNudge1);
+            this.groupBox3.Controls.Add(this.label17);
+            this.groupBox3.Controls.Add(this.textBoxStepperControlUtilsStepsPerSecond);
+            this.groupBox3.Controls.Add(this.label10);
+            this.groupBox3.Controls.Add(this.textBoxStepperControlUtilsNumSteps);
+            this.groupBox3.Location = new System.Drawing.Point(3, 3);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(275, 113);
+            this.groupBox3.TabIndex = 79;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Manual Stepper Control";
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.radioButtonStepperControlUtilsDirCW);
+            this.panel1.Controls.Add(this.radioButtonStepperControlUtilsDirCCW);
+            this.panel1.Location = new System.Drawing.Point(11, 65);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(68, 38);
+            this.panel1.TabIndex = 90;
+            // 
+            // radioButtonStepperControlUtilsDirCW
+            // 
+            this.radioButtonStepperControlUtilsDirCW.AutoSize = true;
+            this.radioButtonStepperControlUtilsDirCW.Checked = true;
+            this.radioButtonStepperControlUtilsDirCW.Location = new System.Drawing.Point(0, 0);
+            this.radioButtonStepperControlUtilsDirCW.Name = "radioButtonStepperControlUtilsDirCW";
+            this.radioButtonStepperControlUtilsDirCW.Size = new System.Drawing.Size(59, 17);
+            this.radioButtonStepperControlUtilsDirCW.TabIndex = 87;
+            this.radioButtonStepperControlUtilsDirCW.TabStop = true;
+            this.radioButtonStepperControlUtilsDirCW.Text = "Dir CW";
+            this.radioButtonStepperControlUtilsDirCW.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonStepperControlUtilsDirCCW
+            // 
+            this.radioButtonStepperControlUtilsDirCCW.AutoSize = true;
+            this.radioButtonStepperControlUtilsDirCCW.Location = new System.Drawing.Point(0, 17);
+            this.radioButtonStepperControlUtilsDirCCW.Name = "radioButtonStepperControlUtilsDirCCW";
+            this.radioButtonStepperControlUtilsDirCCW.Size = new System.Drawing.Size(66, 17);
+            this.radioButtonStepperControlUtilsDirCCW.TabIndex = 86;
+            this.radioButtonStepperControlUtilsDirCCW.Text = "Dir CCW";
+            this.radioButtonStepperControlUtilsDirCCW.UseVisualStyleBackColor = true;
+            // 
+            // buttonStepperControlUtilsStop
+            // 
+            this.buttonStepperControlUtilsStop.Location = new System.Drawing.Point(168, 47);
+            this.buttonStepperControlUtilsStop.Name = "buttonStepperControlUtilsStop";
+            this.buttonStepperControlUtilsStop.Size = new System.Drawing.Size(67, 25);
+            this.buttonStepperControlUtilsStop.TabIndex = 89;
+            this.buttonStepperControlUtilsStop.Text = "Stop";
+            this.buttonStepperControlUtilsStop.UseVisualStyleBackColor = true;
+            this.buttonStepperControlUtilsStop.Click += new System.EventHandler(this.buttonStepperControlUtilsStop_Click);
+            // 
+            // buttonStepperControlUtilsRun
+            // 
+            this.buttonStepperControlUtilsRun.Location = new System.Drawing.Point(168, 21);
+            this.buttonStepperControlUtilsRun.Name = "buttonStepperControlUtilsRun";
+            this.buttonStepperControlUtilsRun.Size = new System.Drawing.Size(67, 25);
+            this.buttonStepperControlUtilsRun.TabIndex = 88;
+            this.buttonStepperControlUtilsRun.Text = "Run";
+            this.buttonStepperControlUtilsRun.UseVisualStyleBackColor = true;
+            this.buttonStepperControlUtilsRun.Click += new System.EventHandler(this.buttonStepperControlUtilsRun_Click);
+            // 
+            // buttonStepperControlUtilsNudge1
+            // 
+            this.buttonStepperControlUtilsNudge1.Location = new System.Drawing.Point(168, 74);
+            this.buttonStepperControlUtilsNudge1.Name = "buttonStepperControlUtilsNudge1";
+            this.buttonStepperControlUtilsNudge1.Size = new System.Drawing.Size(67, 25);
+            this.buttonStepperControlUtilsNudge1.TabIndex = 87;
+            this.buttonStepperControlUtilsNudge1.Text = "Nudge 1";
+            this.buttonStepperControlUtilsNudge1.UseVisualStyleBackColor = true;
+            this.buttonStepperControlUtilsNudge1.Click += new System.EventHandler(this.buttonStepperControlUtilsNudge1_Click);
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(79, 43);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(74, 13);
+            this.label17.TabIndex = 83;
+            this.label17.Text = "Steps Second";
+            // 
+            // textBoxStepperControlUtilsStepsPerSecond
+            // 
+            this.textBoxStepperControlUtilsStepsPerSecond.Location = new System.Drawing.Point(11, 40);
+            this.textBoxStepperControlUtilsStepsPerSecond.Name = "textBoxStepperControlUtilsStepsPerSecond";
+            this.textBoxStepperControlUtilsStepsPerSecond.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepperControlUtilsStepsPerSecond.TabIndex = 82;
+            this.textBoxStepperControlUtilsStepsPerSecond.Text = "1";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(79, 21);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(56, 13);
+            this.label10.TabIndex = 79;
+            this.label10.Text = "NumSteps";
+            // 
+            // textBoxStepperControlUtilsNumSteps
+            // 
+            this.textBoxStepperControlUtilsNumSteps.Location = new System.Drawing.Point(11, 18);
+            this.textBoxStepperControlUtilsNumSteps.Name = "textBoxStepperControlUtilsNumSteps";
+            this.textBoxStepperControlUtilsNumSteps.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepperControlUtilsNumSteps.TabIndex = 1;
+            this.textBoxStepperControlUtilsNumSteps.Text = "10";
             // 
             // tabPageOld
             // 
@@ -1854,18 +1970,6 @@
             this.buttonTestConnection.UseVisualStyleBackColor = true;
             this.buttonTestConnection.Click += new System.EventHandler(this.buttonTestConnection_Click);
             // 
-            // checkBoxActions008ClearRedEveryFrame
-            // 
-            this.checkBoxActions008ClearRedEveryFrame.AutoSize = true;
-            this.checkBoxActions008ClearRedEveryFrame.Checked = true;
-            this.checkBoxActions008ClearRedEveryFrame.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxActions008ClearRedEveryFrame.Location = new System.Drawing.Point(28, 73);
-            this.checkBoxActions008ClearRedEveryFrame.Name = "checkBoxActions008ClearRedEveryFrame";
-            this.checkBoxActions008ClearRedEveryFrame.Size = new System.Drawing.Size(135, 17);
-            this.checkBoxActions008ClearRedEveryFrame.TabIndex = 84;
-            this.checkBoxActions008ClearRedEveryFrame.Text = "Clear Red Every Frame";
-            this.checkBoxActions008ClearRedEveryFrame.UseVisualStyleBackColor = true;
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1891,20 +1995,23 @@
             this.groupBox8.PerformLayout();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.tabPageDraw.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBoxDrawGreenCircle.ResumeLayout(false);
             this.groupBoxDrawGreenCircle.PerformLayout();
-            this.tabPageUtils.ResumeLayout(false);
+            this.tabPageUtils1.ResumeLayout(false);
+            this.groupBox9.ResumeLayout(false);
+            this.groupBox9.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.tabPageUtils2.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.tabPageOld.ResumeLayout(false);
             this.tabPageOld.PerformLayout();
             this.groupBoxStepperTest.ResumeLayout(false);
@@ -1954,7 +2061,7 @@
         private System.Windows.Forms.Button buttonRecordingOnOff;
         private System.Windows.Forms.TabPage tabPageDraw;
         private System.Windows.Forms.CheckBox checkBoxRemoteConnectionState;
-        private System.Windows.Forms.TabPage tabPageUtils;
+        private System.Windows.Forms.TabPage tabPageUtils1;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label15;
@@ -1970,25 +2077,13 @@
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.TextBox textBoxDistanceClick1;
         private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TextBox textBoxDistTotal;
+        private System.Windows.Forms.TextBox textBoxDistInPixelsTotal;
         private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.TextBox textBoxDistanceVert;
+        private System.Windows.Forms.TextBox textBoxDistanceInPixelsVert;
         private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.TextBox textBoxDistanceHoriz;
+        private System.Windows.Forms.TextBox textBoxDistanceInPixelsHoriz;
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.Label label25;
-        private System.Windows.Forms.Label label24;
-        private System.Windows.Forms.Label label29;
-        private System.Windows.Forms.Label label28;
-        private System.Windows.Forms.TextBox textBoxScalePixelsPerMicron;
-        private System.Windows.Forms.Label label27;
-        private System.Windows.Forms.TextBox textBoxDistInKnownMicrons;
-        private System.Windows.Forms.Label label26;
-        private System.Windows.Forms.RadioButton radioButtonDistHoriz;
-        private System.Windows.Forms.RadioButton radioButtonDistVert;
-        private System.Windows.Forms.Button buttonScaleSet;
-        private System.Windows.Forms.Button buttonScaleCalc;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.Button buttonResetRunNumber;
@@ -2035,17 +2130,6 @@
         private System.Windows.Forms.TextBox textBoxEx008ColorDetectHorizBot;
         private System.Windows.Forms.Label label38;
         private System.Windows.Forms.TextBox textBoxEx008ColorDetectHorizTop;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.RadioButton radioButtonStepperControl008DirCW;
-        private System.Windows.Forms.RadioButton radioButtonStepperControl008DirCCW;
-        private System.Windows.Forms.Button buttonStepperControl008Stop;
-        private System.Windows.Forms.Button buttonStepperControl008Run;
-        private System.Windows.Forms.Button buttonStepperControl008Nudge1;
-        private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.TextBox textBoxStepperControl008StepsPerSecond;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.TextBox textBoxStepperControl008NumSteps;
         private System.Windows.Forms.TabPage tabPageOld;
         private System.Windows.Forms.GroupBox groupBoxStepperTest;
         private System.Windows.Forms.RadioButton radioButtonStepper0TestCCW;
@@ -2085,6 +2169,39 @@
         private System.Windows.Forms.TextBox textBoxActions008RedCircleRadius;
         private System.Windows.Forms.CheckBox checkBoxActions008MoveRedOntoGreen;
         private System.Windows.Forms.CheckBox checkBoxActions008ClearRedEveryFrame;
+        private System.Windows.Forms.GroupBox groupBox9;
+        private System.Windows.Forms.Label label45;
+        private System.Windows.Forms.Button buttonScaleSet;
+        private System.Windows.Forms.Button buttonScaleCalc;
+        private System.Windows.Forms.Label label29;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.TextBox textBoxScalePixelsPerMicron;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.TextBox textBoxDistInKnownMicrons;
+        private System.Windows.Forms.Label label26;
+        private System.Windows.Forms.RadioButton radioButtonDistHoriz;
+        private System.Windows.Forms.RadioButton radioButtonDistVert;
+        private System.Windows.Forms.Label label25;
+        private System.Windows.Forms.Label labelDistanceInMicrons;
+        private System.Windows.Forms.Label labelDistanceInMicronsTotal;
+        private System.Windows.Forms.TextBox textBoxDistInMicronsTotal;
+        private System.Windows.Forms.Label labelDistanceInMicronsVert;
+        private System.Windows.Forms.TextBox textBoxDistanceInMicronsVert;
+        private System.Windows.Forms.Label labelDistanceInMicronsHoriz;
+        private System.Windows.Forms.TextBox textBoxDistanceInMicronsHoriz;
+        private System.Windows.Forms.Button buttonScaleClear;
+        private System.Windows.Forms.TabPage tabPageUtils2;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.RadioButton radioButtonStepperControlUtilsDirCW;
+        private System.Windows.Forms.RadioButton radioButtonStepperControlUtilsDirCCW;
+        private System.Windows.Forms.Button buttonStepperControlUtilsStop;
+        private System.Windows.Forms.Button buttonStepperControlUtilsRun;
+        private System.Windows.Forms.Button buttonStepperControlUtilsNudge1;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.TextBox textBoxStepperControlUtilsStepsPerSecond;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox textBoxStepperControlUtilsNumSteps;
     }
 }
 

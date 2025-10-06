@@ -28,6 +28,7 @@ using Emgu.CV;
 using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Reflection;
+using System.Collections;
 
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
@@ -102,7 +103,7 @@ namespace Walnut
     {
         private const string DEFAULTLOGDIR = @"C:\Dump\Project Logs";
         private const string APPLICATION_NAME = "Walnut";
-        private const string APPLICATION_VERSION = "00.02.09";
+        private const string APPLICATION_VERSION = "00.02.10";
         private const int DEFAULT_RUN_NUMBER = 0;
         private const int DEFAULT_REC_NUMBER = 0;
         private const string RUN_NUMBER_MARKER = "##";
@@ -538,10 +539,10 @@ namespace Walnut
             CalibratedPixelsPerMicron = ImplicitUserSettings.CalibratedPixelsPerMicron;
 
             // experiment 008 settings
-            textBoxStepperControl008NumSteps.Text = ImplicitUserSettings.Ex008NumSteps;
-            textBoxStepperControl008StepsPerSecond.Text = ImplicitUserSettings.Ex008StepsPerSecond;
-            if (ImplicitUserSettings.Ex008DirIsCW == true) radioButtonStepperControl008DirCW.Checked = true;
-            else radioButtonStepperControl008DirCCW.Checked = true;
+            textBoxStepperControlUtilsNumSteps.Text = ImplicitUserSettings.Ex008NumSteps;
+            textBoxStepperControlUtilsStepsPerSecond.Text = ImplicitUserSettings.Ex008StepsPerSecond;
+            if (ImplicitUserSettings.Ex008DirIsCW == true) radioButtonStepperControlUtilsDirCW.Checked = true;
+            else radioButtonStepperControlUtilsDirCCW.Checked = true;
             if ((ImplicitUserSettings.Ex008ColorDetectHorizTop!=null) && (ImplicitUserSettings.Ex008ColorDetectHorizTop.Length>0)) textBoxEx008ColorDetectHorizTop.Text = ImplicitUserSettings.Ex008ColorDetectHorizTop;
             if ((ImplicitUserSettings.Ex008ColorDetectHorizBot != null) && (ImplicitUserSettings.Ex008ColorDetectHorizBot.Length > 0)) textBoxEx008ColorDetectHorizBot.Text = ImplicitUserSettings.Ex008ColorDetectHorizBot;
             if ((ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz != null) && (ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz.Length > 0))  textBoxEx008ColorDetectMinPixelsHoriz.Text = ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz;
@@ -569,9 +570,9 @@ namespace Walnut
             ImplicitUserSettings.CalibratedPixelsPerMicron = CalibratedPixelsPerMicron;
 
            // experiment 008 settings
-            ImplicitUserSettings.Ex008NumSteps = textBoxStepperControl008NumSteps.Text;
-            ImplicitUserSettings.Ex008StepsPerSecond = textBoxStepperControl008StepsPerSecond.Text;
-            if (radioButtonStepperControl008DirCW.Checked == true) ImplicitUserSettings.Ex008DirIsCW = true;
+            ImplicitUserSettings.Ex008NumSteps = textBoxStepperControlUtilsNumSteps.Text;
+            ImplicitUserSettings.Ex008StepsPerSecond = textBoxStepperControlUtilsStepsPerSecond.Text;
+            if (radioButtonStepperControlUtilsDirCW.Checked == true) ImplicitUserSettings.Ex008DirIsCW = true;
             ImplicitUserSettings.Ex008ColorDetectHorizTop = textBoxEx008ColorDetectHorizTop.Text;
             ImplicitUserSettings.Ex008ColorDetectHorizBot = textBoxEx008ColorDetectHorizBot.Text;
             ImplicitUserSettings.Ex008ColorDetectMinPixelsHoriz = textBoxEx008ColorDetectMinPixelsHoriz.Text;
@@ -1114,9 +1115,13 @@ namespace Walnut
                     // set a few things on the VideoTransform now
                     if ((TextOverlayTransform is MFTWriteText_Sync)== true)
                     {
-                        (TextOverlayTransform as MFTWriteText_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                        //(TextOverlayTransform as MFTWriteText_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
+                        (TextOverlayTransform as MFTWriteText_Sync).VersionInfoStr ="v" + APPLICATION_VERSION;
                         // the run info gets the run number inserted if the user used the MARKER in the string
-                        (TextOverlayTransform as MFTWriteText_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString()); 
+                        (TextOverlayTransform as MFTWriteText_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
+                        // set this so that the transform knows about it
+                        (TextOverlayTransform as MFTWriteText_Sync).SetCalibrationBarData(CalibratedPixelsPerMicron);
+
                     }
                 }
 
@@ -1179,14 +1184,6 @@ namespace Walnut
                     {
                         throw new Exception("PrepareSessionAndTopology call to pTransformNode.SetObject failed. Err=" + hr.ToString());
                     }
-
-                    //// set a few things on the VideoTransform now
-                    //if ((RecognitionTransform is MFTDetectHorizLines) == true)
-                    //{
-                    //    //(RecognitionTransform as MFTDetectColoredBlobs_Sync).VersionInfoStr = APPLICATION_NAME + " " + APPLICATION_VERSION;
-                    //    //// the run info gets the run number inserted if the user used the MARKER in the string
-                    //    //(RecognitionTransform as MFTDetectColoredBlobs_Sync).RunInfoStr = RunInfoStr.Replace(RUN_NUMBER_MARKER, RunNumberAsInt.ToString());
-                    //}
                 }
 
                 // Add the nodes to the topology. First the source node
@@ -2307,8 +2304,9 @@ namespace Walnut
             // give this a call to set the appearance correctly
             SetWaldosEnabledCheckBoxAccordingToState();
             SetRemoteConnectionCheckBoxVisuals(false);
+            // some calibration stuff
+            SetMicronDistancesOnUtilsTabToReality();
         }
-
  
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -3426,6 +3424,7 @@ namespace Walnut
         /// </summary>
         private void ctlTransparentControl1_MouseClick(object sender, MouseEventArgs e)
         {
+
             //       MessageBox.Show("Mouse Click (" + e.X.ToString() + "," + e.Y.ToString()+")");
 
             // we get the click point Y inverted and non Inverted. The ConvertPoint call also takes care of 
@@ -3456,30 +3455,28 @@ namespace Walnut
             // set the text, always switch them over
             textBoxDistanceClick1.Text = "";
             textBoxDistanceClick2.Text = "";
-            textBoxDistanceHoriz.Text = "";
-            textBoxDistanceVert.Text = "";
+            textBoxDistanceInPixelsHoriz.Text = "";
+            textBoxDistanceInPixelsVert.Text = "";
             if (textBoxDistanceClick1.Tag != null)
             {
                 textBoxDistanceClick1.Text = Utils.ConvertPointToBracketText((Point)textBoxDistanceClick1.Tag);
             }
-            if (textBoxDistanceClick2.Tag != null) textBoxDistanceClick2.Text = Utils.ConvertPointToBracketText((Point)textBoxDistanceClick2.Tag);
-            // if we have two measurements then calc the difference
-            if ((textBoxDistanceClick1.Tag != null) && (textBoxDistanceClick2.Tag != null))
+            if (textBoxDistanceClick2.Tag != null)
             {
-                int c1X = ((Point)textBoxDistanceClick1.Tag).X;
-                int c1Y = ((Point)textBoxDistanceClick1.Tag).Y;
-                int c2X = ((Point)textBoxDistanceClick2.Tag).X;
-                int c2Y = ((Point)textBoxDistanceClick2.Tag).Y;
-                int xDist = Math.Abs(c2X - c1X);
-                int yDist = Math.Abs(c2Y - c1Y);
-                textBoxDistanceHoriz.Text = xDist.ToString();
-                textBoxDistanceVert.Text = yDist.ToString();
-                textBoxDistTotal.Text = Math.Round(Math.Sqrt((xDist * xDist) + (yDist * yDist)),0).ToString();
+                textBoxDistanceClick2.Text = Utils.ConvertPointToBracketText((Point)textBoxDistanceClick2.Tag);
             }
 
             // ####
+            // set the pixel differences between mouse clicks
+            SetPixelDistancesOnUtilsTablToReality();
+
+            // ####
+            // If we are calibrated we can calc the micron difference between mouse clicks
+            SetMicronDistancesOnUtilsTabToReality();
+
+            // ####
             // Now do we need to draw green circles?
-            if(greenCircleDrawCount>0)
+            if (greenCircleDrawCount>0)
             {
                 // yes, we do.
                 // draw the circle
@@ -3502,20 +3499,116 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Calc the pixel distances from the information on the Utils tab. Will return 
+        /// 0 if the information cannot be calculated
+        /// </summary>
+        private void CalcPixelDistancesFromUtilsPanelMouseClicks(out int xDistInPixels, out int yDistInPixels, out int xyDistInPixels)
+        {
+            xDistInPixels = 0;
+            yDistInPixels = 0;
+            xyDistInPixels = 0;
+
+            // if we have two measurements then calc the difference
+            if ((textBoxDistanceClick1.Tag != null) && (textBoxDistanceClick2.Tag != null) 
+                && ((textBoxDistanceClick1.Tag is Point) == true) && ((textBoxDistanceClick2.Tag is Point) == true))
+            {
+                int c1X = ((Point)textBoxDistanceClick1.Tag).X;
+                int c1Y = ((Point)textBoxDistanceClick1.Tag).Y;
+                int c2X = ((Point)textBoxDistanceClick2.Tag).X;
+                int c2Y = ((Point)textBoxDistanceClick2.Tag).Y;
+                xDistInPixels = Math.Abs(c2X - c1X);
+                yDistInPixels = Math.Abs(c2Y - c1Y);
+                xyDistInPixels = (int)Math.Round(Math.Sqrt((xDistInPixels * xDistInPixels) + (yDistInPixels * yDistInPixels)), 0);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the pixel distances field on the Utils tabl to reality. 
+        /// </summary>
+        /// <param name="xDistInPixels">the current xDist in pixels</param>
+        /// <param name="yDistInPixels">the current yDist in pixels</param>
+        /// <param name="xyDistInPixels">the current xyDist in pixels</param>
+        private void SetPixelDistancesOnUtilsTablToReality()
+        {
+            // get the current pixel distances, will be zero if not present
+            CalcPixelDistancesFromUtilsPanelMouseClicks(out int xDistInPixels, out int yDistInPixels, out int xyDistInPixels);
+
+            // clear all
+            textBoxDistanceInPixelsHoriz.Text = "";
+            textBoxDistanceInPixelsVert.Text = "";
+            textBoxDistInPixelsTotal.Text = "";
+
+            textBoxDistanceInPixelsHoriz.Text = xDistInPixels.ToString();
+            textBoxDistanceInPixelsVert.Text = yDistInPixels.ToString();
+            textBoxDistInPixelsTotal.Text = xyDistInPixels.ToString();
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the micron distances field on the Utils tabl to reality. If not calibrated
+        /// this just clears the fields
+        /// </summary>
+        /// <param name="xDistInPixels">the current xDist in pixels</param>
+        /// <param name="yDistInPixels">the current yDist in pixels</param>
+        /// <param name="xyDistInPixels">the current xyDist in pixels</param>
+        private void SetMicronDistancesOnUtilsTabToReality()
+        {
+            // get the current pixel distances, will be zero if not present
+            CalcPixelDistancesFromUtilsPanelMouseClicks(out int xDistInPixels, out int yDistInPixels, out int xyDistInPixels);
+
+            // If we are calibrated we can calc the micron difference between mouse clicks
+            double pixelsPerMicron = CalibratedPixelsPerMicron;
+
+            // clear it all down
+            textBoxDistanceInMicronsHoriz.Text = "";
+            textBoxDistanceInMicronsVert.Text = "";
+            textBoxDistInMicronsTotal.Text = "";
+            if (pixelsPerMicron > 0)
+            {
+                // we are calibrated
+                textBoxDistanceInMicronsHoriz.Text = Convert.ToInt32((xDistInPixels / pixelsPerMicron)).ToString();
+                textBoxDistanceInMicronsVert.Text = Convert.ToInt32((yDistInPixels / pixelsPerMicron)).ToString();
+                textBoxDistInMicronsTotal.Text = Convert.ToInt32((xyDistInPixels / pixelsPerMicron)).ToString();
+                // make them active
+                textBoxDistanceInMicronsHoriz.Enabled = true;
+                textBoxDistanceInMicronsVert.Enabled = true;
+                textBoxDistInMicronsTotal.Enabled = true;
+                labelDistanceInMicrons.Enabled = true;
+                labelDistanceInMicronsHoriz.Enabled = true;
+                labelDistanceInMicronsVert.Enabled = true;
+                labelDistanceInMicronsTotal.Enabled = true;
+            }
+            else
+            {
+                // grey them out
+                textBoxDistanceInMicronsHoriz.Enabled = false;
+                textBoxDistanceInMicronsVert.Enabled = false;
+                textBoxDistInMicronsTotal.Enabled = false;
+                labelDistanceInMicrons.Enabled = false;
+                labelDistanceInMicronsHoriz.Enabled = false;
+                labelDistanceInMicronsVert.Enabled = false;
+                labelDistanceInMicronsTotal.Enabled = false;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Handles a click on the run button of the Ex008 panel 
         /// </summary>
-        private void buttonStepperControl008Run_Click(object sender, EventArgs e)
+        private void buttonStepperControlUtilsRun_Click(object sender, EventArgs e)
         {
-            LogMessage("buttonStepperControl008Run_Click");
+            LogMessage("buttonStepperControlUtilsRun_Click");
 
             if (dataTransporter == null)
             {
-                LogMessage("buttonStepperControl008Run_Click, dataTransporter == null");
+                LogMessage("buttonStepperControlUtilsRun_Click, dataTransporter == null");
                 return;
             }
             if (IsConnected() == false)
             {
-                LogMessage("buttonStepperControl008Run_Click, Not connected");
+                LogMessage("buttonStepperControlUtilsRun_Click, Not connected");
                 return;
             }
 
@@ -3523,7 +3616,7 @@ namespace Walnut
             ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, true, false, 1);
             if (scData == null)
             {
-                LogMessage("buttonStepperControl008Run_Click, scData == null");
+                LogMessage("buttonStepperControlUtilsRun_Click, scData == null");
                 return;
 
             }
@@ -3539,18 +3632,18 @@ namespace Walnut
         /// <summary>
         /// Handles a click on the run stop button of the Ex008 panel 
         /// </summary>
-        private void buttonStepperControl008Stop_Click(object sender, EventArgs e)
+        private void buttonStepperControlUtilsStop_Click(object sender, EventArgs e)
         {
-            LogMessage("buttonStepperControl008Stop_Click");
+            LogMessage("buttonStepperControlUtilsStop_Click");
 
             if (dataTransporter == null)
             {
-                LogMessage("buttonStepperControl008Stop_Click, dataTransporter == null");
+                LogMessage("buttonStepperControlUtilsStop_Click, dataTransporter == null");
                 return;
             }
             if (IsConnected() == false)
             {
-                LogMessage("buttonStepperControl008Stop_Click, Not connected");
+                LogMessage("buttonStepperControlUtilsStop_Click, Not connected");
                 return;
             }
 
@@ -3558,7 +3651,7 @@ namespace Walnut
             ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, false, false, 1);
             if (scData == null)
             {
-                LogMessage("buttonStepperControl008Stop_Click, scData == null");
+                LogMessage("buttonStepperControlUtilsStop_Click, scData == null");
                 return;
 
             }
@@ -3574,18 +3667,18 @@ namespace Walnut
         /// <summary>
         /// Handles a click on the nudge 1 button of the Ex008 panel 
         /// </summary>
-        private void buttonStepperControl008Nudge1_Click(object sender, EventArgs e)
+        private void buttonStepperControlUtilsNudge1_Click(object sender, EventArgs e)
         {
-            LogMessage("buttonStepperControl008Nudge1_Click");
+            LogMessage("buttonStepperControlUtilsNudge1_Click");
 
             if (dataTransporter == null)
             {
-                LogMessage("buttonStepperControl008Nudge1_Click, dataTransporter == null");
+                LogMessage("buttonStepperControlUtilsNudge1_Click, dataTransporter == null");
                 return;
             }
             if (IsConnected() == false)
             {
-                LogMessage("buttonStepperControl008Nudge1_Click, Not connected");
+                LogMessage("buttonStepperControlUtilsNudge1_Click, Not connected");
                 return;
             }
 
@@ -3593,7 +3686,7 @@ namespace Walnut
             ServerClientData scData = GetTestEx008StepperDataFromScreen(StepperIDEnum.STEPPER_0, true, true, 1);
             if(scData == null)
             {
-                LogMessage("buttonStepperControl008Nudge1_Click, scData == null");
+                LogMessage("buttonStepperControlUtilsNudge1_Click, scData == null");
                 return;
 
             }
@@ -3806,7 +3899,7 @@ namespace Walnut
             // set the speed
             try
             {
-                stepperControl.Stepper_StepSpeed = Convert.ToUInt32(textBoxStepperControl008StepsPerSecond.Text);
+                stepperControl.Stepper_StepSpeed = Convert.ToUInt32(textBoxStepperControlUtilsStepsPerSecond.Text);
             }
             catch(Exception ex)
             {
@@ -3819,7 +3912,7 @@ namespace Walnut
             if (wantNumStepsOverride == false)
             {
                 // no, we do not, set it this way
-                tmpNumSteps = textBoxStepperControl008NumSteps.Text;
+                tmpNumSteps = textBoxStepperControlUtilsNumSteps.Text;
             }
             else tmpNumSteps = numSteps.ToString();
             // now do the the conversion on the true value the user wants
@@ -3835,7 +3928,7 @@ namespace Walnut
             }
 
             // set the direction
-            if (radioButtonStepperControl008DirCW.Checked == true) stepperControl.Stepper_DirState = 1;
+            if (radioButtonStepperControlUtilsDirCW.Checked == true) stepperControl.Stepper_DirState = 1;
             else stepperControl.Stepper_DirState = 0;
 
             // enable the stepper
@@ -3960,7 +4053,7 @@ namespace Walnut
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Calculates the pixels per micron value on the distance calibration panel
-        /// and sets the appropriate fields
+        /// and sets the appropriate fields on the main screen.
         /// </summary>
         private void CalcDistanceCalibration()
         {
@@ -3976,6 +4069,7 @@ namespace Walnut
             catch (Exception ex) 
             {
                 LogMessage(" CalcDistanceCalibration (knownMicronLen):" + ex.Message);
+                ClearAllCalibration();
                 return;
             }
 
@@ -3983,11 +4077,12 @@ namespace Walnut
             {
                 try
                 {
-                    knownDist = Convert.ToDouble(textBoxDistanceVert.Text);
+                    knownDist = Convert.ToDouble(textBoxDistanceInPixelsVert.Text);
                 }
                 catch (Exception ex)
                 {
                     LogMessage(" CalcDistanceCalibration (knownDist_V):" + ex.Message);
+                    ClearAllCalibration();
                     return;
                 }
 
@@ -3996,11 +4091,12 @@ namespace Walnut
             {
                 try
                 {
-                    knownDist = Convert.ToDouble(textBoxDistanceHoriz.Text);
+                    knownDist = Convert.ToDouble(textBoxDistanceInPixelsHoriz.Text);
                 }
                 catch (Exception ex)
                 {
                     LogMessage(" CalcDistanceCalibration (knownDist_H):" + ex.Message);
+                    ClearAllCalibration();
                     return;
                 }
 
@@ -4008,15 +4104,31 @@ namespace Walnut
             else 
             {
                 LogMessage(" CalcDistanceCalibration unknown direction");
+                ClearAllCalibration();
                 return; 
             }
 
             // divide by zero check
-            if(knownMicronLen==0) return; 
+            if (knownMicronLen <= 0)
+            {
+                ClearAllCalibration();
+                return;
+            }
 
             // now do the calc, and load the box
             textBoxScalePixelsPerMicron.Text = Math.Round((knownDist / knownMicronLen), 5).ToString();
 
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Clears all calibration values
+        /// </summary>
+        private void ClearAllCalibration()
+        {
+            CalibratedPixelsPerMicron = 0;
+            SetMicronDistancesOnUtilsTabToReality();
+            
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -4068,8 +4180,26 @@ namespace Walnut
         /// </summary>
         private void buttonScaleSet_Click(object sender, EventArgs e)
         {
-            // we are sure it is good, copy it over
-            textBoxCalibratedPixelsPerMicron.Text = textBoxScalePixelsPerMicron.Text;
+            // set the new calibration setting
+            try
+            {
+                CalibratedPixelsPerMicron = Convert.ToDouble(textBoxScalePixelsPerMicron.Text);
+            }
+            catch (Exception ex)
+            {
+                CalibratedPixelsPerMicron = 0;
+            }
+            SetMicronDistancesOnUtilsTabToReality();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Clears the Calibrated Pixels per micron value on the display. 
+        /// </summary>
+        private void buttonScaleClear_Click(object sender, EventArgs e)
+        {
+            CalibratedPixelsPerMicron = 0;
+            SetMicronDistancesOnUtilsTabToReality();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -4097,6 +4227,13 @@ namespace Walnut
             set
             {
                 textBoxCalibratedPixelsPerMicron.Text = Math.Round(value,5).ToString();
+                // set whatever we have on the text transform
+                if (((TextOverlayTransform != null) && (TextOverlayTransform is MFTWriteText_Sync) == true))
+                {
+                    (TextOverlayTransform as MFTWriteText_Sync).SetCalibrationBarData(CalibratedPixelsPerMicron);
+                }
+                // was it <= zero? Just clear it
+                if(value <=0) textBoxScalePixelsPerMicron.Text = "";
             }
         }
 
@@ -4177,6 +4314,7 @@ namespace Walnut
         }
 
         public Point LastGreenPoint { get => lastGreenPoint; set => lastGreenPoint = value; }
+
     }
 
 }

@@ -98,10 +98,17 @@ namespace Walnut
         private Rectangle textBackground = new Rectangle();
 
         // The strings to display in the chyron at the bottom of the image
-        string runInfoStr = "Sample Run";
-        string versionInfoStr = "Walnut";
+        private string runInfoStr = "Sample Run";
+        private string versionInfoStr = "Walnut";
 
         private int chyronHeight = 0;
+
+        // for the calibration bar
+        private const int MAX_CALIBRATION_BAR_LEN = 200;
+        private const int MIN_CALIBRATION_BAR_LEN = 50;
+
+        private string calibrationBarText = "";
+        private int calibrationBarLengthInPixels = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -625,36 +632,62 @@ namespace Walnut
                 using (Graphics g = Graphics.FromImage(v))
                 {
                     float sLeft;
+                    float sRight;
                     float sTop;
+                    float sBot;
                     SizeF fontSize;
 
                     // draw our background for the text, the rect for this was figured out earlier
                     g.FillRectangle(Brushes.Black, textBackground);
 
                     // Left text is always a time/date stamp. It goes at the left hand side of the video, one margin in
-                    string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ff");
+                    //string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ff");
+                    string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                     fontSize = g.MeasureString(currentDateTime, m_fontOverlay);
                     sLeft = (0 + DEFAULT_FONT_HORIZ_MARGIN);
                     sTop = (m_imageHeightInPixels - fontSize.Height);
                     g.DrawString(currentDateTime, m_fontOverlay, System.Drawing.Brushes.White, sLeft, sTop, StringFormat.GenericTypographic);
 
-                    // Add a user run informational string to the center
-                    fontSize = g.MeasureString(RunInfoStr, m_fontOverlay);
-                    sTop = (m_imageHeightInPixels - fontSize.Height);
-                    sLeft = ((m_imageWidthInPixels - fontSize.Width) / 2);
-                    g.DrawString(RunInfoStr, m_fontOverlay, System.Drawing.Brushes.White, sLeft, sTop, StringFormat.GenericTypographic);
+                    const int DEFAULT_CALIBRATION_LINE_VERT_MARGIN = 4; // this many pixels on top of calibration line
+                    const int DEFAULT_CALIBRATION_LINE_VERT_BARHEIGHT = 8; // this many pixels in calibration line vertical bars
+                    const int DEFAULT_CALIBRATION_LINE_OFFSET = 50; // pull the calibration line to the left by this much
 
-                    // Add a Walnut version number and a frame number to the right hand side cause it looks cool and might be useful
-                    string frameCount = VersionInfoStr + " " + m_FrameCount.ToString();
-                    fontSize = g.MeasureString(frameCount, m_fontOverlay);
+                    // Add a user run informational string to the center
+                    //fontSize = g.MeasureString(RunInfoStr, m_fontOverlay);
+                    //sTop = (m_imageHeightInPixels - fontSize.Height);
+                    //sLeft = ((m_imageWidthInPixels - fontSize.Width) / 2);
+                    //g.DrawString(RunInfoStr, m_fontOverlay, System.Drawing.Brushes.White, sLeft, sTop, StringFormat.GenericTypographic);
+                    int halfChyronHeight = ChyronHeight / 2;
+                    if (CalibrationBarLengthInPixels > 0)
+                    {
+                        sTop = (m_imageHeightInPixels - halfChyronHeight);
+                        sLeft = (((m_imageWidthInPixels - CalibrationBarLengthInPixels) / 2) - DEFAULT_CALIBRATION_LINE_OFFSET);
+                        sRight = (sLeft + (CalibrationBarLengthInPixels));
+                        g.DrawLine(System.Drawing.Pens.White, sLeft, sTop, sRight, sTop);
+                        sTop = (m_imageHeightInPixels - halfChyronHeight - DEFAULT_CALIBRATION_LINE_VERT_BARHEIGHT / 2);
+                        sBot = (m_imageHeightInPixels - halfChyronHeight + DEFAULT_CALIBRATION_LINE_VERT_BARHEIGHT / 2);
+                        g.DrawLine(System.Drawing.Pens.White, sLeft, sTop, sLeft, sBot);
+                        g.DrawLine(System.Drawing.Pens.White, sRight, sTop, sRight, sBot);
+                        fontSize = g.MeasureString(CalibrationBarText, m_fontOverlay);
+                        g.DrawString(CalibrationBarText, m_fontOverlay, System.Drawing.Brushes.White, sRight, sTop - DEFAULT_CALIBRATION_LINE_VERT_MARGIN, StringFormat.GenericTypographic);
+                    }
+                    else
+                    {
+                        // uncalibrated or not possible to calibrate
+                    }
+
+                    // Add a user run informational string, Walnut version number and a frame number to the right hand side cause it looks cool and might be useful
+                    string rightMarginString = RunInfoStr+ " " + VersionInfoStr + " " + m_FrameCount.ToString();
+                    fontSize = g.MeasureString(rightMarginString, m_fontOverlay);
                     sTop = (m_imageHeightInPixels - fontSize.Height);
-                    sLeft = (m_imageWidthInPixels - fontSize.Width) - DEFAULT_FONT_HORIZ_MARGIN;
-                    g.DrawString(frameCount, m_fontOverlay, System.Drawing.Brushes.White, sLeft, sTop, StringFormat.GenericTypographic);
+                    //sLeft = (m_imageWidthInPixels - fontSize.Width) - DEFAULT_FONT_HORIZ_MARGIN;
+                    sLeft = (m_imageWidthInPixels - fontSize.Width) ;
+                    g.DrawString(rightMarginString, m_fontOverlay, System.Drawing.Brushes.White, sLeft, sTop, StringFormat.GenericTypographic);
 
                 }
             }
-
         }
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets the height of the chyron at the screen bottom
@@ -663,6 +696,125 @@ namespace Walnut
         {
             get { return chyronHeight; }
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the length of the calibration bar in pixels. There is no set accessor
+        /// this is done by a function which calculates this.
+        /// </summary>
+        public int CalibrationBarLengthInPixels
+        {
+            get { return calibrationBarLengthInPixels; }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the calibration bar text in pixels. There is no set accessor
+        /// this is done by a function which calculates this.
+        /// </summary>
+        public string CalibrationBarText
+        {
+            get { return calibrationBarText; }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Set the calibration parameters. This only needs to be done when the 
+        /// calibration is set - not calculated for each frame.
+        /// </summary>
+        public void SetCalibrationBarData(double numMicronsPerPixel)
+        {
+
+            double workingLineLen = numMicronsPerPixel;
+
+            if(workingLineLen <=0)
+            {
+                calibrationBarText = "";
+                calibrationBarLengthInPixels = 0;
+                return;
+            }
+            // see if we are suitable for a ten micron scale
+            workingLineLen = numMicronsPerPixel*10;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {                
+                calibrationBarText = " 10µm";
+                calibrationBarLengthInPixels = (int) workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a fifty micron scale
+            workingLineLen = numMicronsPerPixel * 50;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 50µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 100 micron scale
+            workingLineLen = numMicronsPerPixel * 100;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 100µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 150 micron scale
+            workingLineLen = numMicronsPerPixel * 100;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 150µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 200 micron scale
+            workingLineLen = numMicronsPerPixel * 200;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 200µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 300 micron scale
+            workingLineLen = numMicronsPerPixel * 300;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 300µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 400 micron scale
+            workingLineLen = numMicronsPerPixel * 400;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 400µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 500 micron scale
+            workingLineLen = numMicronsPerPixel * 500;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 500µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // not suitable for calibration
+            if (workingLineLen > MIN_CALIBRATION_BAR_LEN)
+            {
+                calibrationBarText = "";
+                calibrationBarLengthInPixels = 0;
+                return;
+            }
+
+        }
+
         #endregion
 
     }

@@ -93,7 +93,7 @@ namespace WalnutClient
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.09";
+        private const string APPLICATION_VERSION = "00.02.10";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
