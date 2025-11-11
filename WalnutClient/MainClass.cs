@@ -93,7 +93,7 @@ namespace WalnutClient
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.10";
+        private const string APPLICATION_VERSION = "00.02.11";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
@@ -191,21 +191,23 @@ namespace WalnutClient
 
         // in this version the software only cares about two squares. These contain the
         // discovered information regarding the squares
-        private MarkedObject redSquare = new MarkedObject();
-        private MarkedObject greenSquare = new MarkedObject();
+      //  private MarkedObject redSquare = new MarkedObject();
+     //   private MarkedObject greenSquare = new MarkedObject();
+        private const uint MAX_MOTOR_SPEED = 10;
 
         // this is the behaviour. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past red and green square coordinate values and
         // the last outputs (speed and dir) it returned and makes decisions based on them
         private Behaviour_MoveClose behaviourMoveClose = null;
-        private const uint MAX_STEPPER_SPEED = 200;
 
         // this is the level behaviour. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past red and green square coordinate values and
         // the last outputs (speed and dir) it returned and makes decisions based on them
         private Behaviour_MoveLevel behaviourMoveLevelX = null;
         private Behaviour_MoveLevel behaviourMoveLevelY = null;
-        private const uint MAX_MOTOR_SPEED = 10;
+
+        private const uint DEFAULT_STEPPER_SPEED = 50;
+        private const uint MAX_STEPPER_SPEED = 200;
 
         // this is a point tracker. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past N points it is presented with and can detect
@@ -403,6 +405,20 @@ namespace WalnutClient
                 // the call below should be able to figure out what to do
                 SetWaldosFromServerClientData(scData);
             }
+            else if (scData.DataContent == ServerClientDataContentEnum.NO_DATA)
+            {
+                // no data with a disable waldos flag always does this and nothing else
+                if (scData.Waldo_Enable != 1)
+                {
+                    LogMessage("ServerClientDataEventHandler, Waldos are now disabled");
+                    // just disable them all. Each waldo will need to be individually re-enabled
+                    StopAllWaldos();
+                    return;
+                }
+
+                // the call below should be able to figure out what to do
+                SetWaldosFromServerClientData(scData);
+            }
             else
             {
                 LogMessage("ServerClientDataEventHandler unknown DataContent = " + scData.DataContent.ToString());
@@ -439,7 +455,7 @@ namespace WalnutClient
             }
 
             //Console.WriteLine("SetWaldosFromServerClientData Message Received");
-            Console.WriteLine("SetWaldosFromServerClientData Message Received");
+        //    Console.WriteLine("SetWaldosFromServerClientData Message Received");
             LogMessage("SetWaldosFromServerClientData Message Received");
 
             // a disable waldos flag always does this and nothing else
@@ -459,61 +475,45 @@ namespace WalnutClient
             }
 
             // are we dealing with PWMA data?
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
+            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWM_CONTROL))
+     //       if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
             {
-                if (pwmPortA != null)
-                {
-                    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString() + ", Dir="+ scData.PWMA_DirState.ToString());
+// disabled now needs to be treated as stepper motors
+                //if (pwmPortA != null)
+                //{
+                //    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString() + ", Dir="+ scData.PWMA_DirState.ToString());
 
-                    // set the pwmPercent, the frequency was set to a constant when the port was opened
-                    pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
-                    // now enable or disable as appropriate
-                    if (scData.PWMA_Enable != 0) pwmPortA.RunState = true;
-                    else pwmPortA.RunState = false;
-                    // set the direction
-                    if(scData.PWMA_DirState != 0) pwmPortADir.Write(true);
-                    else pwmPortADir.Write(false);
-                }
+                //    // set the pwmPercent, the frequency was set to a constant when the port was opened
+                //    pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
+                //    // now enable or disable as appropriate
+                //    if (scData.PWMA_Enable != 0) pwmPortA.RunState = true;
+                //    else pwmPortA.RunState = false;
+                //    // set the direction
+                //    if(scData.PWMA_DirState != 0) pwmPortADir.Write(true);
+                //    else pwmPortADir.Write(false);
+                //}
             }
 
-            // are we dealing with PWMB data?
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMB_DATA))
-            {
-                if (pwmPortB != null)
-                {
-                    Console.WriteLine("PWMB DATA PWMB_Enable=" + scData.PWMB_Enable.ToString() + ",DutyPercent=" + scData.PWMB_PWMPercent.ToString() + ", Dir=" + scData.PWMB_DirState.ToString());
+            //// are we dealing with rectangle data, this is data that has come off
+            //// the image recognition algorythm in the Walnut Server
+            //if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
+            //{
+            //    // sanity check
+            //    if (scData.RectList == null)
+            //    {
+            //        Console.WriteLine("Null rectList with content flag RECT_DATA");
+            //        LogMessage("SetWaldosFromServerClientData, Null rectList with content flag RECT_DATA");
+            //        return;
+            //    }
+            //    // this is the action at the moment, we have the centerpoint of the squares and the 
+            //    // known color of the centerpoint. We have to set this information in objects
+            //    // so we can use it
+            //    IdentifySquaresByColor(scData.RectList);
+            //    // now we move the red square to the green square. This is a stated goal
+            //    //MoveRedToGreen();
+            //}
 
-                    // set the pwmPercent, the frequency was set to a constant when the port was opened
-                    pwmPortB.DutyPercent = scData.PWMB_PWMPercent;
-                    // now enable or disable as appropriate
-                    if (scData.PWMB_Enable != 0) pwmPortB.RunState = true;
-                    else pwmPortB.RunState = false;
-                    // set the direction
-                    if (scData.PWMB_DirState != 0) pwmPortBDir.Write(true);
-                    else pwmPortBDir.Write(false);
-                }
-            }
-
-            // are we dealing with rectangle data, this is data that has come off
-            // the image recognition algorythm in the Walnut Server
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
-            {
-                // sanity check
-                if (scData.RectList == null)
-                {
-                    Console.WriteLine("Null rectList with content flag RECT_DATA");
-                    LogMessage("SetWaldosFromServerClientData, Null rectList with content flag RECT_DATA");
-                    return;
-                }
-                // this is the action at the moment, we have the centerpoint of the squares and the 
-                // known color of the centerpoint. We have to set this information in objects
-                // so we can use it
-                IdentifySquaresByColor(scData.RectList);
-                // now we move the red square to the green square. This is a stated goal
-                //MoveRedToGreen();
-            }
-
-            // are we dealing with srcTgt data, this is data that has come off
+            // are we dealing with srcTgt data, this is data that has been
             // decided on by the Walnut Server
             if (scData.UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
             {
@@ -529,14 +529,12 @@ namespace WalnutClient
                     Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
                     LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
                     // send in a dummy, there is code in the called procedure to handle this
-                   // MoveSourceToTarget_PWM(new SrcTgtData());
-                    MoveSourceToTarget_Stepper(new SrcTgtData());
+                    MoveSourceToTarget_Stepper(new SCData_SrcTgt());
                     return;
                 }
                 else
                 {
                     // now we move the source to the target with the green square. This is a stated goal
-                   // MoveSourceToTarget_PWM(scData.SrcTgtList[0]);
                     MoveSourceToTarget_Stepper(scData.SrcTgtList[0]);
                 }
             }
@@ -692,7 +690,7 @@ namespace WalnutClient
                 pruDriver.WritePRUDataUInt32(stepCtrlObj.Num_Steps, stepXMaxPulsesAddress);
                 // set the stepper enabled flag
                 pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_Enable, stepXEnabledStateAddress);
-Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
+Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper_ID.ToString() + ", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
 
             } // bottom of foreach (SCData_StepperControl stepCtrlObj in stControlList)
 
@@ -702,106 +700,6 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
             // we collected the semaphores for the steppers that were affected in the loop above
             // set the semaphore last, this makes the PRU pick it up
             pruDriver.WritePRUDataUInt32(stepSemaphoreFlag, SEMAPHORE_OFFSET);
-
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// A Waldo action to process an incoming StepperControl Object.
-        /// 
-        /// </summary>
-        /// <param name="stepCtrlObj">the stepper control object</param>
-        private void ProcessStepperControlObject(SCData_StepperControl stepCtrlObj)
-        {
-            uint stepXFullCountAddress = 0;
-            uint stepXDirStateAddress = 0;
-            uint stepXEnabledStateAddress = 0;
-            uint stepXMaxPulsesAddress = 0;
-            uint stepXSemaphoreFlag = 0;
-            Console.WriteLine("ProcessStepperControlObject ");
-
-            if (pruDriver == null)
-            {
-                Console.WriteLine("ProcessStepperControlObject pruDriver==null");
-                LogMessage("ProcessStepperControlObject, pruDriver==null");
-                return;
-            }
-
-            if (stepCtrlObj == null)
-            {
-                Console.WriteLine("ProcessStepperControlObject: No Control Obj");
-                LogMessage("ProcessStepperControlObject: No Control Obj");
-                // we do not permit ill formed commands to be sent to us
-                StopAllWaldos();
-                return;
-            }
-
-            // we use these to signal which stepper has changed so we do not 
-            // reset the counts of the other ones which might be operating
-            const uint STEP0_CHANGED = 0b0000000000000001;
-            const uint STEP1_CHANGED = 0b0000000000000010;
-            const uint STEP2_CHANGED = 0b0000000000000100;
-            const uint STEP3_CHANGED = 0b0000000000001000;
-
-            // set up for the stepper we use
-            if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_0)
-            {
-                stepXFullCountAddress = STEP0_FULLHALFCYCLECOUNT_OFFSET;
-                stepXDirStateAddress = STEP0_DIRSTATE_OFFSET;
-                stepXEnabledStateAddress = STEP0_ENABLED_OFFSET;
-                stepXMaxPulsesAddress = STEP0_MAX_NUMPULSES_OFFSET;
-                stepXSemaphoreFlag = STEP0_CHANGED;
-            }
-            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_1)
-            {
-                stepXFullCountAddress = STEP1_FULLHALFCYCLECOUNT_OFFSET;
-                stepXDirStateAddress = STEP1_DIRSTATE_OFFSET;
-                stepXEnabledStateAddress = STEP1_ENABLED_OFFSET;
-                stepXMaxPulsesAddress = STEP1_MAX_NUMPULSES_OFFSET;
-                stepXSemaphoreFlag = STEP1_CHANGED;
-            }
-            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_2)
-            {
-                stepXFullCountAddress = STEP2_FULLHALFCYCLECOUNT_OFFSET;
-                stepXDirStateAddress = STEP2_DIRSTATE_OFFSET;
-                stepXEnabledStateAddress = STEP2_ENABLED_OFFSET;
-                stepXMaxPulsesAddress = STEP2_MAX_NUMPULSES_OFFSET;
-                stepXSemaphoreFlag = STEP2_CHANGED;
-            }
-            else if (stepCtrlObj.Stepper_ID == StepperIDEnum.STEPPER_3)
-            {
-                stepXFullCountAddress = STEP3_FULLHALFCYCLECOUNT_OFFSET;
-                stepXDirStateAddress = STEP3_DIRSTATE_OFFSET;
-                stepXEnabledStateAddress = STEP3_ENABLED_OFFSET;
-                stepXMaxPulsesAddress = STEP3_MAX_NUMPULSES_OFFSET;
-                stepXSemaphoreFlag = STEP3_CHANGED;
-            }
-            else
-            {
-                Console.WriteLine("ProcessStepperControlList: unknown stepper ID="+ stepCtrlObj.Stepper_ID.ToString());
-                LogMessage("ProcessStepperControlList: unknown stepper ID="+ stepCtrlObj.Stepper_ID.ToString());
-                // we do not permit ill formed commands to be sent to us
-                StopAllWaldos();
-                return;
-            }
-
-            // we do not need a behaviour here. We just set the stepper motor parameters right out of the object
-
-            // write the waldo enable/disable flag. This is always assumed to be enabled because if it wasn't
-            // this code would never have been called
-            pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
-            // write the STEP speed value
-            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles(stepCtrlObj.Stepper_StepSpeed), stepXFullCountAddress);
-            // write the direction state
-            pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_DirState, stepXDirStateAddress);
-            // write the num pulses
-            pruDriver.WritePRUDataUInt32(stepCtrlObj.Num_Steps, stepXMaxPulsesAddress);
-            // set the stepper enabled flag
-            pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_Enable, stepXEnabledStateAddress);
-            // set the semaphore last, this makes the PRU pick it up
-            pruDriver.WritePRUDataUInt32(stepXSemaphoreFlag, SEMAPHORE_OFFSET);
-
- //Console.WriteLine(testTime.TimeOfDay.ToString()+", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
 
         }
 
@@ -848,23 +746,24 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
         /// 
         /// </summary>
         /// <param name="rectList">The list of rectangles</param>
-        private void IdentifySquaresByColor(List<ColoredRotatedObject> rectList)
-        {
-            // run through the list to find the first red square
-            foreach (ColoredRotatedObject rectObj in rectList)
-            {
-                if (rectObj.ObjColor != KnownColor.Red) continue;
-                redSquare.SetCenterLocation(rectObj.CenterPoint);
-                break;
-            }
-            // run through the list to find the first green square
-            foreach (ColoredRotatedObject rectObj in rectList)
-            {
-                if (rectObj.ObjColor != KnownColor.Green) continue;
-                greenSquare.SetCenterLocation(rectObj.CenterPoint);
-                break;
-            }
-        }
+// some sort of remnant code back from Ex002-003
+        //private void IdentifySquaresByColor(List<ColoredRotatedObject> rectList)
+        //{
+        //    // run through the list to find the first red square
+        //    foreach (ColoredRotatedObject rectObj in rectList)
+        //    {
+        //        if (rectObj.ObjColor != KnownColor.Red) continue;
+        //        redSquare.SetCenterLocation(rectObj.CenterPoint);
+        //        break;
+        //    }
+        //    // run through the list to find the first green square
+        //    foreach (ColoredRotatedObject rectObj in rectList)
+        //    {
+        //        if (rectObj.ObjColor != KnownColor.Green) continue;
+        //        greenSquare.SetCenterLocation(rectObj.CenterPoint);
+        //        break;
+        //    }
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -873,67 +772,68 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
         /// help us do this
         /// 
         /// </summary>
-        private void MoveRedToGreen()
-        {
-            uint outSpeed = 0;
-            uint outDirection = 0;
+        /// 
+// some sort of remnant code back from Ex002-003
+        //private void MoveRedToGreen()
+        //{
+        //    uint outSpeed = 0;
+        //    uint outDirection = 0;
 
-            // this is a test action. The Red square is assumed to be on a rotating 
-            // turntable and the green square is stationary. We will turn the table
-            // so that the red square is as close to the green square as possible and 
-            // then stop.
+        //    // this is a test action. The Red square is assumed to be on a rotating 
+        //    // turntable and the green square is stationary. We will turn the table
+        //    // so that the red square is as close to the green square as possible and 
+        //    // then stop.
 
-            if (redSquare.IsValid() == false)
-            {
-                Console.WriteLine("No Red Square Data");
-                return;
-            }
-            if (greenSquare.IsValid() == false)
-            {
-                Console.WriteLine("No Green Square Data");
-                return;
-            }
+        //    if (redSquare.IsValid() == false)
+        //    {
+        //        Console.WriteLine("No Red Square Data");
+        //        return;
+        //    }
+        //    if (greenSquare.IsValid() == false)
+        //    {
+        //        Console.WriteLine("No Green Square Data");
+        //        return;
+        //    }
 
-            // note the center locations will have been rounded to the nearest int
-            // when stored in the Marked Object. There will be no decimals here
-            PointF redCenter = redSquare.CenterLocation;
-            PointF greenCenter = greenSquare.CenterLocation;
+        //    // note the center locations will have been rounded to the nearest int
+        //    // when stored in the Marked Object. There will be no decimals here
+        //    PointF redCenter = redSquare.CenterLocation;
+        //    PointF greenCenter = greenSquare.CenterLocation;
 
-            float redCenterX = redCenter.X;
-            float redCenterY = redCenter.Y;
-            float greenCenterX = greenCenter.X;
-            float greenCenterY = greenCenter.Y;
+        //    float redCenterX = redCenter.X;
+        //    float redCenterY = redCenter.Y;
+        //    float greenCenterX = greenCenter.X;
+        //    float greenCenterY = greenCenter.Y;
 
-            // do we have both, if not do nothing, the motor could still be 
-            // turning at this point but we deal with so much noise we cannot 
-            // stop every time there is dodgy data
-            if (redCenterX < 0) return;
-            if (redCenterY < 0) return;
-            if (greenCenterX < 0) return;
-            if (greenCenterY < 0) return;
+        //    // do we have both, if not do nothing, the motor could still be 
+        //    // turning at this point but we deal with so much noise we cannot 
+        //    // stop every time there is dodgy data
+        //    if (redCenterX < 0) return;
+        //    if (redCenterY < 0) return;
+        //    if (greenCenterX < 0) return;
+        //    if (greenCenterY < 0) return;
 
-            // set up our behaviour if we need to
-            if (behaviourMoveClose == null) behaviourMoveClose = new Behaviour_MoveClose(MAX_STEPPER_SPEED);
-            // get the result 
-            int retVal = behaviourMoveClose.GetOutput(greenCenter, redCenter, out outSpeed, out outDirection);
+        //    // set up our behaviour if we need to
+        //    if (behaviourMoveClose == null) behaviourMoveClose = new Behaviour_MoveClose(MAX_STEPPER_SPEED);
+        //    // get the result 
+        //    int retVal = behaviourMoveClose.GetOutput(greenCenter, redCenter, out outSpeed, out outDirection);
 
-            // write the STEP0 enable/disable flag
-            pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
-            // write the STEP0 speed value
-            pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles((uint)outSpeed), STEP0_FULLHALFCYCLECOUNT_OFFSET);
-            // write the direction state
-            pruDriver.WritePRUDataUInt32(outDirection, STEP0_DIRSTATE_OFFSET);
-            pruDriver.WritePRUDataUInt32(1, STEP0_ENABLED_OFFSET);
-            pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
-
-        }
+        //    // write the STEP0 enable/disable flag
+        //    pruDriver.WritePRUDataUInt32(1, WALDO_ENABLE_OFFSET);
+        //    // write the STEP0 speed value
+        //    pruDriver.WritePRUDataUInt32(WalnutCommon.Utils.ConvertHzToCycles((uint)outSpeed), STEP0_FULLHALFCYCLECOUNT_OFFSET);
+        //    // write the direction state
+        //    pruDriver.WritePRUDataUInt32(outDirection, STEP0_DIRSTATE_OFFSET);
+        //    pruDriver.WritePRUDataUInt32(1, STEP0_ENABLED_OFFSET);
+        //    pruDriver.WritePRUDataUInt32(1, SEMAPHORE_OFFSET);
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// A Waldo action to move the source onto the target. Stepper Version
         /// 
         /// </summary>
-        private void MoveSourceToTarget_Stepper(SrcTgtData stData)
+        private void MoveSourceToTarget_Stepper(SCData_SrcTgt stData)
         {
             uint outSpeedX = 0;
             uint outDirectionX = 0;
@@ -943,16 +843,16 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
             PointF tgtCenter = new PointF(float.NaN, float.NaN);
 
             // form up new StepperControl objects, and a list to contain them
-            SCData_StepperControl stepperObjX = new SCData_StepperControl(StepperIDEnum.STEPPER_1);
-            SCData_StepperControl stepperObjY = new SCData_StepperControl(StepperIDEnum.STEPPER_0);
+            SCData_StepperControl stepperObjX = new SCData_StepperControl(StepperIDEnum.STEPPER_0);
+            SCData_StepperControl stepperObjY = new SCData_StepperControl(StepperIDEnum.STEPPER_1);
             List< SCData_StepperControl >stepperList = new List< SCData_StepperControl >();
             // add our stepper control modules to the list
             stepperList.Add(stepperObjX);
             stepperList.Add(stepperObjY);
 
             // set up our behaviours if we need to
-            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
-            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
+            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, DEFAULT_STEPPER_SPEED);
+            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, DEFAULT_STEPPER_SPEED);
             // set up our target tracker if we need to
             int workingTargetMovedThreshold = 5;
             if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
@@ -1003,7 +903,8 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
             // feed our target tracker with the static point. We want to be able to see if it has moved
             behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
 
-            // tmp   if (behaviourTrackTarget.HasMoved() == true)
+            // CanStop disabled for Ex010
+            //if (behaviourTrackTarget.HasMoved() == true)
             if (true)
             {
                 // reset the MoveLevel behaviour
@@ -1014,41 +915,39 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", stepCtrlObj.Stepper_Ena
                 behaviourTrackTarget.SetTargetPoint(tgtCenter);
             }
 
-// we do not have X axis (horiz) control yet we are only interested in Y axis (up/down)
-stepperObjX.Stepper_Enable = 0;
+            // Process X, have we already reached a point where we can stop?
+            if (behaviourMoveLevelX.CanStop() == true)
+            {
+                // turn off the stepper
+                stepperObjX.Stepper_Enable = 0;
+            }
+            else
+            {
+                // can't stop, process this input, set the speed
+                behaviourMoveLevelX.OutputSpeedMax = (uint)stData.MaxSpeed_X;
+                // get the result for X direction
+                int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
+                if (retVal != 0)
+                {
+                    // turn off the stepper
+                    stepperObjX.Stepper_Enable = 0;
+                    return;
+                }
+                else
+                {
+                    // set the stepper speed
+                    stepperObjX.Stepper_StepSpeed = outSpeedX;
+                    // give it infinite steps, the server will turn it off
+                    stepperObjX.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
 
-            //// Process X, have we already reached a point where we can stop?
-            //if (behaviourMoveLevelX.CanStop() == true)
-            //{
-            //    // turn off the stepper
-            //    stepperObjX.Stepper_Enable = 0;
-            //}
-            //else
-            //{
-            //    // can't stop, process this input
-            //    // get the result for X direction
-            //    int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
-            //    if (retVal != 0)
-            //    {
-            //        // turn off the stepper
-            //        stepperObjX.Stepper_Enable = 0;
-            //        return;
-            //    }
-            //    else
-            //    {
-            //        // set the stepper speed
-            //        stepperObjX.Stepper_StepSpeed = outSpeedX;
-            //        // give it infinite steps, the server will turn it off
-            //        stepperObjX.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+                    // set the direction
+                    if (outDirectionX != 0) stepperObjX.Stepper_DirState = 1;
+                    else stepperObjX.Stepper_DirState = 0;
 
-            //        // set the direction
-            //        if (outDirectionX != 0) stepperObjX.Stepper_DirState=1;
-            //        else stepperObjX.Stepper_DirState = 0;
-
-            //        // turn off the stepper
-            //        stepperObjX.Stepper_Enable = 1;
-            //    }
-            //}
+                    // turn off the stepper
+                    stepperObjX.Stepper_Enable = 1;
+                }
+            }
 
             // Process Y, have we already reached a point where we can stop?
             if (behaviourMoveLevelY.CanStop() == true)
@@ -1058,7 +957,8 @@ stepperObjX.Stepper_Enable = 0;
             }
             else
             {
-                // can't stop, process this input
+                // can't stop, process this input, set the speed
+                behaviourMoveLevelY.OutputSpeedMax = (uint)stData.MaxSpeed_Y;
                 // get the result for Y direction
                 int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
                 if (retVal != 0)
@@ -1075,8 +975,8 @@ stepperObjX.Stepper_Enable = 0;
                     stepperObjY.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
 
                     // set the direction
-                    if (outDirectionY != 0) stepperObjY.Stepper_DirState = 1;
-                    else stepperObjY.Stepper_DirState = 0;
+                    if (outDirectionY != 0) stepperObjY.Stepper_DirState = 0;
+                    else stepperObjY.Stepper_DirState = 1;
 
                     // turn off the stepper
                     stepperObjY.Stepper_Enable = 1;
@@ -1096,7 +996,7 @@ stepperObjX.Stepper_Enable = 0;
         /// A Waldo action to move the source onto the target. PWM Version
         /// 
         /// </summary>
-        private void MoveSourceToTarget_PWM(SrcTgtData stData)
+        private void MoveSourceToTarget_PWM(SCData_SrcTgt stData)
         {
             uint outSpeedX = 0;
             uint outDirectionX = 0;

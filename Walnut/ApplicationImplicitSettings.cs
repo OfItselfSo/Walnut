@@ -184,50 +184,50 @@ namespace Walnut
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public int LastGreenCircleRadius
+        public int DrawGreenCircleRadius
         {
-            get { return (int)this["LastGreenCircleRadius"]; }
-            set { this["LastGreenCircleRadius"] = value; }
-        }
-
-        //[UserScopedSettingAttribute()]
-        //[DefaultSettingValueAttribute(null)]
-        //public Point LastGreenCircleCenterPoint
-        //{
-        //    get { return (Point)this["LastGreenCircleCenterPoint"]; }
-        //    set { this["LastGreenCircleCenterPoint"] = value; }
-        //}
-
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
-        public int LastGreenCircleDrawMouseClicks
-        {
-            get { return (int)this["LastGreenCircleDrawMouseClicks"]; }
-            set { this["LastGreenCircleDrawMouseClicks"] = value; }
+            get { return (int)this["DrawGreenCircleRadius"]; }
+            set { this["DrawGreenCircleRadius"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008NumSteps
+        public int DrawGreenOutlineCircleLineWidth
         {
-            get { return (String)this["Ex008NumSteps"]; }
-            set { this["Ex008NumSteps"] = value; }
+            get { return (int)this["DrawGreenOutlineCircleLineWidth"]; }
+            set { this["DrawGreenOutlineCircleLineWidth"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008StepsPerSecond
+        public int DrawGreenCircleDrawMouseClicks
         {
-            get { return (String)this["Ex008StepsPerSecond"]; }
-            set { this["Ex008StepsPerSecond"] = value; }
+            get { return (int)this["DrawGreenCircleDrawMouseClicks"]; }
+            set { this["DrawGreenCircleDrawMouseClicks"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public bool Ex008DirIsCW
+        public String StepperControlNumSteps
         {
-            get { return (bool)this["Ex008DirIsCW"]; }
-            set { this["Ex008DirIsCW"] = value; }
+            get { return (String)this["StepperControlNumSteps"]; }
+            set { this["StepperControlNumSteps"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String StepperControlStepsPerSecond
+        {
+            get { return (String)this["StepperControlStepsPerSecond"]; }
+            set { this["StepperControlStepsPerSecond"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public bool StepperControlDirIsCW
+        {
+            get { return (bool)this["StepperControlDirIsCW"]; }
+            set { this["StepperControlDirIsCW"] = value; }
         }
 
         [UserScopedSettingAttribute()]
@@ -240,50 +240,242 @@ namespace Walnut
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectHorizTop
+        public String LineDetectColorHorizTop
         {
-            get { return (String)this["Ex008ColorDetectHorizTop"]; }
-            set { this["Ex008ColorDetectHorizTop"] = value; }
+            get { return (String)this["LineDetectColorHorizTop"]; }
+            set { this["LineDetectColorHorizTop"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectHorizBot
+        public String LineDetectColorHorizBot
         {
-            get { return (String)this["Ex008ColorDetectHorizBot"]; }
-            set { this["Ex008ColorDetectHorizBot"] = value; }
+            get { return (String)this["LineDetectColorHorizBot"]; }
+            set { this["LineDetectColorHorizBot"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectMinPixelsHoriz
+        public String LineDetectColorMinPixelsHoriz
         {
-            get { return (String)this["Ex008ColorDetectMinPixelsHoriz"]; }
-            set { this["Ex008ColorDetectMinPixelsHoriz"] = value; }
+            get { return (String)this["LineDetectColorMinPixelsHoriz"]; }
+            set { this["LineDetectColorMinPixelsHoriz"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectVertTop
+        public String LineDetectColorVertTop
         {
-            get { return (String)this["Ex008ColorDetectVertTop"]; }
-            set { this["Ex008ColorDetectVertTop"] = value; }
+            get { return (String)this["LineDetectColorVertTop"]; }
+            set { this["LineDetectColorVertTop"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectVertBot
+        public String LineDetectColorVertBot
         {
-            get { return (String)this["Ex008ColorDetectVertBot"]; }
-            set { this["Ex008ColorDetectVertBot"] = value; }
+            get { return (String)this["LineDetectColorVertBot"]; }
+            set { this["LineDetectColorVertBot"] = value; }
         }
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public String Ex008ColorDetectMinPixelsVert
+        public String LineDetectColorMinPixelsVert
         {
-            get { return (String)this["Ex008ColorDetectMinPixelsVert"]; }
-            set { this["Ex008ColorDetectMinPixelsVert"] = value; }
+            get { return (String)this["LineDetectColorMinPixelsVert"]; }
+            set { this["LineDetectColorMinPixelsVert"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int GridCountX
+        {
+            get { return (int)this["GridCountX"]; }
+            set { this["GridCountX"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int GridCountY
+        {
+            get { return (int)this["GridCountY"]; }
+            set { this["GridCountY"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int GridBarSizeX
+        {
+            get { return (int)this["GridBarSizeX"]; }
+            set { this["GridBarSizeX"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int GridBarSizeY
+        {
+            get { return (int)this["GridBarSizeY"]; }
+            set { this["GridBarSizeY"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int GridSpacingInMicrons
+        {
+            get { return (int)this["GridSpacingInMicrons"]; }
+            set { this["GridSpacingInMicrons"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public Color? GridColor
+        {
+            get { return (Color?)this["GridColor"]; }
+            set { this["GridColor"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public LineRecognitionModeEnum HorizLineRecognitionMode
+        {
+            get { return (LineRecognitionModeEnum)this["HorizLineRecognitionMode"]; }
+            set { this["HorizLineRecognitionMode"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public LineRecognitionModeEnum VertLineRecognitionMode
+        {
+            get { return (LineRecognitionModeEnum)this["VertLineRecognitionMode"]; }
+            set { this["VertLineRecognitionMode"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LineDetectHoriz_Floor
+        {
+            get { return (int)this["LineDetectHoriz_Floor"]; }
+            set { this["LineDetectHoriz_Floor"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LineDetectHoriz_Offset
+        {
+            get { return (int)this["LineDetectHoriz_Offset"]; }
+            set { this["LineDetectHoriz_Offset"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LineDetectVert_Offset
+        {
+            get { return (int)this["LineDetectVert_Offset"]; }
+            set { this["LineDetectVert_Offset"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LineDetectHoriz_PreDrop
+        {
+            get { return (int)this["LineDetectHoriz_PreDrop"]; }
+            set { this["LineDetectHoriz_PreDrop"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int LineDetectHoriz_PostDrop
+        {
+            get { return (int)this["LineDetectHoriz_PostDrop"]; }
+            set { this["LineDetectHoriz_PostDrop"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int MoveRedOntoTargetSpeedX
+        {
+            get { return (int)this["MoveRedOntoTargetSpeedX"]; }
+            set { this["MoveRedOntoTargetSpeedX"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int MoveRedOntoTargetSpeedY
+        {
+            get { return (int)this["MoveRedOntoTargetSpeedY"]; }
+            set { this["MoveRedOntoTargetSpeedY"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int MoveRedOntoTargetClearanceRadius
+        {
+            get { return (int)this["MoveRedOntoTargetClearanceRadius"]; }
+            set { this["MoveRedOntoTargetClearanceRadius"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public Color MoveRedToTargetColor
+        {
+            get { return (Color)this["MoveRedToTargetColor"]; }
+            set { this["MoveRedToTargetColor"] = value; }
+        }
+        
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public uint Motor0GlobalPositiveDir
+        {
+            get { return (uint)this["Motor0GlobalPositiveDir"]; }
+            set { this["Motor0GlobalPositiveDir"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public uint Motor1GlobalPositiveDir
+        {
+            get { return (uint)this["Motor1GlobalPositiveDir"]; }
+            set { this["Motor1GlobalPositiveDir"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public uint Motor2GlobalPositiveDir
+        {
+            get { return (uint)this["Motor2GlobalPositiveDir"]; }
+            set { this["Motor2GlobalPositiveDir"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public uint Motor3GlobalPositiveDir
+        {
+            get { return (uint)this["Motor3GlobalPositiveDir"]; }
+            set { this["Motor3GlobalPositiveDir"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int WASDSpeedX
+        {
+            get { return (int)this["WASDSpeedX"]; }
+            set { this["WASDSpeedX"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int WASDSpeedY
+        {
+            get { return (int)this["WASDSpeedY"]; }
+            set { this["WASDSpeedY"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public int WASDSpeedZ
+        {
+            get { return (int)this["WASDSpeedZ"]; }
+            set { this["WASDSpeedZ"] = value; }
         }
 
         //// the most recently used file list
@@ -293,7 +485,6 @@ namespace Walnut
         //    get { return (List<string>)this["MRUFileList"]; }
         //    set { this["MRUFileList"] = value; }
         //}
-
 
         //[UserScopedSettingAttribute()]
         //[DefaultSettingValueAttribute(null)]

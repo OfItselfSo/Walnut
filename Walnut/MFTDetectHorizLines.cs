@@ -86,7 +86,10 @@ namespace Walnut
         private int horizLineWidth = 0;
 
         // we detect colors with this
-      //  private ColorDetector colorDetectorObj = new ColorDetector(ColorDetector.DEFAULT_GRAY_DETECTION_RANGE);
+        //  private ColorDetector colorDetectorObj = new ColorDetector(ColorDetector.DEFAULT_GRAY_DETECTION_RANGE);
+
+        // this turns line detection on or off
+        private bool lineDetectionEnabled = false;
 
         // these are the ranges for our line detection
         private Color topOfHorizRange = Color.FromArgb(10, 10, 10);
@@ -96,6 +99,17 @@ namespace Walnut
         // minimum number of active pixels to be considered a line
         private int minPixelsInLineHoriz = 100;
         private int minPixelsInLineVert = 100;
+
+        // how do we recognize a horiz and vertical line
+        private LineRecognitionModeEnum horizLineRecognitionMode = LineRecognitionModeEnum.LRM_UNKNOWN;
+        private LineRecognitionModeEnum vertLineRecognitionMode = LineRecognitionModeEnum.LRM_UNKNOWN;
+
+        // for use in LineRecognitionModeEnum.LRM_LAST_BEFORE_DROP
+        int yValAboveFloorPreDropMinLimit = 5;
+        int yValBelowFloorPostDropMinLimit = 15;
+        int yValDropFloor = 5;
+        int xValOffset = 0;
+        int yValOffset = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -185,7 +199,7 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect Circles in the output buffer
+        /// Detect Objects in the output buffer
         /// </summary>
         /// <param name="outputMediaBuffer">Output buffer</param>
         private List<ColoredRotatedObject> DetectObjectsInBuffer(IMFMediaBuffer outputMediaBuffer)
@@ -194,7 +208,7 @@ namespace Walnut
             int destStride = 0;	                            // Destination stride.
             bool destIs2D = false;
             // the return value
-            List<ColoredRotatedObject> circles = null;
+            List<ColoredRotatedObject> lines = null;
 
             try
             {
@@ -219,19 +233,22 @@ namespace Walnut
                 // count this now. We only use this to write it on the screen
                 m_FrameCount++;
 
-                // We could eventually offer the ability to write on other formats depending on the 
-                // current media type. We have this hardcoded to ARGB for now
-                circles =  DetectLongestLinesInImageOfTypeRGB32(destRawDataPtr,
-                                destStride,
-                                m_imageWidthInPixels,
-                                m_imageHeightInPixels);
+                if (LineDetectionEnabled == true)
+                {
+                    // We could eventually offer the ability to look at other formats depending on the 
+                    // current media type. We have this hardcoded to ARGB for now
+                    lines = DetectLinesInImageOfTypeRGB32(destRawDataPtr,
+                                    destStride,
+                                    m_imageWidthInPixels,
+                                    m_imageHeightInPixels);
+                }
 
                 // Set the data size on the output buffer. It probably is already there
                 // since the output buffer is the input buffer
                 HResult hr = outputMediaBuffer.SetCurrentLength(m_cbImageSize);
                 if (hr != HResult.S_OK)
                 {
-                    circles = null;
+                    lines = null;
                     throw new Exception("DetectObjectsInBuffer call to outputMediaBuffer.SetCurrentLength failed. Err=" + hr.ToString());
                 }
             }
@@ -242,23 +259,22 @@ namespace Walnut
                 else TantaWMFUtils.UnLockIMF2DBuffer((outputMediaBuffer as IMF2DBuffer));
             }
             // return what we got
-            return circles;
+            return lines;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detect the largest horizonal and vertical lines on the screen and 
-        /// (alternately mark them).
+        /// Detect the  horizonal and vertical lines on the screen
         /// 
         /// Note: this uses TopOfHorizRange, BottomOfHorizRange, TopOfVertRange, BottomOfVertRange)
-        ///  colors to make its decisions. This must be set externally
+        ///  colors to make its decisions. These must be set externally
         /// </summary>
         /// <param name="pDest">Pointer to the destination buffer.</param>
         /// <param name="lDestStride">Stride of the destination buffer, in bytes.</param>
         /// <param name="dwWidthInPixels">Frame width in pixels.</param>
         /// <param name="dwHeightInPixels">Frame height, in pixels.</param>
         /// <returns>list with the lines or empty list for fail</returns>
-        private unsafe List<ColoredRotatedObject>  DetectLongestLinesInImageOfTypeRGB32(
+        private unsafe List<ColoredRotatedObject>  DetectLinesInImageOfTypeRGB32(
             IntPtr pDest,
             int lDestStride,
             int dwWidthInPixels,
@@ -315,56 +331,123 @@ namespace Walnut
             int xValLoc = -1;
             int yValLoc = -1;
 
-            for (int x = 0; x < pixelCountPerCol.Length; x++)
+            // find the longest line based on the maximum count of pixels in range for that column
+            if (VertLineRecognitionMode == LineRecognitionModeEnum.LRM_MAXCOUNT)
             {
-                if ((pixelCountPerCol[x] > maxXVal) && (pixelCountPerCol[x] >= MinPixelsInLineVert))
+                for (int x = 0; x < pixelCountPerCol.Length; x++)
                 {
-                    maxXVal = pixelCountPerCol[x];
-                    xValLoc = x;
+                    if ((pixelCountPerCol[x] > maxXVal) && (pixelCountPerCol[x] >= MinPixelsInLineVert))
+                    {
+                        maxXVal = pixelCountPerCol[x];
+                        xValLoc = x;
+                    }
                 }
             }
-            for (int y = 0; y < pixelCountPerRow.Length; y++)
+            else
+            { }
+
+            // find the longest line based on the maximum count of pixels in range for that row 
+            if (HorizLineRecognitionMode == LineRecognitionModeEnum.LRM_MAXCOUNT)
             {
-                if ((pixelCountPerRow[y] > maxYVal) && (pixelCountPerRow[y] >= MinPixelsInLineHoriz))
-                //if (pixelCountPerRow[y] > maxYVal)
+                // here we just look for the y value with the highest count. That will be 
+                // our detected horizontal line.
+                for (int y = 0; y < pixelCountPerRow.Length; y++)
                 {
-                    maxYVal = pixelCountPerRow[y];
-                    yValLoc = y;
+                    if ((pixelCountPerRow[y] > maxYVal) && (pixelCountPerRow[y] >= MinPixelsInLineHoriz))
+                    {
+                        maxYVal = pixelCountPerRow[y];
+                        yValLoc = y;
+                    }
                 }
+            }
+            // find the first drop off below a floor based on the count of pixels in range for that row
+            else if (HorizLineRecognitionMode == LineRecognitionModeEnum.LRM_LAST_BEFORE_DROP)
+            {
+                int currentAboveFloorPreDropCount = 0;
+                int currentBelowFloorPostDropCount = 0;
+
+                // here we look for the sequence of YValBelowFloorPostDropMinLimit y values to drop below a YValDropFloor  
+                // after having seen at least YValAboveFloorPreDropMinLimit values first. 
+
+                // note Y=0 is upper left here, we want to detect from the bottom up, hence this for loop structure
+                for (int y = pixelCountPerRow.Length-1; y >= 0 ; y--)
+                {
+                    // is the current row count above or below the drop floor 
+                    if (pixelCountPerRow[y] > YValDropFloor)
+                    {
+                        // value is above the floor, count it, we need to find at least 
+                        // YValAboveFloorPreDropMinLimit before we can trigger
+                        currentAboveFloorPreDropCount++;
+                        currentBelowFloorPostDropCount = 0;
+                    }
+                    else
+                    {
+                        // value is below the floor 
+                        currentBelowFloorPostDropCount++;
+                    }
+
+                    // have we found a currentAboveFloorPreDropCount greater than the trigger limit 
+                    // and also a currentBelowFloorPostDropCount greater than its trigger limit? If so,
+                    // we have detected a drop. Basically this means we saw the line we are detecting run 
+                    // for a minimum distance vertically and then drop for a minimum distance vertically
+                    if ((currentAboveFloorPreDropCount >= YValAboveFloorPreDropMinLimit) &&  (currentBelowFloorPostDropCount >= YValBelowFloorPostDropMinLimit))
+                    {
+                        // yep we have seen enough, both counts match, remember this, but adjust it to 
+                        // compensate for the YValBelowFloorPostDropMinLimit values we used to check for the 
+                        // drop. Remember we are looping in reverse here so we add not subtract
+                        yValLoc = y + YValBelowFloorPostDropMinLimit;
+                        // and leave 
+                        break;
+                    }
+                    else if (currentBelowFloorPostDropCount >= YValBelowFloorPostDropMinLimit)
+                    {
+                        // we have enough post drop counts but (by process of elimination) not enough preDrop counts. This is a gap
+                        // just reset now
+                        currentAboveFloorPreDropCount = 0;
+                    }
+                    else if (currentAboveFloorPreDropCount >= YValAboveFloorPreDropMinLimit)
+                    {
+                        // we have enough pre drop counts but (by process of elimination) not enough postDrop counts.
+                        // We are still counting so do nothing
+                    }
+                    else
+                    {
+                        // neither the pre or post drop counts meet the criteria, do nothing
+                    }
+                } // bottom of  for (int y = pixelCountPerRow.Length-1; y >= 0 ; y--)
+            }
+            else
+            {
+                // not an option we recognize
             }
 
-            // now create the horizontal line, if we found one
+            // now add the horizontal line, if we found one
             if (yValLoc >= 0)
             {
+                // now add in the user specified offset, if any, we use opposite sign
+                yValLoc = yValLoc - YValOffset;
+                // sanity check
+                if (yValLoc > (pixelCountPerRow.Length - 1)) yValLoc = pixelCountPerRow.Length - 1;
+
                 ColoredRotatedLine horizLine = new ColoredRotatedLine(new Point(320, yValLoc));
                 horizLine.LineLength = 100;
                 horizLine.Angle = ColoredRotatedLine.HORIZONTAL_LINE_ANGLE;  // this makes it horizontal
                 linesList.Add(horizLine);
             }
 
-            // now create the vertical line, if we found one
+            // now add the vertical line, if we found one
             if (xValLoc >= 0)
             {
+                // now add in the user specified offset, if any
+                xValLoc = xValLoc + XValOffset;
+                // sanity check
+                if (xValLoc > (pixelCountPerCol.Length - 1)) xValLoc = pixelCountPerCol.Length - 1;
+
                 ColoredRotatedLine vertLine = new ColoredRotatedLine(new Point(xValLoc, 240));
                 vertLine.LineLength = 100;
                 vertLine.Angle = ColoredRotatedLine.VERTICAL_LINE_ANGLE;  // this makes it vertical
                 linesList.Add(vertLine);
             }
-
-            //// draw some crosses
-            //if ((xValLoc >= 0) || (yValLoc >= 0))
-            //{
-            //    using (Bitmap bitmapFrame = new Bitmap(m_imageWidthInPixels, m_imageHeightInPixels, m_lStrideIfContiguous, PixelFormat.Format32bppRgb, pDest))
-            //    {
-            //        // get a graphics object
-            //        using (Graphics graphicsObj = Graphics.FromImage(bitmapFrame))
-            //        {
-            //            // draw the cross
-            //            if (xValLoc >= 0) Utils.DrawVerticalLineFromCenterPoint(graphicsObj, new Point(xValLoc, 240), VerticalLineLength, verticalLineMarkerPen);
-            //            if (yValLoc >= 0) Utils.DrawHorizLineFromCenterPoint(graphicsObj, new Point(320, yValLoc), HorizLineLength, horizLineMarkerPen);
-            //        }
-            //    }
-            //}
 
             // return what we got
             return linesList;
@@ -491,5 +574,13 @@ namespace Walnut
         public Color BotOfVertRange { get => botOfVertRange; set => botOfVertRange = value; }
         public int MinPixelsInLineHoriz { get => minPixelsInLineHoriz; set => minPixelsInLineHoriz = value; }
         public int MinPixelsInLineVert { get => minPixelsInLineVert; set => minPixelsInLineVert = value; }
+        public LineRecognitionModeEnum HorizLineRecognitionMode { get => horizLineRecognitionMode; set => horizLineRecognitionMode = value; }
+        public LineRecognitionModeEnum VertLineRecognitionMode { get => vertLineRecognitionMode; set => vertLineRecognitionMode = value; }
+        public int YValAboveFloorPreDropMinLimit { get => yValAboveFloorPreDropMinLimit; set => yValAboveFloorPreDropMinLimit = value; }
+        public int YValBelowFloorPostDropMinLimit { get => yValBelowFloorPostDropMinLimit; set => yValBelowFloorPostDropMinLimit = value; }
+        public int YValDropFloor { get => yValDropFloor; set => yValDropFloor = value; }
+        public bool LineDetectionEnabled { get => lineDetectionEnabled; set => lineDetectionEnabled = value; }
+        public int XValOffset { get => xValOffset; set => xValOffset = value; }
+        public int YValOffset { get => yValOffset; set => yValOffset = value; }
     }
 }

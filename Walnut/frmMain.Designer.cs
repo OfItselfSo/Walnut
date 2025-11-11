@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tabControlMainFrm = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.buttonStopAllWaldos = new System.Windows.Forms.Button();
             this.label30 = new System.Windows.Forms.Label();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPageRecordingActions = new System.Windows.Forms.TabPage();
@@ -43,56 +44,94 @@
             this.label5 = new System.Windows.Forms.Label();
             this.textBoxRecNumber = new System.Windows.Forms.TextBox();
             this.buttonRecordingOnOff = new System.Windows.Forms.Button();
-            this.tabPageEx008 = new System.Windows.Forms.TabPage();
-            this.groupBox8 = new System.Windows.Forms.GroupBox();
-            this.checkBoxActions008ClearRedEveryFrame = new System.Windows.Forms.CheckBox();
-            this.checkBoxActions008MoveRedOntoGreen = new System.Windows.Forms.CheckBox();
-            this.label44 = new System.Windows.Forms.Label();
-            this.textBoxActions008RedCircleRadius = new System.Windows.Forms.TextBox();
-            this.checkBoxActions008DrawCircleOnIntersection = new System.Windows.Forms.CheckBox();
-            this.checkBoxActions008ShowHorizLine = new System.Windows.Forms.CheckBox();
-            this.checkBoxActions008ShowVertLine = new System.Windows.Forms.CheckBox();
+            this.tabPageDetect = new System.Windows.Forms.TabPage();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.checkBoxLineDetect_Enable = new System.Windows.Forms.CheckBox();
+            this.groupBoxLineDetect_Vert = new System.Windows.Forms.GroupBox();
+            this.label57 = new System.Windows.Forms.Label();
+            this.textBoxLineDetectVert_Offset = new System.Windows.Forms.TextBox();
+            this.radioButtonLineDetectVert_MaxCount = new System.Windows.Forms.RadioButton();
             this.label43 = new System.Windows.Forms.Label();
-            this.textBoxEx008ColorDetectMinPixelsVert = new System.Windows.Forms.TextBox();
-            this.label42 = new System.Windows.Forms.Label();
-            this.buttonEx008ColorDetectSet = new System.Windows.Forms.Button();
-            this.textBoxEx008ColorDetectMinPixelsHoriz = new System.Windows.Forms.TextBox();
+            this.textBoxColorDetectMinPixelsVert = new System.Windows.Forms.TextBox();
             this.label40 = new System.Windows.Forms.Label();
-            this.textBoxEx008ColorDetectVertBot = new System.Windows.Forms.TextBox();
+            this.textBoxColorDetectVertBot = new System.Windows.Forms.TextBox();
             this.label41 = new System.Windows.Forms.Label();
-            this.textBoxEx008ColorDetectVertTop = new System.Windows.Forms.TextBox();
+            this.textBoxColorDetectVertTop = new System.Windows.Forms.TextBox();
+            this.groupBoxLineDetect_Horiz = new System.Windows.Forms.GroupBox();
+            this.label44 = new System.Windows.Forms.Label();
+            this.textBoxLineDetectHoriz_Offset = new System.Windows.Forms.TextBox();
+            this.label42 = new System.Windows.Forms.Label();
+            this.textBoxColorDetectMinPixelsHoriz = new System.Windows.Forms.TextBox();
             this.label39 = new System.Windows.Forms.Label();
-            this.textBoxEx008ColorDetectHorizBot = new System.Windows.Forms.TextBox();
+            this.textBoxColorDetectHorizBot = new System.Windows.Forms.TextBox();
             this.label38 = new System.Windows.Forms.Label();
-            this.textBoxEx008ColorDetectHorizTop = new System.Windows.Forms.TextBox();
+            this.textBoxColorDetectHorizTop = new System.Windows.Forms.TextBox();
+            this.labelLineDetectHoriz_PreDropCount = new System.Windows.Forms.Label();
+            this.textBoxLineDetectHoriz_PreDrop = new System.Windows.Forms.TextBox();
+            this.labelLineDetectHoriz_PostDropCount = new System.Windows.Forms.Label();
+            this.textBoxLineDetectHoriz_PostDrop = new System.Windows.Forms.TextBox();
+            this.labelLineDetectHoriz_FloorCount = new System.Windows.Forms.Label();
+            this.textBoxLineDetectHoriz_Floor = new System.Windows.Forms.TextBox();
+            this.radioButtonLineDetectHoriz_DropOff = new System.Windows.Forms.RadioButton();
+            this.radioButtonLineDetectHoriz_MaxCount = new System.Windows.Forms.RadioButton();
+            this.labelLineDetectHoriz_PreDrop = new System.Windows.Forms.Label();
+            this.labelLineDetectHoriz_PostDrop = new System.Windows.Forms.Label();
+            this.labelLineDetectHoriz_Floor = new System.Windows.Forms.Label();
+            this.label56 = new System.Windows.Forms.Label();
+            this.checkBoxColorDetectClearRedEveryFrame = new System.Windows.Forms.CheckBox();
+            this.labelLineDetectDrawCircleOnIntersectionPixels = new System.Windows.Forms.Label();
+            this.textBoxColorDetectRedCircleRadius = new System.Windows.Forms.TextBox();
+            this.checkBoxColorDetectDrawCircleOnIntersection = new System.Windows.Forms.CheckBox();
+            this.checkBoxColorDetectShowHorizLine = new System.Windows.Forms.CheckBox();
+            this.checkBoxColorDetectShowVertLine = new System.Windows.Forms.CheckBox();
+            this.buttonColorDetectColorDetectSet = new System.Windows.Forms.Button();
             this.tabPageDraw = new System.Windows.Forms.TabPage();
-            this.buttonDrawClearOverlay = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.buttonDrawRedLineAtClicks = new System.Windows.Forms.Button();
             this.label36 = new System.Windows.Forms.Label();
             this.label37 = new System.Windows.Forms.Label();
-            this.textBoxRedLineDrawMouseClicks = new System.Windows.Forms.TextBox();
+            this.textBoxDrawRedLineDrawMouseClicks = new System.Windows.Forms.TextBox();
             this.radioButtonDrawRedLineVert = new System.Windows.Forms.RadioButton();
             this.radioButtonDrawRedLineHoriz = new System.Windows.Forms.RadioButton();
             this.label33 = new System.Windows.Forms.Label();
             this.label34 = new System.Windows.Forms.Label();
-            this.textBoxRedLineWidth = new System.Windows.Forms.TextBox();
+            this.textBoxDrawRedLineWidth = new System.Windows.Forms.TextBox();
             this.label35 = new System.Windows.Forms.Label();
             this.textBoxDrawRedLineXY = new System.Windows.Forms.TextBox();
             this.buttonDrawRedLineThroughPoint = new System.Windows.Forms.Button();
             this.groupBoxDrawGreenCircle = new System.Windows.Forms.GroupBox();
+            this.labelDrawGreenCircleLineWidthPixels = new System.Windows.Forms.Label();
+            this.labelDrawGreenCircleLineWidth = new System.Windows.Forms.Label();
+            this.textBoxDrawGreenCircle_LineWidth = new System.Windows.Forms.TextBox();
+            this.radioButtonDrawGreenCircle_Outline = new System.Windows.Forms.RadioButton();
+            this.radioButtonDrawGreenCircle_Solid = new System.Windows.Forms.RadioButton();
             this.buttonDrawGreenCircleAtClicks = new System.Windows.Forms.Button();
             this.label32 = new System.Windows.Forms.Label();
             this.label31 = new System.Windows.Forms.Label();
-            this.textBoxGreenCircleDrawMouseClicks = new System.Windows.Forms.TextBox();
+            this.textBoxDrawGreenCircleDrawMouseClicks = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.textBoxGreenCircleRadius = new System.Windows.Forms.TextBox();
+            this.textBoxDrawGreenCircleRadius = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxDrawGreenCircleXY = new System.Windows.Forms.TextBox();
             this.buttonDrawGreenCircleAtPoint = new System.Windows.Forms.Button();
-            this.tabPageUtils1 = new System.Windows.Forms.TabPage();
+            this.tabPageCalibration = new System.Windows.Forms.TabPage();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.label52 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridSpacingMicrons = new System.Windows.Forms.TextBox();
+            this.label51 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridColor = new System.Windows.Forms.TextBox();
+            this.checkBoxUtilsGridEnabled = new System.Windows.Forms.CheckBox();
+            this.label50 = new System.Windows.Forms.Label();
+            this.label48 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridBarSizeY = new System.Windows.Forms.TextBox();
+            this.label49 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridBarSizeX = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
+            this.label46 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridSizeY = new System.Windows.Forms.TextBox();
+            this.label47 = new System.Windows.Forms.Label();
+            this.textBoxUtilsGridSizeX = new System.Windows.Forms.TextBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.buttonScaleClear = new System.Windows.Forms.Button();
             this.label45 = new System.Windows.Forms.Label();
@@ -136,18 +175,49 @@
             this.textBoxRGBAPixelColor = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.textBoxRGBAPixelColorLocInverted = new System.Windows.Forms.TextBox();
-            this.tabPageUtils2 = new System.Windows.Forms.TabPage();
+            this.tabPageStep = new System.Windows.Forms.TabPage();
+            this.groupBox11 = new System.Windows.Forms.GroupBox();
+            this.label55 = new System.Windows.Forms.Label();
+            this.textBoxStepCtrlSpeed_Z = new System.Windows.Forms.TextBox();
+            this.label54 = new System.Windows.Forms.Label();
+            this.textBoxStepCtrlSpeed_Y = new System.Windows.Forms.TextBox();
+            this.label53 = new System.Windows.Forms.Label();
+            this.textBoxStepCtrlSpeed_X = new System.Windows.Forms.TextBox();
+            this.checkBoxStepCtrlWASDEnabled = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.radioButtonStepperControlUtilsDirCW = new System.Windows.Forms.RadioButton();
-            this.radioButtonStepperControlUtilsDirCCW = new System.Windows.Forms.RadioButton();
-            this.buttonStepperControlUtilsStop = new System.Windows.Forms.Button();
-            this.buttonStepperControlUtilsRun = new System.Windows.Forms.Button();
+            this.radioButtonStepperControlDirCW = new System.Windows.Forms.RadioButton();
+            this.radioButtonStepperControlDirCCW = new System.Windows.Forms.RadioButton();
+            this.buttonStepperControlRunStop = new System.Windows.Forms.Button();
+            this.buttonStepperControlRun = new System.Windows.Forms.Button();
             this.buttonStepperControlUtilsNudge1 = new System.Windows.Forms.Button();
             this.label17 = new System.Windows.Forms.Label();
-            this.textBoxStepperControlUtilsStepsPerSecond = new System.Windows.Forms.TextBox();
+            this.textBoxStepperControlStepsPerSecond = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
-            this.textBoxStepperControlUtilsNumSteps = new System.Windows.Forms.TextBox();
+            this.textBoxStepperControlNumSteps = new System.Windows.Forms.TextBox();
+            this.tabPageEx = new System.Windows.Forms.TabPage();
+            this.groupBox17 = new System.Windows.Forms.GroupBox();
+            this.buttonTrackerCopyTrackerOntoOverlay = new System.Windows.Forms.Button();
+            this.label58 = new System.Windows.Forms.Label();
+            this.label59 = new System.Windows.Forms.Label();
+            this.textBoxTrackerCircleRadius = new System.Windows.Forms.TextBox();
+            this.checkBoxTrackerShowTracker = new System.Windows.Forms.CheckBox();
+            this.checkBoxTrackerTrackRed = new System.Windows.Forms.CheckBox();
+            this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor = new System.Windows.Forms.RadioButton();
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor = new System.Windows.Forms.RadioButton();
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius = new System.Windows.Forms.CheckBox();
+            this.label61 = new System.Windows.Forms.Label();
+            this.textBoxMoveRedOntoTargetClearanceRadius = new System.Windows.Forms.TextBox();
+            this.labelMoveRedToTarget_Speeds = new System.Windows.Forms.Label();
+            this.radioButtonMoveRedOntoTargetFindNearest = new System.Windows.Forms.RadioButton();
+            this.radioButtonMoveRedOntoTargetViaLastClick = new System.Windows.Forms.RadioButton();
+            this.labelMoveRedToTarget_YStepSec = new System.Windows.Forms.Label();
+            this.textBoxMoveRedOntoTarget_YStepsSec = new System.Windows.Forms.TextBox();
+            this.labelMoveRedToTarget_XStepSec = new System.Windows.Forms.Label();
+            this.textBoxMoveRedOntoTarget_XStepsSec = new System.Windows.Forms.TextBox();
+            this.checkBoxMoveRedOntoTarget = new System.Windows.Forms.CheckBox();
             this.tabPageOld = new System.Windows.Forms.TabPage();
             this.groupBoxStepperTest = new System.Windows.Forms.GroupBox();
             this.radioButtonStepper0TestCCW = new System.Windows.Forms.RadioButton();
@@ -164,7 +234,7 @@
             this.radioButtonLoc1 = new System.Windows.Forms.RadioButton();
             this.groupBoxAction = new System.Windows.Forms.GroupBox();
             this.radioButtonPathFollow = new System.Windows.Forms.RadioButton();
-            this.radioButtonRedToGreen = new System.Windows.Forms.RadioButton();
+            this.radioButtonRedToTarget = new System.Windows.Forms.RadioButton();
             this.checkBoxActivate = new System.Windows.Forms.CheckBox();
             this.buttonTest = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -179,6 +249,19 @@
             this.ctlTransparentControl1 = new Walnut.ctlTransparentControl();
             this.ctlTantaEVRStreamDisplay1 = new TantaCommon.ctlTantaEVRStreamDisplay();
             this.tabPageSetup = new System.Windows.Forms.TabPage();
+            this.groupBox12 = new System.Windows.Forms.GroupBox();
+            this.groupBox16 = new System.Windows.Forms.GroupBox();
+            this.radioButtonPositiveDirIs1_Motor3 = new System.Windows.Forms.RadioButton();
+            this.radioButtonPositiveDirIs0_Motor3 = new System.Windows.Forms.RadioButton();
+            this.groupBox15 = new System.Windows.Forms.GroupBox();
+            this.radioButtonPositiveDirIs1_Motor1 = new System.Windows.Forms.RadioButton();
+            this.radioButtonPositiveDirIs0_Motor1 = new System.Windows.Forms.RadioButton();
+            this.groupBox14 = new System.Windows.Forms.GroupBox();
+            this.radioButtonPositiveDirIs1_Motor2 = new System.Windows.Forms.RadioButton();
+            this.radioButtonPositiveDirIs0_Motor2 = new System.Windows.Forms.RadioButton();
+            this.groupBox13 = new System.Windows.Forms.GroupBox();
+            this.radioButtonPositiveDirIs1_Motor0 = new System.Windows.Forms.RadioButton();
+            this.radioButtonPositiveDirIs0_Motor0 = new System.Windows.Forms.RadioButton();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.buttonResetRunNumber = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
@@ -197,29 +280,43 @@
             this.textBoxDataTrace = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.buttonTestConnection = new System.Windows.Forms.Button();
+            this.buttonTrackerClearTracker = new System.Windows.Forms.Button();
+            this.buttonDrawClearOverlay = new System.Windows.Forms.Button();
             this.tabControlMainFrm.SuspendLayout();
             this.tabPageMain.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPageRecordingActions.SuspendLayout();
-            this.tabPageEx008.SuspendLayout();
-            this.groupBox8.SuspendLayout();
+            this.tabPageDetect.SuspendLayout();
             this.groupBox7.SuspendLayout();
+            this.groupBoxLineDetect_Vert.SuspendLayout();
+            this.groupBoxLineDetect_Horiz.SuspendLayout();
             this.tabPageDraw.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBoxDrawGreenCircle.SuspendLayout();
-            this.tabPageUtils1.SuspendLayout();
+            this.tabPageCalibration.SuspendLayout();
+            this.groupBox10.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            this.tabPageUtils2.SuspendLayout();
+            this.tabPageStep.SuspendLayout();
+            this.groupBox11.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.tabPageEx.SuspendLayout();
+            this.groupBox17.SuspendLayout();
+            this.groupBox8.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.tabPageOld.SuspendLayout();
             this.groupBoxStepperTest.SuspendLayout();
             this.groupBoxTestRect.SuspendLayout();
             this.groupBoxAction.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPageSetup.SuspendLayout();
+            this.groupBox12.SuspendLayout();
+            this.groupBox16.SuspendLayout();
+            this.groupBox15.SuspendLayout();
+            this.groupBox14.SuspendLayout();
+            this.groupBox13.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.tabPageTransporter.SuspendLayout();
             this.SuspendLayout();
@@ -240,6 +337,9 @@
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.buttonDrawClearOverlay);
+            this.tabPageMain.Controls.Add(this.buttonTrackerClearTracker);
+            this.tabPageMain.Controls.Add(this.buttonStopAllWaldos);
             this.tabPageMain.Controls.Add(this.label30);
             this.tabPageMain.Controls.Add(this.tabControl2);
             this.tabPageMain.Controls.Add(this.labelCount);
@@ -254,6 +354,16 @@
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
             // 
+            // buttonStopAllWaldos
+            // 
+            this.buttonStopAllWaldos.Location = new System.Drawing.Point(240, 493);
+            this.buttonStopAllWaldos.Name = "buttonStopAllWaldos";
+            this.buttonStopAllWaldos.Size = new System.Drawing.Size(67, 25);
+            this.buttonStopAllWaldos.TabIndex = 90;
+            this.buttonStopAllWaldos.Text = "All Stop";
+            this.buttonStopAllWaldos.UseVisualStyleBackColor = true;
+            this.buttonStopAllWaldos.Click += new System.EventHandler(this.buttonStopAllWaldos_Click);
+            // 
             // label30
             // 
             this.label30.AutoSize = true;
@@ -267,10 +377,11 @@
             // 
             this.tabControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl2.Controls.Add(this.tabPageRecordingActions);
-            this.tabControl2.Controls.Add(this.tabPageEx008);
+            this.tabControl2.Controls.Add(this.tabPageDetect);
             this.tabControl2.Controls.Add(this.tabPageDraw);
-            this.tabControl2.Controls.Add(this.tabPageUtils1);
-            this.tabControl2.Controls.Add(this.tabPageUtils2);
+            this.tabControl2.Controls.Add(this.tabPageCalibration);
+            this.tabControl2.Controls.Add(this.tabPageStep);
+            this.tabControl2.Controls.Add(this.tabPageEx);
             this.tabControl2.Controls.Add(this.tabPageOld);
             this.tabControl2.Location = new System.Drawing.Point(663, 3);
             this.tabControl2.Name = "tabControl2";
@@ -397,237 +508,422 @@
             this.buttonRecordingOnOff.UseVisualStyleBackColor = true;
             this.buttonRecordingOnOff.Click += new System.EventHandler(this.buttonRecordingOnOff_Click);
             // 
-            // tabPageEx008
+            // tabPageDetect
             // 
-            this.tabPageEx008.Controls.Add(this.groupBox8);
-            this.tabPageEx008.Controls.Add(this.groupBox7);
-            this.tabPageEx008.Location = new System.Drawing.Point(4, 22);
-            this.tabPageEx008.Name = "tabPageEx008";
-            this.tabPageEx008.Size = new System.Drawing.Size(288, 487);
-            this.tabPageEx008.TabIndex = 3;
-            this.tabPageEx008.Text = "Ex008";
-            this.tabPageEx008.UseVisualStyleBackColor = true;
-            // 
-            // groupBox8
-            // 
-            this.groupBox8.Controls.Add(this.checkBoxActions008ClearRedEveryFrame);
-            this.groupBox8.Controls.Add(this.checkBoxActions008MoveRedOntoGreen);
-            this.groupBox8.Controls.Add(this.label44);
-            this.groupBox8.Controls.Add(this.textBoxActions008RedCircleRadius);
-            this.groupBox8.Controls.Add(this.checkBoxActions008DrawCircleOnIntersection);
-            this.groupBox8.Controls.Add(this.checkBoxActions008ShowHorizLine);
-            this.groupBox8.Controls.Add(this.checkBoxActions008ShowVertLine);
-            this.groupBox8.Location = new System.Drawing.Point(4, 152);
-            this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(280, 146);
-            this.groupBox8.TabIndex = 79;
-            this.groupBox8.TabStop = false;
-            this.groupBox8.Text = "Ex008 Actions";
-            // 
-            // checkBoxActions008ClearRedEveryFrame
-            // 
-            this.checkBoxActions008ClearRedEveryFrame.AutoSize = true;
-            this.checkBoxActions008ClearRedEveryFrame.Location = new System.Drawing.Point(28, 73);
-            this.checkBoxActions008ClearRedEveryFrame.Name = "checkBoxActions008ClearRedEveryFrame";
-            this.checkBoxActions008ClearRedEveryFrame.Size = new System.Drawing.Size(135, 17);
-            this.checkBoxActions008ClearRedEveryFrame.TabIndex = 84;
-            this.checkBoxActions008ClearRedEveryFrame.Text = "Clear Red Every Frame";
-            this.checkBoxActions008ClearRedEveryFrame.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxActions008MoveRedOntoGreen
-            // 
-            this.checkBoxActions008MoveRedOntoGreen.AutoSize = true;
-            this.checkBoxActions008MoveRedOntoGreen.Location = new System.Drawing.Point(28, 106);
-            this.checkBoxActions008MoveRedOntoGreen.Name = "checkBoxActions008MoveRedOntoGreen";
-            this.checkBoxActions008MoveRedOntoGreen.Size = new System.Drawing.Size(132, 17);
-            this.checkBoxActions008MoveRedOntoGreen.TabIndex = 83;
-            this.checkBoxActions008MoveRedOntoGreen.Text = "Move Red onto Green";
-            this.checkBoxActions008MoveRedOntoGreen.UseVisualStyleBackColor = true;
-            // 
-            // label44
-            // 
-            this.label44.AutoSize = true;
-            this.label44.Location = new System.Drawing.Point(233, 59);
-            this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(33, 13);
-            this.label44.TabIndex = 78;
-            this.label44.Text = "pixels";
-            // 
-            // textBoxActions008RedCircleRadius
-            // 
-            this.textBoxActions008RedCircleRadius.Location = new System.Drawing.Point(201, 55);
-            this.textBoxActions008RedCircleRadius.Name = "textBoxActions008RedCircleRadius";
-            this.textBoxActions008RedCircleRadius.Size = new System.Drawing.Size(26, 20);
-            this.textBoxActions008RedCircleRadius.TabIndex = 77;
-            this.textBoxActions008RedCircleRadius.Text = "5";
-            // 
-            // checkBoxActions008DrawCircleOnIntersection
-            // 
-            this.checkBoxActions008DrawCircleOnIntersection.AutoSize = true;
-            this.checkBoxActions008DrawCircleOnIntersection.Location = new System.Drawing.Point(28, 57);
-            this.checkBoxActions008DrawCircleOnIntersection.Name = "checkBoxActions008DrawCircleOnIntersection";
-            this.checkBoxActions008DrawCircleOnIntersection.Size = new System.Drawing.Size(174, 17);
-            this.checkBoxActions008DrawCircleOnIntersection.TabIndex = 2;
-            this.checkBoxActions008DrawCircleOnIntersection.Text = "At Intersection Draw Red Circle";
-            this.checkBoxActions008DrawCircleOnIntersection.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxActions008ShowHorizLine
-            // 
-            this.checkBoxActions008ShowHorizLine.AutoSize = true;
-            this.checkBoxActions008ShowHorizLine.Location = new System.Drawing.Point(28, 41);
-            this.checkBoxActions008ShowHorizLine.Name = "checkBoxActions008ShowHorizLine";
-            this.checkBoxActions008ShowHorizLine.Size = new System.Drawing.Size(106, 17);
-            this.checkBoxActions008ShowHorizLine.TabIndex = 1;
-            this.checkBoxActions008ShowHorizLine.Text = "Show Horiz. Line";
-            this.checkBoxActions008ShowHorizLine.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxActions008ShowVertLine
-            // 
-            this.checkBoxActions008ShowVertLine.AutoSize = true;
-            this.checkBoxActions008ShowVertLine.Location = new System.Drawing.Point(28, 26);
-            this.checkBoxActions008ShowVertLine.Name = "checkBoxActions008ShowVertLine";
-            this.checkBoxActions008ShowVertLine.Size = new System.Drawing.Size(101, 17);
-            this.checkBoxActions008ShowVertLine.TabIndex = 0;
-            this.checkBoxActions008ShowVertLine.Text = "Show Vert. Line";
-            this.checkBoxActions008ShowVertLine.UseVisualStyleBackColor = true;
+            this.tabPageDetect.Controls.Add(this.groupBox7);
+            this.tabPageDetect.Location = new System.Drawing.Point(4, 22);
+            this.tabPageDetect.Name = "tabPageDetect";
+            this.tabPageDetect.Size = new System.Drawing.Size(288, 487);
+            this.tabPageDetect.TabIndex = 3;
+            this.tabPageDetect.Text = "Detect";
+            this.tabPageDetect.UseVisualStyleBackColor = true;
             // 
             // groupBox7
             // 
-            this.groupBox7.Controls.Add(this.label43);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectMinPixelsVert);
-            this.groupBox7.Controls.Add(this.label42);
-            this.groupBox7.Controls.Add(this.buttonEx008ColorDetectSet);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectMinPixelsHoriz);
-            this.groupBox7.Controls.Add(this.label40);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectVertBot);
-            this.groupBox7.Controls.Add(this.label41);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectVertTop);
-            this.groupBox7.Controls.Add(this.label39);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectHorizBot);
-            this.groupBox7.Controls.Add(this.label38);
-            this.groupBox7.Controls.Add(this.textBoxEx008ColorDetectHorizTop);
+            this.groupBox7.Controls.Add(this.checkBoxLineDetect_Enable);
+            this.groupBox7.Controls.Add(this.groupBoxLineDetect_Vert);
+            this.groupBox7.Controls.Add(this.groupBoxLineDetect_Horiz);
+            this.groupBox7.Controls.Add(this.label56);
+            this.groupBox7.Controls.Add(this.checkBoxColorDetectClearRedEveryFrame);
+            this.groupBox7.Controls.Add(this.labelLineDetectDrawCircleOnIntersectionPixels);
+            this.groupBox7.Controls.Add(this.textBoxColorDetectRedCircleRadius);
+            this.groupBox7.Controls.Add(this.checkBoxColorDetectDrawCircleOnIntersection);
+            this.groupBox7.Controls.Add(this.checkBoxColorDetectShowHorizLine);
+            this.groupBox7.Controls.Add(this.checkBoxColorDetectShowVertLine);
+            this.groupBox7.Controls.Add(this.buttonColorDetectColorDetectSet);
             this.groupBox7.Location = new System.Drawing.Point(4, 7);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(280, 144);
+            this.groupBox7.Size = new System.Drawing.Size(280, 407);
             this.groupBox7.TabIndex = 78;
             this.groupBox7.TabStop = false;
-            this.groupBox7.Text = "Line Color Detect (R,G,B)";
+            this.groupBox7.Text = "Detect Lines";
+            // 
+            // checkBoxLineDetect_Enable
+            // 
+            this.checkBoxLineDetect_Enable.AutoSize = true;
+            this.checkBoxLineDetect_Enable.Location = new System.Drawing.Point(10, 19);
+            this.checkBoxLineDetect_Enable.Name = "checkBoxLineDetect_Enable";
+            this.checkBoxLineDetect_Enable.Size = new System.Drawing.Size(117, 17);
+            this.checkBoxLineDetect_Enable.TabIndex = 111;
+            this.checkBoxLineDetect_Enable.Text = "Enable Line Detect";
+            this.checkBoxLineDetect_Enable.UseVisualStyleBackColor = true;
+            this.checkBoxLineDetect_Enable.CheckedChanged += new System.EventHandler(this.checkBoxLineDetect_Enable_CheckedChanged);
+            // 
+            // groupBoxLineDetect_Vert
+            // 
+            this.groupBoxLineDetect_Vert.Controls.Add(this.label57);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.textBoxLineDetectVert_Offset);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.radioButtonLineDetectVert_MaxCount);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.label43);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.textBoxColorDetectMinPixelsVert);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.label40);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.textBoxColorDetectVertBot);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.label41);
+            this.groupBoxLineDetect_Vert.Controls.Add(this.textBoxColorDetectVertTop);
+            this.groupBoxLineDetect_Vert.Location = new System.Drawing.Point(2, 45);
+            this.groupBoxLineDetect_Vert.Name = "groupBoxLineDetect_Vert";
+            this.groupBoxLineDetect_Vert.Size = new System.Drawing.Size(274, 100);
+            this.groupBoxLineDetect_Vert.TabIndex = 110;
+            this.groupBoxLineDetect_Vert.TabStop = false;
+            this.groupBoxLineDetect_Vert.Text = "Vert line detection mode";
+            // 
+            // label57
+            // 
+            this.label57.AutoSize = true;
+            this.label57.Location = new System.Drawing.Point(198, 19);
+            this.label57.Name = "label57";
+            this.label57.Size = new System.Drawing.Size(70, 13);
+            this.label57.TabIndex = 124;
+            this.label57.Text = "Offset (pixels)";
+            // 
+            // textBoxLineDetectVert_Offset
+            // 
+            this.textBoxLineDetectVert_Offset.Location = new System.Drawing.Point(219, 35);
+            this.textBoxLineDetectVert_Offset.Name = "textBoxLineDetectVert_Offset";
+            this.textBoxLineDetectVert_Offset.Size = new System.Drawing.Size(26, 20);
+            this.textBoxLineDetectVert_Offset.TabIndex = 123;
+            this.textBoxLineDetectVert_Offset.Text = "0";
+            // 
+            // radioButtonLineDetectVert_MaxCount
+            // 
+            this.radioButtonLineDetectVert_MaxCount.AutoSize = true;
+            this.radioButtonLineDetectVert_MaxCount.Checked = true;
+            this.radioButtonLineDetectVert_MaxCount.Location = new System.Drawing.Point(8, 67);
+            this.radioButtonLineDetectVert_MaxCount.Name = "radioButtonLineDetectVert_MaxCount";
+            this.radioButtonLineDetectVert_MaxCount.Size = new System.Drawing.Size(76, 17);
+            this.radioButtonLineDetectVert_MaxCount.TabIndex = 108;
+            this.radioButtonLineDetectVert_MaxCount.TabStop = true;
+            this.radioButtonLineDetectVert_MaxCount.Text = "Max Count";
+            this.radioButtonLineDetectVert_MaxCount.UseVisualStyleBackColor = true;
             // 
             // label43
             // 
             this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(165, 67);
+            this.label43.Location = new System.Drawing.Point(157, 70);
             this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(88, 13);
-            this.label43.TabIndex = 101;
-            this.label43.Text = "Min Pixels in Line";
+            this.label43.Size = new System.Drawing.Size(82, 13);
+            this.label43.TabIndex = 107;
+            this.label43.Text = "min pixels in line";
             // 
-            // textBoxEx008ColorDetectMinPixelsVert
+            // textBoxColorDetectMinPixelsVert
             // 
-            this.textBoxEx008ColorDetectMinPixelsVert.Location = new System.Drawing.Point(178, 83);
-            this.textBoxEx008ColorDetectMinPixelsVert.Name = "textBoxEx008ColorDetectMinPixelsVert";
-            this.textBoxEx008ColorDetectMinPixelsVert.Size = new System.Drawing.Size(62, 20);
-            this.textBoxEx008ColorDetectMinPixelsVert.TabIndex = 100;
-            this.textBoxEx008ColorDetectMinPixelsVert.Text = "50";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(165, 22);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(88, 13);
-            this.label42.TabIndex = 92;
-            this.label42.Text = "Min Pixels in Line";
-            // 
-            // buttonEx008ColorDetectSet
-            // 
-            this.buttonEx008ColorDetectSet.Location = new System.Drawing.Point(113, 114);
-            this.buttonEx008ColorDetectSet.Name = "buttonEx008ColorDetectSet";
-            this.buttonEx008ColorDetectSet.Size = new System.Drawing.Size(67, 25);
-            this.buttonEx008ColorDetectSet.TabIndex = 99;
-            this.buttonEx008ColorDetectSet.Text = "Set";
-            this.buttonEx008ColorDetectSet.UseVisualStyleBackColor = true;
-            this.buttonEx008ColorDetectSet.Click += new System.EventHandler(this.buttonEx008ColorDetectSet_Click);
-            // 
-            // textBoxEx008ColorDetectMinPixelsHoriz
-            // 
-            this.textBoxEx008ColorDetectMinPixelsHoriz.Location = new System.Drawing.Point(178, 38);
-            this.textBoxEx008ColorDetectMinPixelsHoriz.Name = "textBoxEx008ColorDetectMinPixelsHoriz";
-            this.textBoxEx008ColorDetectMinPixelsHoriz.Size = new System.Drawing.Size(62, 20);
-            this.textBoxEx008ColorDetectMinPixelsHoriz.TabIndex = 91;
-            this.textBoxEx008ColorDetectMinPixelsHoriz.Text = "100";
+            this.textBoxColorDetectMinPixelsVert.Location = new System.Drawing.Point(129, 66);
+            this.textBoxColorDetectMinPixelsVert.Name = "textBoxColorDetectMinPixelsVert";
+            this.textBoxColorDetectMinPixelsVert.Size = new System.Drawing.Size(26, 20);
+            this.textBoxColorDetectMinPixelsVert.TabIndex = 106;
+            this.textBoxColorDetectMinPixelsVert.Text = "50";
             // 
             // label40
             // 
             this.label40.AutoSize = true;
-            this.label40.Location = new System.Drawing.Point(95, 93);
+            this.label40.Location = new System.Drawing.Point(95, 45);
             this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(51, 13);
-            this.label40.TabIndex = 98;
-            this.label40.Text = "Vert. Bot.";
+            this.label40.Size = new System.Drawing.Size(78, 13);
+            this.label40.TabIndex = 105;
+            this.label40.Text = "Vert. Bot. Color";
             // 
-            // textBoxEx008ColorDetectVertBot
+            // textBoxColorDetectVertBot
             // 
-            this.textBoxEx008ColorDetectVertBot.Location = new System.Drawing.Point(11, 89);
-            this.textBoxEx008ColorDetectVertBot.Name = "textBoxEx008ColorDetectVertBot";
-            this.textBoxEx008ColorDetectVertBot.Size = new System.Drawing.Size(81, 20);
-            this.textBoxEx008ColorDetectVertBot.TabIndex = 97;
-            this.textBoxEx008ColorDetectVertBot.Text = "(40,40,40)";
+            this.textBoxColorDetectVertBot.Location = new System.Drawing.Point(11, 41);
+            this.textBoxColorDetectVertBot.Name = "textBoxColorDetectVertBot";
+            this.textBoxColorDetectVertBot.Size = new System.Drawing.Size(81, 20);
+            this.textBoxColorDetectVertBot.TabIndex = 104;
+            this.textBoxColorDetectVertBot.Text = "(40,40,40)";
             // 
             // label41
             // 
             this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(94, 71);
+            this.label41.Location = new System.Drawing.Point(94, 23);
             this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(51, 13);
-            this.label41.TabIndex = 96;
-            this.label41.Text = "Vert. Top";
+            this.label41.Size = new System.Drawing.Size(78, 13);
+            this.label41.TabIndex = 103;
+            this.label41.Text = "Vert. Top Color";
             // 
-            // textBoxEx008ColorDetectVertTop
+            // textBoxColorDetectVertTop
             // 
-            this.textBoxEx008ColorDetectVertTop.Location = new System.Drawing.Point(11, 67);
-            this.textBoxEx008ColorDetectVertTop.Name = "textBoxEx008ColorDetectVertTop";
-            this.textBoxEx008ColorDetectVertTop.Size = new System.Drawing.Size(81, 20);
-            this.textBoxEx008ColorDetectVertTop.TabIndex = 95;
-            this.textBoxEx008ColorDetectVertTop.Text = "(110, 110, 110)";
+            this.textBoxColorDetectVertTop.Location = new System.Drawing.Point(11, 19);
+            this.textBoxColorDetectVertTop.Name = "textBoxColorDetectVertTop";
+            this.textBoxColorDetectVertTop.Size = new System.Drawing.Size(81, 20);
+            this.textBoxColorDetectVertTop.TabIndex = 102;
+            this.textBoxColorDetectVertTop.Text = "(110, 110, 110)";
+            // 
+            // groupBoxLineDetect_Horiz
+            // 
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.label44);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxLineDetectHoriz_Offset);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.label42);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxColorDetectMinPixelsHoriz);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.label39);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxColorDetectHorizBot);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.label38);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxColorDetectHorizTop);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_PreDropCount);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxLineDetectHoriz_PreDrop);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_PostDropCount);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxLineDetectHoriz_PostDrop);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_FloorCount);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.textBoxLineDetectHoriz_Floor);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.radioButtonLineDetectHoriz_DropOff);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.radioButtonLineDetectHoriz_MaxCount);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_PreDrop);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_PostDrop);
+            this.groupBoxLineDetect_Horiz.Controls.Add(this.labelLineDetectHoriz_Floor);
+            this.groupBoxLineDetect_Horiz.Location = new System.Drawing.Point(2, 144);
+            this.groupBoxLineDetect_Horiz.Name = "groupBoxLineDetect_Horiz";
+            this.groupBoxLineDetect_Horiz.Size = new System.Drawing.Size(274, 161);
+            this.groupBoxLineDetect_Horiz.TabIndex = 109;
+            this.groupBoxLineDetect_Horiz.TabStop = false;
+            this.groupBoxLineDetect_Horiz.Text = "Horiz line detection mode";
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(14, 111);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(70, 13);
+            this.label44.TabIndex = 122;
+            this.label44.Text = "Offset (pixels)";
+            // 
+            // textBoxLineDetectHoriz_Offset
+            // 
+            this.textBoxLineDetectHoriz_Offset.Location = new System.Drawing.Point(37, 128);
+            this.textBoxLineDetectHoriz_Offset.Name = "textBoxLineDetectHoriz_Offset";
+            this.textBoxLineDetectHoriz_Offset.Size = new System.Drawing.Size(26, 20);
+            this.textBoxLineDetectHoriz_Offset.TabIndex = 121;
+            this.textBoxLineDetectHoriz_Offset.Text = "0";
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(187, 72);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(82, 13);
+            this.label42.TabIndex = 117;
+            this.label42.Text = "min pixels in line";
+            // 
+            // textBoxColorDetectMinPixelsHoriz
+            // 
+            this.textBoxColorDetectMinPixelsHoriz.Location = new System.Drawing.Point(159, 68);
+            this.textBoxColorDetectMinPixelsHoriz.Name = "textBoxColorDetectMinPixelsHoriz";
+            this.textBoxColorDetectMinPixelsHoriz.Size = new System.Drawing.Size(26, 20);
+            this.textBoxColorDetectMinPixelsHoriz.TabIndex = 115;
+            this.textBoxColorDetectMinPixelsHoriz.Text = "100";
             // 
             // label39
             // 
             this.label39.AutoSize = true;
-            this.label39.Location = new System.Drawing.Point(94, 45);
+            this.label39.Location = new System.Drawing.Point(131, 45);
             this.label39.Name = "label39";
-            this.label39.Size = new System.Drawing.Size(56, 13);
-            this.label39.TabIndex = 94;
-            this.label39.Text = "Horiz. Bot.";
+            this.label39.Size = new System.Drawing.Size(83, 13);
+            this.label39.TabIndex = 120;
+            this.label39.Text = "Horiz. Bot. Color";
             // 
-            // textBoxEx008ColorDetectHorizBot
+            // textBoxColorDetectHorizBot
             // 
-            this.textBoxEx008ColorDetectHorizBot.Location = new System.Drawing.Point(11, 41);
-            this.textBoxEx008ColorDetectHorizBot.Name = "textBoxEx008ColorDetectHorizBot";
-            this.textBoxEx008ColorDetectHorizBot.Size = new System.Drawing.Size(81, 20);
-            this.textBoxEx008ColorDetectHorizBot.TabIndex = 93;
-            this.textBoxEx008ColorDetectHorizBot.Text = "(0,0,0)";
+            this.textBoxColorDetectHorizBot.Location = new System.Drawing.Point(48, 41);
+            this.textBoxColorDetectHorizBot.Name = "textBoxColorDetectHorizBot";
+            this.textBoxColorDetectHorizBot.Size = new System.Drawing.Size(81, 20);
+            this.textBoxColorDetectHorizBot.TabIndex = 119;
+            this.textBoxColorDetectHorizBot.Text = "(0,0,0)";
             // 
             // label38
             // 
             this.label38.AutoSize = true;
-            this.label38.Location = new System.Drawing.Point(93, 23);
+            this.label38.Location = new System.Drawing.Point(130, 23);
             this.label38.Name = "label38";
-            this.label38.Size = new System.Drawing.Size(56, 13);
-            this.label38.TabIndex = 92;
-            this.label38.Text = "Horiz. Top";
+            this.label38.Size = new System.Drawing.Size(83, 13);
+            this.label38.TabIndex = 118;
+            this.label38.Text = "Horiz. Top Color";
             // 
-            // textBoxEx008ColorDetectHorizTop
+            // textBoxColorDetectHorizTop
             // 
-            this.textBoxEx008ColorDetectHorizTop.Location = new System.Drawing.Point(11, 19);
-            this.textBoxEx008ColorDetectHorizTop.Name = "textBoxEx008ColorDetectHorizTop";
-            this.textBoxEx008ColorDetectHorizTop.Size = new System.Drawing.Size(81, 20);
-            this.textBoxEx008ColorDetectHorizTop.TabIndex = 91;
-            this.textBoxEx008ColorDetectHorizTop.Text = "(10,10,10)";
+            this.textBoxColorDetectHorizTop.Location = new System.Drawing.Point(48, 19);
+            this.textBoxColorDetectHorizTop.Name = "textBoxColorDetectHorizTop";
+            this.textBoxColorDetectHorizTop.Size = new System.Drawing.Size(81, 20);
+            this.textBoxColorDetectHorizTop.TabIndex = 116;
+            this.textBoxColorDetectHorizTop.Text = "(10,10,10)";
+            // 
+            // labelLineDetectHoriz_PreDropCount
+            // 
+            this.labelLineDetectHoriz_PreDropCount.AutoSize = true;
+            this.labelLineDetectHoriz_PreDropCount.Location = new System.Drawing.Point(187, 114);
+            this.labelLineDetectHoriz_PreDropCount.Name = "labelLineDetectHoriz_PreDropCount";
+            this.labelLineDetectHoriz_PreDropCount.Size = new System.Drawing.Size(58, 13);
+            this.labelLineDetectHoriz_PreDropCount.TabIndex = 114;
+            this.labelLineDetectHoriz_PreDropCount.Text = "vert. count";
+            // 
+            // textBoxLineDetectHoriz_PreDrop
+            // 
+            this.textBoxLineDetectHoriz_PreDrop.Location = new System.Drawing.Point(159, 111);
+            this.textBoxLineDetectHoriz_PreDrop.Name = "textBoxLineDetectHoriz_PreDrop";
+            this.textBoxLineDetectHoriz_PreDrop.Size = new System.Drawing.Size(26, 20);
+            this.textBoxLineDetectHoriz_PreDrop.TabIndex = 112;
+            this.textBoxLineDetectHoriz_PreDrop.Text = "15";
+            // 
+            // labelLineDetectHoriz_PostDropCount
+            // 
+            this.labelLineDetectHoriz_PostDropCount.AutoSize = true;
+            this.labelLineDetectHoriz_PostDropCount.Location = new System.Drawing.Point(187, 135);
+            this.labelLineDetectHoriz_PostDropCount.Name = "labelLineDetectHoriz_PostDropCount";
+            this.labelLineDetectHoriz_PostDropCount.Size = new System.Drawing.Size(58, 13);
+            this.labelLineDetectHoriz_PostDropCount.TabIndex = 111;
+            this.labelLineDetectHoriz_PostDropCount.Text = "vert. count";
+            // 
+            // textBoxLineDetectHoriz_PostDrop
+            // 
+            this.textBoxLineDetectHoriz_PostDrop.Location = new System.Drawing.Point(159, 132);
+            this.textBoxLineDetectHoriz_PostDrop.Name = "textBoxLineDetectHoriz_PostDrop";
+            this.textBoxLineDetectHoriz_PostDrop.Size = new System.Drawing.Size(26, 20);
+            this.textBoxLineDetectHoriz_PostDrop.TabIndex = 109;
+            this.textBoxLineDetectHoriz_PostDrop.Text = "5";
+            // 
+            // labelLineDetectHoriz_FloorCount
+            // 
+            this.labelLineDetectHoriz_FloorCount.AutoSize = true;
+            this.labelLineDetectHoriz_FloorCount.Location = new System.Drawing.Point(187, 93);
+            this.labelLineDetectHoriz_FloorCount.Name = "labelLineDetectHoriz_FloorCount";
+            this.labelLineDetectHoriz_FloorCount.Size = new System.Drawing.Size(62, 13);
+            this.labelLineDetectHoriz_FloorCount.TabIndex = 108;
+            this.labelLineDetectHoriz_FloorCount.Text = "horiz. count";
+            // 
+            // textBoxLineDetectHoriz_Floor
+            // 
+            this.textBoxLineDetectHoriz_Floor.Location = new System.Drawing.Point(159, 90);
+            this.textBoxLineDetectHoriz_Floor.Name = "textBoxLineDetectHoriz_Floor";
+            this.textBoxLineDetectHoriz_Floor.Size = new System.Drawing.Size(26, 20);
+            this.textBoxLineDetectHoriz_Floor.TabIndex = 106;
+            this.textBoxLineDetectHoriz_Floor.Text = "5";
+            // 
+            // radioButtonLineDetectHoriz_DropOff
+            // 
+            this.radioButtonLineDetectHoriz_DropOff.AutoSize = true;
+            this.radioButtonLineDetectHoriz_DropOff.Location = new System.Drawing.Point(50, 84);
+            this.radioButtonLineDetectHoriz_DropOff.Name = "radioButtonLineDetectHoriz_DropOff";
+            this.radioButtonLineDetectHoriz_DropOff.Size = new System.Drawing.Size(65, 17);
+            this.radioButtonLineDetectHoriz_DropOff.TabIndex = 1;
+            this.radioButtonLineDetectHoriz_DropOff.Text = "Drop Off";
+            this.radioButtonLineDetectHoriz_DropOff.UseVisualStyleBackColor = true;
+            this.radioButtonLineDetectHoriz_DropOff.CheckedChanged += new System.EventHandler(this.radioButtonLineDetectHoriz_DropOff_CheckedChanged);
+            // 
+            // radioButtonLineDetectHoriz_MaxCount
+            // 
+            this.radioButtonLineDetectHoriz_MaxCount.AutoSize = true;
+            this.radioButtonLineDetectHoriz_MaxCount.Checked = true;
+            this.radioButtonLineDetectHoriz_MaxCount.Location = new System.Drawing.Point(50, 68);
+            this.radioButtonLineDetectHoriz_MaxCount.Name = "radioButtonLineDetectHoriz_MaxCount";
+            this.radioButtonLineDetectHoriz_MaxCount.Size = new System.Drawing.Size(76, 17);
+            this.radioButtonLineDetectHoriz_MaxCount.TabIndex = 0;
+            this.radioButtonLineDetectHoriz_MaxCount.TabStop = true;
+            this.radioButtonLineDetectHoriz_MaxCount.Text = "Max Count";
+            this.radioButtonLineDetectHoriz_MaxCount.UseVisualStyleBackColor = true;
+            this.radioButtonLineDetectHoriz_MaxCount.CheckedChanged += new System.EventHandler(this.radioButtonLineDetectHoriz_MaxCount_CheckedChanged);
+            // 
+            // labelLineDetectHoriz_PreDrop
+            // 
+            this.labelLineDetectHoriz_PreDrop.AutoSize = true;
+            this.labelLineDetectHoriz_PreDrop.Location = new System.Drawing.Point(107, 114);
+            this.labelLineDetectHoriz_PreDrop.Name = "labelLineDetectHoriz_PreDrop";
+            this.labelLineDetectHoriz_PreDrop.Size = new System.Drawing.Size(52, 13);
+            this.labelLineDetectHoriz_PreDrop.TabIndex = 113;
+            this.labelLineDetectHoriz_PreDrop.Text = "Pre Drop:";
+            // 
+            // labelLineDetectHoriz_PostDrop
+            // 
+            this.labelLineDetectHoriz_PostDrop.AutoSize = true;
+            this.labelLineDetectHoriz_PostDrop.Location = new System.Drawing.Point(102, 135);
+            this.labelLineDetectHoriz_PostDrop.Name = "labelLineDetectHoriz_PostDrop";
+            this.labelLineDetectHoriz_PostDrop.Size = new System.Drawing.Size(57, 13);
+            this.labelLineDetectHoriz_PostDrop.TabIndex = 110;
+            this.labelLineDetectHoriz_PostDrop.Text = "Post Drop:";
+            // 
+            // labelLineDetectHoriz_Floor
+            // 
+            this.labelLineDetectHoriz_Floor.AutoSize = true;
+            this.labelLineDetectHoriz_Floor.Location = new System.Drawing.Point(126, 93);
+            this.labelLineDetectHoriz_Floor.Name = "labelLineDetectHoriz_Floor";
+            this.labelLineDetectHoriz_Floor.Size = new System.Drawing.Size(33, 13);
+            this.labelLineDetectHoriz_Floor.TabIndex = 107;
+            this.labelLineDetectHoriz_Floor.Text = "Floor:";
+            // 
+            // label56
+            // 
+            this.label56.AutoSize = true;
+            this.label56.Location = new System.Drawing.Point(8, 154);
+            this.label56.Name = "label56";
+            this.label56.Size = new System.Drawing.Size(0, 13);
+            this.label56.TabIndex = 108;
+            // 
+            // checkBoxColorDetectClearRedEveryFrame
+            // 
+            this.checkBoxColorDetectClearRedEveryFrame.AutoSize = true;
+            this.checkBoxColorDetectClearRedEveryFrame.Checked = true;
+            this.checkBoxColorDetectClearRedEveryFrame.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxColorDetectClearRedEveryFrame.Location = new System.Drawing.Point(11, 385);
+            this.checkBoxColorDetectClearRedEveryFrame.Name = "checkBoxColorDetectClearRedEveryFrame";
+            this.checkBoxColorDetectClearRedEveryFrame.Size = new System.Drawing.Size(135, 17);
+            this.checkBoxColorDetectClearRedEveryFrame.TabIndex = 107;
+            this.checkBoxColorDetectClearRedEveryFrame.Text = "Clear Red Every Frame";
+            this.checkBoxColorDetectClearRedEveryFrame.UseVisualStyleBackColor = true;
+            // 
+            // labelLineDetectDrawCircleOnIntersectionPixels
+            // 
+            this.labelLineDetectDrawCircleOnIntersectionPixels.AutoSize = true;
+            this.labelLineDetectDrawCircleOnIntersectionPixels.Location = new System.Drawing.Point(216, 371);
+            this.labelLineDetectDrawCircleOnIntersectionPixels.Name = "labelLineDetectDrawCircleOnIntersectionPixels";
+            this.labelLineDetectDrawCircleOnIntersectionPixels.Size = new System.Drawing.Size(33, 13);
+            this.labelLineDetectDrawCircleOnIntersectionPixels.TabIndex = 106;
+            this.labelLineDetectDrawCircleOnIntersectionPixels.Text = "pixels";
+            // 
+            // textBoxColorDetectRedCircleRadius
+            // 
+            this.textBoxColorDetectRedCircleRadius.Location = new System.Drawing.Point(184, 367);
+            this.textBoxColorDetectRedCircleRadius.Name = "textBoxColorDetectRedCircleRadius";
+            this.textBoxColorDetectRedCircleRadius.Size = new System.Drawing.Size(26, 20);
+            this.textBoxColorDetectRedCircleRadius.TabIndex = 105;
+            this.textBoxColorDetectRedCircleRadius.Text = "5";
+            // 
+            // checkBoxColorDetectDrawCircleOnIntersection
+            // 
+            this.checkBoxColorDetectDrawCircleOnIntersection.AutoSize = true;
+            this.checkBoxColorDetectDrawCircleOnIntersection.Location = new System.Drawing.Point(11, 369);
+            this.checkBoxColorDetectDrawCircleOnIntersection.Name = "checkBoxColorDetectDrawCircleOnIntersection";
+            this.checkBoxColorDetectDrawCircleOnIntersection.Size = new System.Drawing.Size(174, 17);
+            this.checkBoxColorDetectDrawCircleOnIntersection.TabIndex = 104;
+            this.checkBoxColorDetectDrawCircleOnIntersection.Text = "At Intersection Draw Red Circle";
+            this.checkBoxColorDetectDrawCircleOnIntersection.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxColorDetectShowHorizLine
+            // 
+            this.checkBoxColorDetectShowHorizLine.AutoSize = true;
+            this.checkBoxColorDetectShowHorizLine.Location = new System.Drawing.Point(11, 353);
+            this.checkBoxColorDetectShowHorizLine.Name = "checkBoxColorDetectShowHorizLine";
+            this.checkBoxColorDetectShowHorizLine.Size = new System.Drawing.Size(106, 17);
+            this.checkBoxColorDetectShowHorizLine.TabIndex = 103;
+            this.checkBoxColorDetectShowHorizLine.Text = "Show Horiz. Line";
+            this.checkBoxColorDetectShowHorizLine.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxColorDetectShowVertLine
+            // 
+            this.checkBoxColorDetectShowVertLine.AutoSize = true;
+            this.checkBoxColorDetectShowVertLine.Location = new System.Drawing.Point(11, 338);
+            this.checkBoxColorDetectShowVertLine.Name = "checkBoxColorDetectShowVertLine";
+            this.checkBoxColorDetectShowVertLine.Size = new System.Drawing.Size(101, 17);
+            this.checkBoxColorDetectShowVertLine.TabIndex = 102;
+            this.checkBoxColorDetectShowVertLine.Text = "Show Vert. Line";
+            this.checkBoxColorDetectShowVertLine.UseVisualStyleBackColor = true;
+            // 
+            // buttonColorDetectColorDetectSet
+            // 
+            this.buttonColorDetectColorDetectSet.Location = new System.Drawing.Point(106, 312);
+            this.buttonColorDetectColorDetectSet.Name = "buttonColorDetectColorDetectSet";
+            this.buttonColorDetectColorDetectSet.Size = new System.Drawing.Size(67, 25);
+            this.buttonColorDetectColorDetectSet.TabIndex = 99;
+            this.buttonColorDetectColorDetectSet.Text = "Set";
+            this.buttonColorDetectColorDetectSet.UseVisualStyleBackColor = true;
+            this.buttonColorDetectColorDetectSet.Click += new System.EventHandler(this.buttonColorDetectColorDetectSet_Click);
             // 
             // tabPageDraw
             // 
-            this.tabPageDraw.Controls.Add(this.buttonDrawClearOverlay);
             this.tabPageDraw.Controls.Add(this.groupBox6);
             this.tabPageDraw.Controls.Add(this.groupBoxDrawGreenCircle);
             this.tabPageDraw.Location = new System.Drawing.Point(4, 22);
@@ -638,31 +934,21 @@
             this.tabPageDraw.Text = "Draw";
             this.tabPageDraw.UseVisualStyleBackColor = true;
             // 
-            // buttonDrawClearOverlay
-            // 
-            this.buttonDrawClearOverlay.Location = new System.Drawing.Point(62, 237);
-            this.buttonDrawClearOverlay.Name = "buttonDrawClearOverlay";
-            this.buttonDrawClearOverlay.Size = new System.Drawing.Size(155, 27);
-            this.buttonDrawClearOverlay.TabIndex = 82;
-            this.buttonDrawClearOverlay.Text = "Clear All Drawings on Overlay";
-            this.buttonDrawClearOverlay.UseVisualStyleBackColor = true;
-            this.buttonDrawClearOverlay.Click += new System.EventHandler(this.buttonDrawClearOverlay_Click);
-            // 
             // groupBox6
             // 
             this.groupBox6.Controls.Add(this.buttonDrawRedLineAtClicks);
             this.groupBox6.Controls.Add(this.label36);
             this.groupBox6.Controls.Add(this.label37);
-            this.groupBox6.Controls.Add(this.textBoxRedLineDrawMouseClicks);
+            this.groupBox6.Controls.Add(this.textBoxDrawRedLineDrawMouseClicks);
             this.groupBox6.Controls.Add(this.radioButtonDrawRedLineVert);
             this.groupBox6.Controls.Add(this.radioButtonDrawRedLineHoriz);
             this.groupBox6.Controls.Add(this.label33);
             this.groupBox6.Controls.Add(this.label34);
-            this.groupBox6.Controls.Add(this.textBoxRedLineWidth);
+            this.groupBox6.Controls.Add(this.textBoxDrawRedLineWidth);
             this.groupBox6.Controls.Add(this.label35);
             this.groupBox6.Controls.Add(this.textBoxDrawRedLineXY);
             this.groupBox6.Controls.Add(this.buttonDrawRedLineThroughPoint);
-            this.groupBox6.Location = new System.Drawing.Point(6, 118);
+            this.groupBox6.Location = new System.Drawing.Point(6, 150);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(264, 114);
             this.groupBox6.TabIndex = 76;
@@ -698,13 +984,13 @@
             this.label37.Text = "For next";
             this.label37.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // textBoxRedLineDrawMouseClicks
+            // textBoxDrawRedLineDrawMouseClicks
             // 
-            this.textBoxRedLineDrawMouseClicks.Location = new System.Drawing.Point(56, 78);
-            this.textBoxRedLineDrawMouseClicks.Name = "textBoxRedLineDrawMouseClicks";
-            this.textBoxRedLineDrawMouseClicks.Size = new System.Drawing.Size(20, 20);
-            this.textBoxRedLineDrawMouseClicks.TabIndex = 90;
-            this.textBoxRedLineDrawMouseClicks.Text = "1";
+            this.textBoxDrawRedLineDrawMouseClicks.Location = new System.Drawing.Point(56, 78);
+            this.textBoxDrawRedLineDrawMouseClicks.Name = "textBoxDrawRedLineDrawMouseClicks";
+            this.textBoxDrawRedLineDrawMouseClicks.Size = new System.Drawing.Size(20, 20);
+            this.textBoxDrawRedLineDrawMouseClicks.TabIndex = 90;
+            this.textBoxDrawRedLineDrawMouseClicks.Text = "1";
             // 
             // radioButtonDrawRedLineVert
             // 
@@ -746,13 +1032,13 @@
             this.label34.TabIndex = 86;
             this.label34.Text = "Line width:";
             // 
-            // textBoxRedLineWidth
+            // textBoxDrawRedLineWidth
             // 
-            this.textBoxRedLineWidth.Location = new System.Drawing.Point(69, 20);
-            this.textBoxRedLineWidth.Name = "textBoxRedLineWidth";
-            this.textBoxRedLineWidth.Size = new System.Drawing.Size(29, 20);
-            this.textBoxRedLineWidth.TabIndex = 85;
-            this.textBoxRedLineWidth.Text = "2";
+            this.textBoxDrawRedLineWidth.Location = new System.Drawing.Point(69, 20);
+            this.textBoxDrawRedLineWidth.Name = "textBoxDrawRedLineWidth";
+            this.textBoxDrawRedLineWidth.Size = new System.Drawing.Size(29, 20);
+            this.textBoxDrawRedLineWidth.TabIndex = 85;
+            this.textBoxDrawRedLineWidth.Text = "2";
             // 
             // label35
             // 
@@ -783,26 +1069,81 @@
             // 
             // groupBoxDrawGreenCircle
             // 
+            this.groupBoxDrawGreenCircle.Controls.Add(this.labelDrawGreenCircleLineWidthPixels);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.labelDrawGreenCircleLineWidth);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxDrawGreenCircle_LineWidth);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.radioButtonDrawGreenCircle_Outline);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.radioButtonDrawGreenCircle_Solid);
             this.groupBoxDrawGreenCircle.Controls.Add(this.buttonDrawGreenCircleAtClicks);
             this.groupBoxDrawGreenCircle.Controls.Add(this.label32);
             this.groupBoxDrawGreenCircle.Controls.Add(this.label31);
-            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxGreenCircleDrawMouseClicks);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxDrawGreenCircleDrawMouseClicks);
             this.groupBoxDrawGreenCircle.Controls.Add(this.label9);
             this.groupBoxDrawGreenCircle.Controls.Add(this.label8);
-            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxGreenCircleRadius);
+            this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxDrawGreenCircleRadius);
             this.groupBoxDrawGreenCircle.Controls.Add(this.label6);
             this.groupBoxDrawGreenCircle.Controls.Add(this.textBoxDrawGreenCircleXY);
             this.groupBoxDrawGreenCircle.Controls.Add(this.buttonDrawGreenCircleAtPoint);
             this.groupBoxDrawGreenCircle.Location = new System.Drawing.Point(6, 6);
             this.groupBoxDrawGreenCircle.Name = "groupBoxDrawGreenCircle";
-            this.groupBoxDrawGreenCircle.Size = new System.Drawing.Size(264, 108);
+            this.groupBoxDrawGreenCircle.Size = new System.Drawing.Size(264, 138);
             this.groupBoxDrawGreenCircle.TabIndex = 75;
             this.groupBoxDrawGreenCircle.TabStop = false;
             this.groupBoxDrawGreenCircle.Text = "Draw Solid Green Circle";
             // 
+            // labelDrawGreenCircleLineWidthPixels
+            // 
+            this.labelDrawGreenCircleLineWidthPixels.AutoSize = true;
+            this.labelDrawGreenCircleLineWidthPixels.Location = new System.Drawing.Point(203, 39);
+            this.labelDrawGreenCircleLineWidthPixels.Name = "labelDrawGreenCircleLineWidthPixels";
+            this.labelDrawGreenCircleLineWidthPixels.Size = new System.Drawing.Size(33, 13);
+            this.labelDrawGreenCircleLineWidthPixels.TabIndex = 85;
+            this.labelDrawGreenCircleLineWidthPixels.Text = "pixels";
+            // 
+            // labelDrawGreenCircleLineWidth
+            // 
+            this.labelDrawGreenCircleLineWidth.AutoSize = true;
+            this.labelDrawGreenCircleLineWidth.Location = new System.Drawing.Point(112, 39);
+            this.labelDrawGreenCircleLineWidth.Name = "labelDrawGreenCircleLineWidth";
+            this.labelDrawGreenCircleLineWidth.Size = new System.Drawing.Size(54, 13);
+            this.labelDrawGreenCircleLineWidth.TabIndex = 84;
+            this.labelDrawGreenCircleLineWidth.Text = "line width:";
+            // 
+            // textBoxDrawGreenCircle_LineWidth
+            // 
+            this.textBoxDrawGreenCircle_LineWidth.Location = new System.Drawing.Point(171, 35);
+            this.textBoxDrawGreenCircle_LineWidth.Name = "textBoxDrawGreenCircle_LineWidth";
+            this.textBoxDrawGreenCircle_LineWidth.Size = new System.Drawing.Size(29, 20);
+            this.textBoxDrawGreenCircle_LineWidth.TabIndex = 83;
+            this.textBoxDrawGreenCircle_LineWidth.Text = "2";
+            // 
+            // radioButtonDrawGreenCircle_Outline
+            // 
+            this.radioButtonDrawGreenCircle_Outline.AutoSize = true;
+            this.radioButtonDrawGreenCircle_Outline.Location = new System.Drawing.Point(12, 37);
+            this.radioButtonDrawGreenCircle_Outline.Name = "radioButtonDrawGreenCircle_Outline";
+            this.radioButtonDrawGreenCircle_Outline.Size = new System.Drawing.Size(87, 17);
+            this.radioButtonDrawGreenCircle_Outline.TabIndex = 82;
+            this.radioButtonDrawGreenCircle_Outline.Text = "Outline Circle";
+            this.radioButtonDrawGreenCircle_Outline.UseVisualStyleBackColor = true;
+            this.radioButtonDrawGreenCircle_Outline.CheckedChanged += new System.EventHandler(this.radioButtonDrawGreenCircle_Outline_CheckedChanged);
+            // 
+            // radioButtonDrawGreenCircle_Solid
+            // 
+            this.radioButtonDrawGreenCircle_Solid.AutoSize = true;
+            this.radioButtonDrawGreenCircle_Solid.Checked = true;
+            this.radioButtonDrawGreenCircle_Solid.Location = new System.Drawing.Point(12, 19);
+            this.radioButtonDrawGreenCircle_Solid.Name = "radioButtonDrawGreenCircle_Solid";
+            this.radioButtonDrawGreenCircle_Solid.Size = new System.Drawing.Size(77, 17);
+            this.radioButtonDrawGreenCircle_Solid.TabIndex = 81;
+            this.radioButtonDrawGreenCircle_Solid.TabStop = true;
+            this.radioButtonDrawGreenCircle_Solid.Text = "Solid Circle";
+            this.radioButtonDrawGreenCircle_Solid.UseVisualStyleBackColor = true;
+            this.radioButtonDrawGreenCircle_Solid.CheckedChanged += new System.EventHandler(this.radioButtonDrawGreenCircle_Solid_CheckedChanged);
+            // 
             // buttonDrawGreenCircleAtClicks
             // 
-            this.buttonDrawGreenCircleAtClicks.Location = new System.Drawing.Point(148, 68);
+            this.buttonDrawGreenCircleAtClicks.Location = new System.Drawing.Point(150, 111);
             this.buttonDrawGreenCircleAtClicks.Name = "buttonDrawGreenCircleAtClicks";
             this.buttonDrawGreenCircleAtClicks.Size = new System.Drawing.Size(98, 21);
             this.buttonDrawGreenCircleAtClicks.TabIndex = 80;
@@ -813,7 +1154,7 @@
             // label32
             // 
             this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(78, 72);
+            this.label32.Location = new System.Drawing.Point(80, 115);
             this.label32.Name = "label32";
             this.label32.Size = new System.Drawing.Size(68, 13);
             this.label32.TabIndex = 79;
@@ -822,25 +1163,25 @@
             // label31
             // 
             this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(11, 72);
+            this.label31.Location = new System.Drawing.Point(13, 115);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(45, 13);
             this.label31.TabIndex = 78;
             this.label31.Text = "For next";
             this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // textBoxGreenCircleDrawMouseClicks
+            // textBoxDrawGreenCircleDrawMouseClicks
             // 
-            this.textBoxGreenCircleDrawMouseClicks.Location = new System.Drawing.Point(56, 69);
-            this.textBoxGreenCircleDrawMouseClicks.Name = "textBoxGreenCircleDrawMouseClicks";
-            this.textBoxGreenCircleDrawMouseClicks.Size = new System.Drawing.Size(20, 20);
-            this.textBoxGreenCircleDrawMouseClicks.TabIndex = 77;
-            this.textBoxGreenCircleDrawMouseClicks.Text = "1";
+            this.textBoxDrawGreenCircleDrawMouseClicks.Location = new System.Drawing.Point(58, 112);
+            this.textBoxDrawGreenCircleDrawMouseClicks.Name = "textBoxDrawGreenCircleDrawMouseClicks";
+            this.textBoxDrawGreenCircleDrawMouseClicks.Size = new System.Drawing.Size(20, 20);
+            this.textBoxDrawGreenCircleDrawMouseClicks.TabIndex = 77;
+            this.textBoxDrawGreenCircleDrawMouseClicks.Text = "1";
             // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(110, 23);
+            this.label9.Location = new System.Drawing.Point(113, 64);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(33, 13);
             this.label9.TabIndex = 76;
@@ -849,24 +1190,24 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(11, 23);
+            this.label8.Location = new System.Drawing.Point(14, 64);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(67, 13);
             this.label8.TabIndex = 75;
             this.label8.Text = "Circle radius:";
             // 
-            // textBoxGreenCircleRadius
+            // textBoxDrawGreenCircleRadius
             // 
-            this.textBoxGreenCircleRadius.Location = new System.Drawing.Point(78, 19);
-            this.textBoxGreenCircleRadius.Name = "textBoxGreenCircleRadius";
-            this.textBoxGreenCircleRadius.Size = new System.Drawing.Size(29, 20);
-            this.textBoxGreenCircleRadius.TabIndex = 74;
-            this.textBoxGreenCircleRadius.Text = "25";
+            this.textBoxDrawGreenCircleRadius.Location = new System.Drawing.Point(81, 60);
+            this.textBoxDrawGreenCircleRadius.Name = "textBoxDrawGreenCircleRadius";
+            this.textBoxDrawGreenCircleRadius.Size = new System.Drawing.Size(29, 20);
+            this.textBoxDrawGreenCircleRadius.TabIndex = 74;
+            this.textBoxDrawGreenCircleRadius.Text = "25";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(11, 46);
+            this.label6.Location = new System.Drawing.Point(13, 89);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(24, 13);
             this.label6.TabIndex = 73;
@@ -874,7 +1215,7 @@
             // 
             // textBoxDrawGreenCircleXY
             // 
-            this.textBoxDrawGreenCircleXY.Location = new System.Drawing.Point(37, 43);
+            this.textBoxDrawGreenCircleXY.Location = new System.Drawing.Point(39, 86);
             this.textBoxDrawGreenCircleXY.Name = "textBoxDrawGreenCircleXY";
             this.textBoxDrawGreenCircleXY.Size = new System.Drawing.Size(59, 20);
             this.textBoxDrawGreenCircleXY.TabIndex = 72;
@@ -882,7 +1223,7 @@
             // 
             // buttonDrawGreenCircleAtPoint
             // 
-            this.buttonDrawGreenCircleAtPoint.Location = new System.Drawing.Point(102, 43);
+            this.buttonDrawGreenCircleAtPoint.Location = new System.Drawing.Point(104, 86);
             this.buttonDrawGreenCircleAtPoint.Name = "buttonDrawGreenCircleAtPoint";
             this.buttonDrawGreenCircleAtPoint.Size = new System.Drawing.Size(98, 21);
             this.buttonDrawGreenCircleAtPoint.TabIndex = 69;
@@ -890,17 +1231,177 @@
             this.buttonDrawGreenCircleAtPoint.UseVisualStyleBackColor = true;
             this.buttonDrawGreenCircleAtPoint.Click += new System.EventHandler(this.buttonDrawGreenCircleAtPoint_Click);
             // 
-            // tabPageUtils1
+            // tabPageCalibration
             // 
-            this.tabPageUtils1.Controls.Add(this.groupBox9);
-            this.tabPageUtils1.Controls.Add(this.groupBox4);
-            this.tabPageUtils1.Controls.Add(this.groupBox2);
-            this.tabPageUtils1.Location = new System.Drawing.Point(4, 22);
-            this.tabPageUtils1.Name = "tabPageUtils1";
-            this.tabPageUtils1.Size = new System.Drawing.Size(288, 487);
-            this.tabPageUtils1.TabIndex = 2;
-            this.tabPageUtils1.Text = "Utils1";
-            this.tabPageUtils1.UseVisualStyleBackColor = true;
+            this.tabPageCalibration.Controls.Add(this.groupBox10);
+            this.tabPageCalibration.Controls.Add(this.groupBox9);
+            this.tabPageCalibration.Controls.Add(this.groupBox4);
+            this.tabPageCalibration.Controls.Add(this.groupBox2);
+            this.tabPageCalibration.Location = new System.Drawing.Point(4, 22);
+            this.tabPageCalibration.Name = "tabPageCalibration";
+            this.tabPageCalibration.Size = new System.Drawing.Size(288, 487);
+            this.tabPageCalibration.TabIndex = 2;
+            this.tabPageCalibration.Text = "Calib";
+            this.tabPageCalibration.UseVisualStyleBackColor = true;
+            // 
+            // groupBox10
+            // 
+            this.groupBox10.Controls.Add(this.label52);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridSpacingMicrons);
+            this.groupBox10.Controls.Add(this.label51);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridColor);
+            this.groupBox10.Controls.Add(this.checkBoxUtilsGridEnabled);
+            this.groupBox10.Controls.Add(this.label50);
+            this.groupBox10.Controls.Add(this.label48);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridBarSizeY);
+            this.groupBox10.Controls.Add(this.label49);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridBarSizeX);
+            this.groupBox10.Controls.Add(this.label24);
+            this.groupBox10.Controls.Add(this.label46);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridSizeY);
+            this.groupBox10.Controls.Add(this.label47);
+            this.groupBox10.Controls.Add(this.textBoxUtilsGridSizeX);
+            this.groupBox10.Location = new System.Drawing.Point(6, 354);
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.Size = new System.Drawing.Size(275, 125);
+            this.groupBox10.TabIndex = 81;
+            this.groupBox10.TabStop = false;
+            this.groupBox10.Text = "Grid";
+            // 
+            // label52
+            // 
+            this.label52.AutoSize = true;
+            this.label52.Location = new System.Drawing.Point(155, 64);
+            this.label52.Name = "label52";
+            this.label52.Size = new System.Drawing.Size(113, 13);
+            this.label52.TabIndex = 110;
+            this.label52.Text = "Grid Spacing (microns)";
+            // 
+            // textBoxUtilsGridSpacingMicrons
+            // 
+            this.textBoxUtilsGridSpacingMicrons.Location = new System.Drawing.Point(176, 80);
+            this.textBoxUtilsGridSpacingMicrons.Name = "textBoxUtilsGridSpacingMicrons";
+            this.textBoxUtilsGridSpacingMicrons.Size = new System.Drawing.Size(59, 20);
+            this.textBoxUtilsGridSpacingMicrons.TabIndex = 106;
+            this.textBoxUtilsGridSpacingMicrons.Text = "400";
+            // 
+            // label51
+            // 
+            this.label51.AutoSize = true;
+            this.label51.Location = new System.Drawing.Point(127, 13);
+            this.label51.Name = "label51";
+            this.label51.Size = new System.Drawing.Size(91, 13);
+            this.label51.TabIndex = 105;
+            this.label51.Text = "Grid Color (R,G,B)";
+            // 
+            // textBoxUtilsGridColor
+            // 
+            this.textBoxUtilsGridColor.Location = new System.Drawing.Point(116, 28);
+            this.textBoxUtilsGridColor.Name = "textBoxUtilsGridColor";
+            this.textBoxUtilsGridColor.Size = new System.Drawing.Size(119, 20);
+            this.textBoxUtilsGridColor.TabIndex = 104;
+            this.textBoxUtilsGridColor.Text = "(255,255,0)";
+            // 
+            // checkBoxUtilsGridEnabled
+            // 
+            this.checkBoxUtilsGridEnabled.AutoSize = true;
+            this.checkBoxUtilsGridEnabled.Location = new System.Drawing.Point(22, 30);
+            this.checkBoxUtilsGridEnabled.Name = "checkBoxUtilsGridEnabled";
+            this.checkBoxUtilsGridEnabled.Size = new System.Drawing.Size(87, 17);
+            this.checkBoxUtilsGridEnabled.TabIndex = 103;
+            this.checkBoxUtilsGridEnabled.Text = "Grid Enabled";
+            this.checkBoxUtilsGridEnabled.UseVisualStyleBackColor = true;
+            this.checkBoxUtilsGridEnabled.CheckedChanged += new System.EventHandler(this.checkBoxUtilsGridEnabled_CheckedChanged);
+            // 
+            // label50
+            // 
+            this.label50.AutoSize = true;
+            this.label50.Location = new System.Drawing.Point(58, 64);
+            this.label50.Name = "label50";
+            this.label50.Size = new System.Drawing.Size(91, 13);
+            this.label50.TabIndex = 102;
+            this.label50.Text = "Grid Bars in Pixels";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(64, 107);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(17, 13);
+            this.label48.TabIndex = 101;
+            this.label48.Text = "Y:";
+            this.label48.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBoxUtilsGridBarSizeY
+            // 
+            this.textBoxUtilsGridBarSizeY.Location = new System.Drawing.Point(84, 103);
+            this.textBoxUtilsGridBarSizeY.Name = "textBoxUtilsGridBarSizeY";
+            this.textBoxUtilsGridBarSizeY.Size = new System.Drawing.Size(59, 20);
+            this.textBoxUtilsGridBarSizeY.TabIndex = 100;
+            this.textBoxUtilsGridBarSizeY.Text = "10";
+            // 
+            // label49
+            // 
+            this.label49.AutoSize = true;
+            this.label49.Location = new System.Drawing.Point(64, 83);
+            this.label49.Name = "label49";
+            this.label49.Size = new System.Drawing.Size(17, 13);
+            this.label49.TabIndex = 99;
+            this.label49.Text = "X:";
+            this.label49.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBoxUtilsGridBarSizeX
+            // 
+            this.textBoxUtilsGridBarSizeX.Location = new System.Drawing.Point(84, 80);
+            this.textBoxUtilsGridBarSizeX.Name = "textBoxUtilsGridBarSizeX";
+            this.textBoxUtilsGridBarSizeX.Size = new System.Drawing.Size(59, 20);
+            this.textBoxUtilsGridBarSizeX.TabIndex = 98;
+            this.textBoxUtilsGridBarSizeX.Text = "10";
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(4, 64);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(49, 13);
+            this.label24.TabIndex = 97;
+            this.label24.Text = "Grid Size";
+            // 
+            // label46
+            // 
+            this.label46.AutoSize = true;
+            this.label46.Location = new System.Drawing.Point(3, 107);
+            this.label46.Name = "label46";
+            this.label46.Size = new System.Drawing.Size(17, 13);
+            this.label46.TabIndex = 96;
+            this.label46.Text = "Y:";
+            this.label46.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBoxUtilsGridSizeY
+            // 
+            this.textBoxUtilsGridSizeY.Location = new System.Drawing.Point(23, 103);
+            this.textBoxUtilsGridSizeY.Name = "textBoxUtilsGridSizeY";
+            this.textBoxUtilsGridSizeY.Size = new System.Drawing.Size(24, 20);
+            this.textBoxUtilsGridSizeY.TabIndex = 95;
+            this.textBoxUtilsGridSizeY.Text = "3";
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(3, 83);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(17, 13);
+            this.label47.TabIndex = 94;
+            this.label47.Text = "X:";
+            this.label47.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBoxUtilsGridSizeX
+            // 
+            this.textBoxUtilsGridSizeX.Location = new System.Drawing.Point(23, 80);
+            this.textBoxUtilsGridSizeX.Name = "textBoxUtilsGridSizeX";
+            this.textBoxUtilsGridSizeX.Size = new System.Drawing.Size(24, 20);
+            this.textBoxUtilsGridSizeX.TabIndex = 93;
+            this.textBoxUtilsGridSizeX.Text = "3";
             // 
             // groupBox9
             // 
@@ -917,7 +1418,7 @@
             this.groupBox9.Controls.Add(this.radioButtonDistHoriz);
             this.groupBox9.Controls.Add(this.radioButtonDistVert);
             this.groupBox9.Controls.Add(this.label25);
-            this.groupBox9.Location = new System.Drawing.Point(6, 152);
+            this.groupBox9.Location = new System.Drawing.Point(6, 146);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(275, 122);
             this.groupBox9.TabIndex = 79;
@@ -1252,7 +1753,7 @@
             this.groupBox2.Controls.Add(this.textBoxRGBAPixelColor);
             this.groupBox2.Controls.Add(this.label12);
             this.groupBox2.Controls.Add(this.textBoxRGBAPixelColorLocInverted);
-            this.groupBox2.Location = new System.Drawing.Point(6, 280);
+            this.groupBox2.Location = new System.Drawing.Point(6, 268);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(275, 87);
             this.groupBox2.TabIndex = 76;
@@ -1330,26 +1831,105 @@
             this.textBoxRGBAPixelColorLocInverted.TabIndex = 72;
             this.textBoxRGBAPixelColorLocInverted.Text = "0,0";
             // 
-            // tabPageUtils2
+            // tabPageStep
             // 
-            this.tabPageUtils2.Controls.Add(this.groupBox3);
-            this.tabPageUtils2.Location = new System.Drawing.Point(4, 22);
-            this.tabPageUtils2.Name = "tabPageUtils2";
-            this.tabPageUtils2.Size = new System.Drawing.Size(288, 487);
-            this.tabPageUtils2.TabIndex = 5;
-            this.tabPageUtils2.Text = "Utils2";
-            this.tabPageUtils2.UseVisualStyleBackColor = true;
+            this.tabPageStep.Controls.Add(this.groupBox11);
+            this.tabPageStep.Controls.Add(this.groupBox3);
+            this.tabPageStep.Location = new System.Drawing.Point(4, 22);
+            this.tabPageStep.Name = "tabPageStep";
+            this.tabPageStep.Size = new System.Drawing.Size(288, 487);
+            this.tabPageStep.TabIndex = 5;
+            this.tabPageStep.Text = "Step";
+            this.tabPageStep.UseVisualStyleBackColor = true;
+            // 
+            // groupBox11
+            // 
+            this.groupBox11.Controls.Add(this.label55);
+            this.groupBox11.Controls.Add(this.textBoxStepCtrlSpeed_Z);
+            this.groupBox11.Controls.Add(this.label54);
+            this.groupBox11.Controls.Add(this.textBoxStepCtrlSpeed_Y);
+            this.groupBox11.Controls.Add(this.label53);
+            this.groupBox11.Controls.Add(this.textBoxStepCtrlSpeed_X);
+            this.groupBox11.Controls.Add(this.checkBoxStepCtrlWASDEnabled);
+            this.groupBox11.Location = new System.Drawing.Point(3, 122);
+            this.groupBox11.Name = "groupBox11";
+            this.groupBox11.Size = new System.Drawing.Size(275, 131);
+            this.groupBox11.TabIndex = 81;
+            this.groupBox11.TabStop = false;
+            this.groupBox11.Text = "WASD-EQ Stepper Control";
+            // 
+            // label55
+            // 
+            this.label55.AutoSize = true;
+            this.label55.Location = new System.Drawing.Point(79, 102);
+            this.label55.Name = "label55";
+            this.label55.Size = new System.Drawing.Size(86, 13);
+            this.label55.TabIndex = 110;
+            this.label55.Text = "Z Steps/Second";
+            // 
+            // textBoxStepCtrlSpeed_Z
+            // 
+            this.textBoxStepCtrlSpeed_Z.Location = new System.Drawing.Point(11, 99);
+            this.textBoxStepCtrlSpeed_Z.Name = "textBoxStepCtrlSpeed_Z";
+            this.textBoxStepCtrlSpeed_Z.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepCtrlSpeed_Z.TabIndex = 109;
+            this.textBoxStepCtrlSpeed_Z.Text = "100";
+            // 
+            // label54
+            // 
+            this.label54.AutoSize = true;
+            this.label54.Location = new System.Drawing.Point(79, 78);
+            this.label54.Name = "label54";
+            this.label54.Size = new System.Drawing.Size(86, 13);
+            this.label54.TabIndex = 108;
+            this.label54.Text = "Y Steps/Second";
+            // 
+            // textBoxStepCtrlSpeed_Y
+            // 
+            this.textBoxStepCtrlSpeed_Y.Location = new System.Drawing.Point(11, 75);
+            this.textBoxStepCtrlSpeed_Y.Name = "textBoxStepCtrlSpeed_Y";
+            this.textBoxStepCtrlSpeed_Y.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepCtrlSpeed_Y.TabIndex = 107;
+            this.textBoxStepCtrlSpeed_Y.Text = "100";
+            // 
+            // label53
+            // 
+            this.label53.AutoSize = true;
+            this.label53.Location = new System.Drawing.Point(79, 55);
+            this.label53.Name = "label53";
+            this.label53.Size = new System.Drawing.Size(86, 13);
+            this.label53.TabIndex = 106;
+            this.label53.Text = "X Steps/Second";
+            // 
+            // textBoxStepCtrlSpeed_X
+            // 
+            this.textBoxStepCtrlSpeed_X.Location = new System.Drawing.Point(11, 52);
+            this.textBoxStepCtrlSpeed_X.Name = "textBoxStepCtrlSpeed_X";
+            this.textBoxStepCtrlSpeed_X.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepCtrlSpeed_X.TabIndex = 105;
+            this.textBoxStepCtrlSpeed_X.Text = "100";
+            // 
+            // checkBoxStepCtrlWASDEnabled
+            // 
+            this.checkBoxStepCtrlWASDEnabled.AutoSize = true;
+            this.checkBoxStepCtrlWASDEnabled.Location = new System.Drawing.Point(11, 29);
+            this.checkBoxStepCtrlWASDEnabled.Name = "checkBoxStepCtrlWASDEnabled";
+            this.checkBoxStepCtrlWASDEnabled.Size = new System.Drawing.Size(119, 17);
+            this.checkBoxStepCtrlWASDEnabled.TabIndex = 104;
+            this.checkBoxStepCtrlWASDEnabled.Text = "WASD-EQ Enabled";
+            this.checkBoxStepCtrlWASDEnabled.UseVisualStyleBackColor = true;
+            this.checkBoxStepCtrlWASDEnabled.CheckedChanged += new System.EventHandler(this.checkBoxStepCtrlWASDEnabled_CheckedChanged);
             // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.panel1);
-            this.groupBox3.Controls.Add(this.buttonStepperControlUtilsStop);
-            this.groupBox3.Controls.Add(this.buttonStepperControlUtilsRun);
+            this.groupBox3.Controls.Add(this.buttonStepperControlRunStop);
+            this.groupBox3.Controls.Add(this.buttonStepperControlRun);
             this.groupBox3.Controls.Add(this.buttonStepperControlUtilsNudge1);
             this.groupBox3.Controls.Add(this.label17);
-            this.groupBox3.Controls.Add(this.textBoxStepperControlUtilsStepsPerSecond);
+            this.groupBox3.Controls.Add(this.textBoxStepperControlStepsPerSecond);
             this.groupBox3.Controls.Add(this.label10);
-            this.groupBox3.Controls.Add(this.textBoxStepperControlUtilsNumSteps);
+            this.groupBox3.Controls.Add(this.textBoxStepperControlNumSteps);
             this.groupBox3.Location = new System.Drawing.Point(3, 3);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(275, 113);
@@ -1359,54 +1939,54 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.radioButtonStepperControlUtilsDirCW);
-            this.panel1.Controls.Add(this.radioButtonStepperControlUtilsDirCCW);
+            this.panel1.Controls.Add(this.radioButtonStepperControlDirCW);
+            this.panel1.Controls.Add(this.radioButtonStepperControlDirCCW);
             this.panel1.Location = new System.Drawing.Point(11, 65);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(68, 38);
             this.panel1.TabIndex = 90;
             // 
-            // radioButtonStepperControlUtilsDirCW
+            // radioButtonStepperControlDirCW
             // 
-            this.radioButtonStepperControlUtilsDirCW.AutoSize = true;
-            this.radioButtonStepperControlUtilsDirCW.Checked = true;
-            this.radioButtonStepperControlUtilsDirCW.Location = new System.Drawing.Point(0, 0);
-            this.radioButtonStepperControlUtilsDirCW.Name = "radioButtonStepperControlUtilsDirCW";
-            this.radioButtonStepperControlUtilsDirCW.Size = new System.Drawing.Size(59, 17);
-            this.radioButtonStepperControlUtilsDirCW.TabIndex = 87;
-            this.radioButtonStepperControlUtilsDirCW.TabStop = true;
-            this.radioButtonStepperControlUtilsDirCW.Text = "Dir CW";
-            this.radioButtonStepperControlUtilsDirCW.UseVisualStyleBackColor = true;
+            this.radioButtonStepperControlDirCW.AutoSize = true;
+            this.radioButtonStepperControlDirCW.Checked = true;
+            this.radioButtonStepperControlDirCW.Location = new System.Drawing.Point(0, 0);
+            this.radioButtonStepperControlDirCW.Name = "radioButtonStepperControlDirCW";
+            this.radioButtonStepperControlDirCW.Size = new System.Drawing.Size(59, 17);
+            this.radioButtonStepperControlDirCW.TabIndex = 87;
+            this.radioButtonStepperControlDirCW.TabStop = true;
+            this.radioButtonStepperControlDirCW.Text = "Dir CW";
+            this.radioButtonStepperControlDirCW.UseVisualStyleBackColor = true;
             // 
-            // radioButtonStepperControlUtilsDirCCW
+            // radioButtonStepperControlDirCCW
             // 
-            this.radioButtonStepperControlUtilsDirCCW.AutoSize = true;
-            this.radioButtonStepperControlUtilsDirCCW.Location = new System.Drawing.Point(0, 17);
-            this.radioButtonStepperControlUtilsDirCCW.Name = "radioButtonStepperControlUtilsDirCCW";
-            this.radioButtonStepperControlUtilsDirCCW.Size = new System.Drawing.Size(66, 17);
-            this.radioButtonStepperControlUtilsDirCCW.TabIndex = 86;
-            this.radioButtonStepperControlUtilsDirCCW.Text = "Dir CCW";
-            this.radioButtonStepperControlUtilsDirCCW.UseVisualStyleBackColor = true;
+            this.radioButtonStepperControlDirCCW.AutoSize = true;
+            this.radioButtonStepperControlDirCCW.Location = new System.Drawing.Point(0, 17);
+            this.radioButtonStepperControlDirCCW.Name = "radioButtonStepperControlDirCCW";
+            this.radioButtonStepperControlDirCCW.Size = new System.Drawing.Size(66, 17);
+            this.radioButtonStepperControlDirCCW.TabIndex = 86;
+            this.radioButtonStepperControlDirCCW.Text = "Dir CCW";
+            this.radioButtonStepperControlDirCCW.UseVisualStyleBackColor = true;
             // 
-            // buttonStepperControlUtilsStop
+            // buttonStepperControlRunStop
             // 
-            this.buttonStepperControlUtilsStop.Location = new System.Drawing.Point(168, 47);
-            this.buttonStepperControlUtilsStop.Name = "buttonStepperControlUtilsStop";
-            this.buttonStepperControlUtilsStop.Size = new System.Drawing.Size(67, 25);
-            this.buttonStepperControlUtilsStop.TabIndex = 89;
-            this.buttonStepperControlUtilsStop.Text = "Stop";
-            this.buttonStepperControlUtilsStop.UseVisualStyleBackColor = true;
-            this.buttonStepperControlUtilsStop.Click += new System.EventHandler(this.buttonStepperControlUtilsStop_Click);
+            this.buttonStepperControlRunStop.Location = new System.Drawing.Point(168, 47);
+            this.buttonStepperControlRunStop.Name = "buttonStepperControlRunStop";
+            this.buttonStepperControlRunStop.Size = new System.Drawing.Size(67, 25);
+            this.buttonStepperControlRunStop.TabIndex = 89;
+            this.buttonStepperControlRunStop.Text = "Stop";
+            this.buttonStepperControlRunStop.UseVisualStyleBackColor = true;
+            this.buttonStepperControlRunStop.Click += new System.EventHandler(this.buttonStepperControlRunStop_Click);
             // 
-            // buttonStepperControlUtilsRun
+            // buttonStepperControlRun
             // 
-            this.buttonStepperControlUtilsRun.Location = new System.Drawing.Point(168, 21);
-            this.buttonStepperControlUtilsRun.Name = "buttonStepperControlUtilsRun";
-            this.buttonStepperControlUtilsRun.Size = new System.Drawing.Size(67, 25);
-            this.buttonStepperControlUtilsRun.TabIndex = 88;
-            this.buttonStepperControlUtilsRun.Text = "Run";
-            this.buttonStepperControlUtilsRun.UseVisualStyleBackColor = true;
-            this.buttonStepperControlUtilsRun.Click += new System.EventHandler(this.buttonStepperControlUtilsRun_Click);
+            this.buttonStepperControlRun.Location = new System.Drawing.Point(168, 21);
+            this.buttonStepperControlRun.Name = "buttonStepperControlRun";
+            this.buttonStepperControlRun.Size = new System.Drawing.Size(67, 25);
+            this.buttonStepperControlRun.TabIndex = 88;
+            this.buttonStepperControlRun.Text = "Run";
+            this.buttonStepperControlRun.UseVisualStyleBackColor = true;
+            this.buttonStepperControlRun.Click += new System.EventHandler(this.buttonStepperControlRun_Click);
             // 
             // buttonStepperControlUtilsNudge1
             // 
@@ -1427,13 +2007,13 @@
             this.label17.TabIndex = 83;
             this.label17.Text = "Steps Second";
             // 
-            // textBoxStepperControlUtilsStepsPerSecond
+            // textBoxStepperControlStepsPerSecond
             // 
-            this.textBoxStepperControlUtilsStepsPerSecond.Location = new System.Drawing.Point(11, 40);
-            this.textBoxStepperControlUtilsStepsPerSecond.Name = "textBoxStepperControlUtilsStepsPerSecond";
-            this.textBoxStepperControlUtilsStepsPerSecond.Size = new System.Drawing.Size(62, 20);
-            this.textBoxStepperControlUtilsStepsPerSecond.TabIndex = 82;
-            this.textBoxStepperControlUtilsStepsPerSecond.Text = "1";
+            this.textBoxStepperControlStepsPerSecond.Location = new System.Drawing.Point(11, 40);
+            this.textBoxStepperControlStepsPerSecond.Name = "textBoxStepperControlStepsPerSecond";
+            this.textBoxStepperControlStepsPerSecond.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepperControlStepsPerSecond.TabIndex = 82;
+            this.textBoxStepperControlStepsPerSecond.Text = "1";
             // 
             // label10
             // 
@@ -1444,13 +2024,251 @@
             this.label10.TabIndex = 79;
             this.label10.Text = "NumSteps";
             // 
-            // textBoxStepperControlUtilsNumSteps
+            // textBoxStepperControlNumSteps
             // 
-            this.textBoxStepperControlUtilsNumSteps.Location = new System.Drawing.Point(11, 18);
-            this.textBoxStepperControlUtilsNumSteps.Name = "textBoxStepperControlUtilsNumSteps";
-            this.textBoxStepperControlUtilsNumSteps.Size = new System.Drawing.Size(62, 20);
-            this.textBoxStepperControlUtilsNumSteps.TabIndex = 1;
-            this.textBoxStepperControlUtilsNumSteps.Text = "10";
+            this.textBoxStepperControlNumSteps.Location = new System.Drawing.Point(11, 18);
+            this.textBoxStepperControlNumSteps.Name = "textBoxStepperControlNumSteps";
+            this.textBoxStepperControlNumSteps.Size = new System.Drawing.Size(62, 20);
+            this.textBoxStepperControlNumSteps.TabIndex = 1;
+            this.textBoxStepperControlNumSteps.Text = "10";
+            // 
+            // tabPageEx
+            // 
+            this.tabPageEx.Controls.Add(this.groupBox17);
+            this.tabPageEx.Controls.Add(this.groupBox8);
+            this.tabPageEx.Location = new System.Drawing.Point(4, 22);
+            this.tabPageEx.Name = "tabPageEx";
+            this.tabPageEx.Size = new System.Drawing.Size(288, 487);
+            this.tabPageEx.TabIndex = 6;
+            this.tabPageEx.Text = "Ex010";
+            this.tabPageEx.UseVisualStyleBackColor = true;
+            // 
+            // groupBox17
+            // 
+            this.groupBox17.Controls.Add(this.buttonTrackerCopyTrackerOntoOverlay);
+            this.groupBox17.Controls.Add(this.label58);
+            this.groupBox17.Controls.Add(this.label59);
+            this.groupBox17.Controls.Add(this.textBoxTrackerCircleRadius);
+            this.groupBox17.Controls.Add(this.checkBoxTrackerShowTracker);
+            this.groupBox17.Controls.Add(this.checkBoxTrackerTrackRed);
+            this.groupBox17.Location = new System.Drawing.Point(5, 256);
+            this.groupBox17.Name = "groupBox17";
+            this.groupBox17.Size = new System.Drawing.Size(280, 113);
+            this.groupBox17.TabIndex = 81;
+            this.groupBox17.TabStop = false;
+            this.groupBox17.Text = "Tracker";
+            // 
+            // buttonTrackerCopyTrackerOntoOverlay
+            // 
+            this.buttonTrackerCopyTrackerOntoOverlay.Location = new System.Drawing.Point(40, 80);
+            this.buttonTrackerCopyTrackerOntoOverlay.Name = "buttonTrackerCopyTrackerOntoOverlay";
+            this.buttonTrackerCopyTrackerOntoOverlay.Size = new System.Drawing.Size(155, 27);
+            this.buttonTrackerCopyTrackerOntoOverlay.TabIndex = 89;
+            this.buttonTrackerCopyTrackerOntoOverlay.Text = "Copy Tracker onto Overlay";
+            this.buttonTrackerCopyTrackerOntoOverlay.UseVisualStyleBackColor = true;
+            this.buttonTrackerCopyTrackerOntoOverlay.Click += new System.EventHandler(this.buttonTrackerCopyTrackerOntoOverlay_Click);
+            // 
+            // label58
+            // 
+            this.label58.AutoSize = true;
+            this.label58.Location = new System.Drawing.Point(133, 58);
+            this.label58.Name = "label58";
+            this.label58.Size = new System.Drawing.Size(33, 13);
+            this.label58.TabIndex = 88;
+            this.label58.Text = "pixels";
+            // 
+            // label59
+            // 
+            this.label59.AutoSize = true;
+            this.label59.Location = new System.Drawing.Point(34, 58);
+            this.label59.Name = "label59";
+            this.label59.Size = new System.Drawing.Size(67, 13);
+            this.label59.TabIndex = 87;
+            this.label59.Text = "Circle radius:";
+            // 
+            // textBoxTrackerCircleRadius
+            // 
+            this.textBoxTrackerCircleRadius.Location = new System.Drawing.Point(101, 54);
+            this.textBoxTrackerCircleRadius.Name = "textBoxTrackerCircleRadius";
+            this.textBoxTrackerCircleRadius.Size = new System.Drawing.Size(29, 20);
+            this.textBoxTrackerCircleRadius.TabIndex = 86;
+            this.textBoxTrackerCircleRadius.Text = "2";
+            // 
+            // checkBoxTrackerShowTracker
+            // 
+            this.checkBoxTrackerShowTracker.AutoSize = true;
+            this.checkBoxTrackerShowTracker.Location = new System.Drawing.Point(40, 35);
+            this.checkBoxTrackerShowTracker.Name = "checkBoxTrackerShowTracker";
+            this.checkBoxTrackerShowTracker.Size = new System.Drawing.Size(90, 17);
+            this.checkBoxTrackerShowTracker.TabIndex = 85;
+            this.checkBoxTrackerShowTracker.Text = "ShowTracker";
+            this.checkBoxTrackerShowTracker.UseVisualStyleBackColor = true;
+            this.checkBoxTrackerShowTracker.CheckedChanged += new System.EventHandler(this.checkBoxTrackerShowTracker_CheckedChanged);
+            // 
+            // checkBoxTrackerTrackRed
+            // 
+            this.checkBoxTrackerTrackRed.AutoSize = true;
+            this.checkBoxTrackerTrackRed.Location = new System.Drawing.Point(40, 19);
+            this.checkBoxTrackerTrackRed.Name = "checkBoxTrackerTrackRed";
+            this.checkBoxTrackerTrackRed.Size = new System.Drawing.Size(77, 17);
+            this.checkBoxTrackerTrackRed.TabIndex = 84;
+            this.checkBoxTrackerTrackRed.Text = "Track Red";
+            this.checkBoxTrackerTrackRed.UseVisualStyleBackColor = true;
+            // 
+            // groupBox8
+            // 
+            this.groupBox8.Controls.Add(this.panel2);
+            this.groupBox8.Controls.Add(this.checkBoxMoveRedOntoTargetUseClearanceRadius);
+            this.groupBox8.Controls.Add(this.label61);
+            this.groupBox8.Controls.Add(this.textBoxMoveRedOntoTargetClearanceRadius);
+            this.groupBox8.Controls.Add(this.labelMoveRedToTarget_Speeds);
+            this.groupBox8.Controls.Add(this.radioButtonMoveRedOntoTargetFindNearest);
+            this.groupBox8.Controls.Add(this.radioButtonMoveRedOntoTargetViaLastClick);
+            this.groupBox8.Controls.Add(this.labelMoveRedToTarget_YStepSec);
+            this.groupBox8.Controls.Add(this.textBoxMoveRedOntoTarget_YStepsSec);
+            this.groupBox8.Controls.Add(this.labelMoveRedToTarget_XStepSec);
+            this.groupBox8.Controls.Add(this.textBoxMoveRedOntoTarget_XStepsSec);
+            this.groupBox8.Controls.Add(this.checkBoxMoveRedOntoTarget);
+            this.groupBox8.Location = new System.Drawing.Point(5, 13);
+            this.groupBox8.Name = "groupBox8";
+            this.groupBox8.Size = new System.Drawing.Size(280, 237);
+            this.groupBox8.TabIndex = 80;
+            this.groupBox8.TabStop = false;
+            this.groupBox8.Text = "Ex010 Actions";
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.radioButtonMoveRedOntoTargetFindNearestTrackerColor);
+            this.panel2.Controls.Add(this.radioButtonMoveRedOntoTargetFindNearestGreenColor);
+            this.panel2.Location = new System.Drawing.Point(115, 53);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(105, 41);
+            this.panel2.TabIndex = 125;
+            // 
+            // radioButtonMoveRedOntoTargetFindNearestTrackerColor
+            // 
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.AutoSize = true;
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.Location = new System.Drawing.Point(3, 20);
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.Name = "radioButtonMoveRedOntoTargetFindNearestTrackerColor";
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.Size = new System.Drawing.Size(88, 17);
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.TabIndex = 1;
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.Text = "Tracker color";
+            this.radioButtonMoveRedOntoTargetFindNearestTrackerColor.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonMoveRedOntoTargetFindNearestGreenColor
+            // 
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.AutoSize = true;
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.Checked = true;
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.Location = new System.Drawing.Point(3, 3);
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.Name = "radioButtonMoveRedOntoTargetFindNearestGreenColor";
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.Size = new System.Drawing.Size(80, 17);
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.TabIndex = 0;
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.TabStop = true;
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.Text = "Green color";
+            this.radioButtonMoveRedOntoTargetFindNearestGreenColor.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxMoveRedOntoTargetUseClearanceRadius
+            // 
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.AutoSize = true;
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.Location = new System.Drawing.Point(40, 96);
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.Name = "checkBoxMoveRedOntoTargetUseClearanceRadius";
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.Size = new System.Drawing.Size(144, 17);
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.TabIndex = 124;
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.Text = "Use Clearance Radius of";
+            this.checkBoxMoveRedOntoTargetUseClearanceRadius.UseVisualStyleBackColor = true;
+            // 
+            // label61
+            // 
+            this.label61.AutoSize = true;
+            this.label61.Location = new System.Drawing.Point(209, 96);
+            this.label61.Name = "label61";
+            this.label61.Size = new System.Drawing.Size(33, 13);
+            this.label61.TabIndex = 123;
+            this.label61.Text = "pixels";
+            // 
+            // textBoxMoveRedOntoTargetClearanceRadius
+            // 
+            this.textBoxMoveRedOntoTargetClearanceRadius.Location = new System.Drawing.Point(186, 94);
+            this.textBoxMoveRedOntoTargetClearanceRadius.Name = "textBoxMoveRedOntoTargetClearanceRadius";
+            this.textBoxMoveRedOntoTargetClearanceRadius.Size = new System.Drawing.Size(23, 20);
+            this.textBoxMoveRedOntoTargetClearanceRadius.TabIndex = 121;
+            this.textBoxMoveRedOntoTargetClearanceRadius.Text = "4";
+            // 
+            // labelMoveRedToTarget_Speeds
+            // 
+            this.labelMoveRedToTarget_Speeds.AutoSize = true;
+            this.labelMoveRedToTarget_Speeds.Location = new System.Drawing.Point(15, 113);
+            this.labelMoveRedToTarget_Speeds.Name = "labelMoveRedToTarget_Speeds";
+            this.labelMoveRedToTarget_Speeds.Size = new System.Drawing.Size(43, 13);
+            this.labelMoveRedToTarget_Speeds.TabIndex = 115;
+            this.labelMoveRedToTarget_Speeds.Text = "Speeds";
+            // 
+            // radioButtonMoveRedOntoTargetFindNearest
+            // 
+            this.radioButtonMoveRedOntoTargetFindNearest.AutoSize = true;
+            this.radioButtonMoveRedOntoTargetFindNearest.Location = new System.Drawing.Point(26, 53);
+            this.radioButtonMoveRedOntoTargetFindNearest.Name = "radioButtonMoveRedOntoTargetFindNearest";
+            this.radioButtonMoveRedOntoTargetFindNearest.Size = new System.Drawing.Size(85, 17);
+            this.radioButtonMoveRedOntoTargetFindNearest.TabIndex = 114;
+            this.radioButtonMoveRedOntoTargetFindNearest.Text = "Find Nearest";
+            this.radioButtonMoveRedOntoTargetFindNearest.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonMoveRedOntoTargetViaLastClick
+            // 
+            this.radioButtonMoveRedOntoTargetViaLastClick.AutoSize = true;
+            this.radioButtonMoveRedOntoTargetViaLastClick.Checked = true;
+            this.radioButtonMoveRedOntoTargetViaLastClick.Location = new System.Drawing.Point(26, 35);
+            this.radioButtonMoveRedOntoTargetViaLastClick.Name = "radioButtonMoveRedOntoTargetViaLastClick";
+            this.radioButtonMoveRedOntoTargetViaLastClick.Size = new System.Drawing.Size(124, 17);
+            this.radioButtonMoveRedOntoTargetViaLastClick.TabIndex = 113;
+            this.radioButtonMoveRedOntoTargetViaLastClick.TabStop = true;
+            this.radioButtonMoveRedOntoTargetViaLastClick.Text = "Via Last Mouse Click";
+            this.radioButtonMoveRedOntoTargetViaLastClick.UseVisualStyleBackColor = true;
+            // 
+            // labelMoveRedToTarget_YStepSec
+            // 
+            this.labelMoveRedToTarget_YStepSec.AutoSize = true;
+            this.labelMoveRedToTarget_YStepSec.Location = new System.Drawing.Point(71, 155);
+            this.labelMoveRedToTarget_YStepSec.Name = "labelMoveRedToTarget_YStepSec";
+            this.labelMoveRedToTarget_YStepSec.Size = new System.Drawing.Size(86, 13);
+            this.labelMoveRedToTarget_YStepSec.TabIndex = 112;
+            this.labelMoveRedToTarget_YStepSec.Text = "Y Steps/Second";
+            // 
+            // textBoxMoveRedOntoTarget_YStepsSec
+            // 
+            this.textBoxMoveRedOntoTarget_YStepsSec.Location = new System.Drawing.Point(31, 152);
+            this.textBoxMoveRedOntoTarget_YStepsSec.Name = "textBoxMoveRedOntoTarget_YStepsSec";
+            this.textBoxMoveRedOntoTarget_YStepsSec.Size = new System.Drawing.Size(34, 20);
+            this.textBoxMoveRedOntoTarget_YStepsSec.TabIndex = 111;
+            this.textBoxMoveRedOntoTarget_YStepsSec.Text = "100";
+            // 
+            // labelMoveRedToTarget_XStepSec
+            // 
+            this.labelMoveRedToTarget_XStepSec.AutoSize = true;
+            this.labelMoveRedToTarget_XStepSec.Location = new System.Drawing.Point(71, 132);
+            this.labelMoveRedToTarget_XStepSec.Name = "labelMoveRedToTarget_XStepSec";
+            this.labelMoveRedToTarget_XStepSec.Size = new System.Drawing.Size(86, 13);
+            this.labelMoveRedToTarget_XStepSec.TabIndex = 110;
+            this.labelMoveRedToTarget_XStepSec.Text = "X Steps/Second";
+            // 
+            // textBoxMoveRedOntoTarget_XStepsSec
+            // 
+            this.textBoxMoveRedOntoTarget_XStepsSec.Location = new System.Drawing.Point(31, 129);
+            this.textBoxMoveRedOntoTarget_XStepsSec.Name = "textBoxMoveRedOntoTarget_XStepsSec";
+            this.textBoxMoveRedOntoTarget_XStepsSec.Size = new System.Drawing.Size(34, 20);
+            this.textBoxMoveRedOntoTarget_XStepsSec.TabIndex = 109;
+            this.textBoxMoveRedOntoTarget_XStepsSec.Text = "100";
+            // 
+            // checkBoxMoveRedOntoTarget
+            // 
+            this.checkBoxMoveRedOntoTarget.AutoSize = true;
+            this.checkBoxMoveRedOntoTarget.Location = new System.Drawing.Point(6, 19);
+            this.checkBoxMoveRedOntoTarget.Name = "checkBoxMoveRedOntoTarget";
+            this.checkBoxMoveRedOntoTarget.Size = new System.Drawing.Size(134, 17);
+            this.checkBoxMoveRedOntoTarget.TabIndex = 83;
+            this.checkBoxMoveRedOntoTarget.Text = "Move Red onto Target";
+            this.checkBoxMoveRedOntoTarget.UseVisualStyleBackColor = true;
+            this.checkBoxMoveRedOntoTarget.CheckedChanged += new System.EventHandler(this.checkBoxMoveRedOntoTarget_CheckedChanged);
             // 
             // tabPageOld
             // 
@@ -1612,7 +2430,7 @@
             // groupBoxAction
             // 
             this.groupBoxAction.Controls.Add(this.radioButtonPathFollow);
-            this.groupBoxAction.Controls.Add(this.radioButtonRedToGreen);
+            this.groupBoxAction.Controls.Add(this.radioButtonRedToTarget);
             this.groupBoxAction.Controls.Add(this.checkBoxActivate);
             this.groupBoxAction.Location = new System.Drawing.Point(4, 96);
             this.groupBoxAction.Name = "groupBoxAction";
@@ -1631,17 +2449,17 @@
             this.radioButtonPathFollow.Text = "PathFollow";
             this.radioButtonPathFollow.UseVisualStyleBackColor = true;
             // 
-            // radioButtonRedToGreen
+            // radioButtonRedToTarget
             // 
-            this.radioButtonRedToGreen.AutoSize = true;
-            this.radioButtonRedToGreen.Checked = true;
-            this.radioButtonRedToGreen.Location = new System.Drawing.Point(3, 17);
-            this.radioButtonRedToGreen.Name = "radioButtonRedToGreen";
-            this.radioButtonRedToGreen.Size = new System.Drawing.Size(87, 17);
-            this.radioButtonRedToGreen.TabIndex = 50;
-            this.radioButtonRedToGreen.TabStop = true;
-            this.radioButtonRedToGreen.Text = "RedToGreen";
-            this.radioButtonRedToGreen.UseVisualStyleBackColor = true;
+            this.radioButtonRedToTarget.AutoSize = true;
+            this.radioButtonRedToTarget.Checked = true;
+            this.radioButtonRedToTarget.Location = new System.Drawing.Point(3, 17);
+            this.radioButtonRedToTarget.Name = "radioButtonRedToTarget";
+            this.radioButtonRedToTarget.Size = new System.Drawing.Size(89, 17);
+            this.radioButtonRedToTarget.TabIndex = 50;
+            this.radioButtonRedToTarget.TabStop = true;
+            this.radioButtonRedToTarget.Text = "RedToTarget";
+            this.radioButtonRedToTarget.UseVisualStyleBackColor = true;
             // 
             // checkBoxActivate
             // 
@@ -1771,6 +2589,7 @@
             // 
             // tabPageSetup
             // 
+            this.tabPageSetup.Controls.Add(this.groupBox12);
             this.tabPageSetup.Controls.Add(this.groupBox5);
             this.tabPageSetup.Controls.Add(this.labelVideoCaptureDeviceName);
             this.tabPageSetup.Controls.Add(this.label1);
@@ -1783,6 +2602,151 @@
             this.tabPageSetup.TabIndex = 1;
             this.tabPageSetup.Text = "Setup";
             this.tabPageSetup.UseVisualStyleBackColor = true;
+            // 
+            // groupBox12
+            // 
+            this.groupBox12.Controls.Add(this.groupBox16);
+            this.groupBox12.Controls.Add(this.groupBox15);
+            this.groupBox12.Controls.Add(this.groupBox14);
+            this.groupBox12.Controls.Add(this.groupBox13);
+            this.groupBox12.Location = new System.Drawing.Point(468, 184);
+            this.groupBox12.Name = "groupBox12";
+            this.groupBox12.Size = new System.Drawing.Size(315, 246);
+            this.groupBox12.TabIndex = 83;
+            this.groupBox12.TabStop = false;
+            this.groupBox12.Text = "Global Motor Direction Settings";
+            // 
+            // groupBox16
+            // 
+            this.groupBox16.Controls.Add(this.radioButtonPositiveDirIs1_Motor3);
+            this.groupBox16.Controls.Add(this.radioButtonPositiveDirIs0_Motor3);
+            this.groupBox16.Location = new System.Drawing.Point(148, 80);
+            this.groupBox16.Name = "groupBox16";
+            this.groupBox16.Size = new System.Drawing.Size(123, 55);
+            this.groupBox16.TabIndex = 2;
+            this.groupBox16.TabStop = false;
+            this.groupBox16.Text = "Stepper Motor 3";
+            // 
+            // radioButtonPositiveDirIs1_Motor3
+            // 
+            this.radioButtonPositiveDirIs1_Motor3.AutoSize = true;
+            this.radioButtonPositiveDirIs1_Motor3.Location = new System.Drawing.Point(9, 34);
+            this.radioButtonPositiveDirIs1_Motor3.Name = "radioButtonPositiveDirIs1_Motor3";
+            this.radioButtonPositiveDirIs1_Motor3.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs1_Motor3.TabIndex = 1;
+            this.radioButtonPositiveDirIs1_Motor3.Text = "Positive Dir is 1";
+            this.radioButtonPositiveDirIs1_Motor3.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonPositiveDirIs0_Motor3
+            // 
+            this.radioButtonPositiveDirIs0_Motor3.AutoSize = true;
+            this.radioButtonPositiveDirIs0_Motor3.Checked = true;
+            this.radioButtonPositiveDirIs0_Motor3.Location = new System.Drawing.Point(9, 16);
+            this.radioButtonPositiveDirIs0_Motor3.Name = "radioButtonPositiveDirIs0_Motor3";
+            this.radioButtonPositiveDirIs0_Motor3.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs0_Motor3.TabIndex = 0;
+            this.radioButtonPositiveDirIs0_Motor3.TabStop = true;
+            this.radioButtonPositiveDirIs0_Motor3.Text = "Positive Dir is 0";
+            this.radioButtonPositiveDirIs0_Motor3.UseVisualStyleBackColor = true;
+            // 
+            // groupBox15
+            // 
+            this.groupBox15.Controls.Add(this.radioButtonPositiveDirIs1_Motor1);
+            this.groupBox15.Controls.Add(this.radioButtonPositiveDirIs0_Motor1);
+            this.groupBox15.Location = new System.Drawing.Point(148, 19);
+            this.groupBox15.Name = "groupBox15";
+            this.groupBox15.Size = new System.Drawing.Size(123, 55);
+            this.groupBox15.TabIndex = 2;
+            this.groupBox15.TabStop = false;
+            this.groupBox15.Text = "Stepper Motor 1";
+            // 
+            // radioButtonPositiveDirIs1_Motor1
+            // 
+            this.radioButtonPositiveDirIs1_Motor1.AutoSize = true;
+            this.radioButtonPositiveDirIs1_Motor1.Location = new System.Drawing.Point(9, 34);
+            this.radioButtonPositiveDirIs1_Motor1.Name = "radioButtonPositiveDirIs1_Motor1";
+            this.radioButtonPositiveDirIs1_Motor1.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs1_Motor1.TabIndex = 1;
+            this.radioButtonPositiveDirIs1_Motor1.Text = "Positive Dir is 1";
+            this.radioButtonPositiveDirIs1_Motor1.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonPositiveDirIs0_Motor1
+            // 
+            this.radioButtonPositiveDirIs0_Motor1.AutoSize = true;
+            this.radioButtonPositiveDirIs0_Motor1.Checked = true;
+            this.radioButtonPositiveDirIs0_Motor1.Location = new System.Drawing.Point(9, 16);
+            this.radioButtonPositiveDirIs0_Motor1.Name = "radioButtonPositiveDirIs0_Motor1";
+            this.radioButtonPositiveDirIs0_Motor1.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs0_Motor1.TabIndex = 0;
+            this.radioButtonPositiveDirIs0_Motor1.TabStop = true;
+            this.radioButtonPositiveDirIs0_Motor1.Text = "Positive Dir is 0";
+            this.radioButtonPositiveDirIs0_Motor1.UseVisualStyleBackColor = true;
+            // 
+            // groupBox14
+            // 
+            this.groupBox14.Controls.Add(this.radioButtonPositiveDirIs1_Motor2);
+            this.groupBox14.Controls.Add(this.radioButtonPositiveDirIs0_Motor2);
+            this.groupBox14.Location = new System.Drawing.Point(6, 80);
+            this.groupBox14.Name = "groupBox14";
+            this.groupBox14.Size = new System.Drawing.Size(123, 55);
+            this.groupBox14.TabIndex = 2;
+            this.groupBox14.TabStop = false;
+            this.groupBox14.Text = "Stepper Motor 2";
+            // 
+            // radioButtonPositiveDirIs1_Motor2
+            // 
+            this.radioButtonPositiveDirIs1_Motor2.AutoSize = true;
+            this.radioButtonPositiveDirIs1_Motor2.Location = new System.Drawing.Point(9, 34);
+            this.radioButtonPositiveDirIs1_Motor2.Name = "radioButtonPositiveDirIs1_Motor2";
+            this.radioButtonPositiveDirIs1_Motor2.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs1_Motor2.TabIndex = 1;
+            this.radioButtonPositiveDirIs1_Motor2.Text = "Positive Dir is 1";
+            this.radioButtonPositiveDirIs1_Motor2.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonPositiveDirIs0_Motor2
+            // 
+            this.radioButtonPositiveDirIs0_Motor2.AutoSize = true;
+            this.radioButtonPositiveDirIs0_Motor2.Checked = true;
+            this.radioButtonPositiveDirIs0_Motor2.Location = new System.Drawing.Point(9, 16);
+            this.radioButtonPositiveDirIs0_Motor2.Name = "radioButtonPositiveDirIs0_Motor2";
+            this.radioButtonPositiveDirIs0_Motor2.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs0_Motor2.TabIndex = 0;
+            this.radioButtonPositiveDirIs0_Motor2.TabStop = true;
+            this.radioButtonPositiveDirIs0_Motor2.Text = "Positive Dir is 0";
+            this.radioButtonPositiveDirIs0_Motor2.UseVisualStyleBackColor = true;
+            // 
+            // groupBox13
+            // 
+            this.groupBox13.Controls.Add(this.radioButtonPositiveDirIs1_Motor0);
+            this.groupBox13.Controls.Add(this.radioButtonPositiveDirIs0_Motor0);
+            this.groupBox13.Location = new System.Drawing.Point(6, 19);
+            this.groupBox13.Name = "groupBox13";
+            this.groupBox13.Size = new System.Drawing.Size(123, 55);
+            this.groupBox13.TabIndex = 0;
+            this.groupBox13.TabStop = false;
+            this.groupBox13.Text = "Stepper Motor 0";
+            // 
+            // radioButtonPositiveDirIs1_Motor0
+            // 
+            this.radioButtonPositiveDirIs1_Motor0.AutoSize = true;
+            this.radioButtonPositiveDirIs1_Motor0.Location = new System.Drawing.Point(9, 34);
+            this.radioButtonPositiveDirIs1_Motor0.Name = "radioButtonPositiveDirIs1_Motor0";
+            this.radioButtonPositiveDirIs1_Motor0.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs1_Motor0.TabIndex = 1;
+            this.radioButtonPositiveDirIs1_Motor0.Text = "Positive Dir is 1";
+            this.radioButtonPositiveDirIs1_Motor0.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonPositiveDirIs0_Motor0
+            // 
+            this.radioButtonPositiveDirIs0_Motor0.AutoSize = true;
+            this.radioButtonPositiveDirIs0_Motor0.Checked = true;
+            this.radioButtonPositiveDirIs0_Motor0.Location = new System.Drawing.Point(9, 16);
+            this.radioButtonPositiveDirIs0_Motor0.Name = "radioButtonPositiveDirIs0_Motor0";
+            this.radioButtonPositiveDirIs0_Motor0.Size = new System.Drawing.Size(97, 17);
+            this.radioButtonPositiveDirIs0_Motor0.TabIndex = 0;
+            this.radioButtonPositiveDirIs0_Motor0.TabStop = true;
+            this.radioButtonPositiveDirIs0_Motor0.Text = "Positive Dir is 0";
+            this.radioButtonPositiveDirIs0_Motor0.UseVisualStyleBackColor = true;
             // 
             // groupBox5
             // 
@@ -1970,6 +2934,26 @@
             this.buttonTestConnection.UseVisualStyleBackColor = true;
             this.buttonTestConnection.Click += new System.EventHandler(this.buttonTestConnection_Click);
             // 
+            // buttonTrackerClearTracker
+            // 
+            this.buttonTrackerClearTracker.Location = new System.Drawing.Point(401, 492);
+            this.buttonTrackerClearTracker.Name = "buttonTrackerClearTracker";
+            this.buttonTrackerClearTracker.Size = new System.Drawing.Size(83, 25);
+            this.buttonTrackerClearTracker.TabIndex = 91;
+            this.buttonTrackerClearTracker.Text = "Clear Tracker ";
+            this.buttonTrackerClearTracker.UseVisualStyleBackColor = true;
+            this.buttonTrackerClearTracker.Click += new System.EventHandler(this.buttonTrackerClearTracker_Click);
+            // 
+            // buttonDrawClearOverlay
+            // 
+            this.buttonDrawClearOverlay.Location = new System.Drawing.Point(313, 492);
+            this.buttonDrawClearOverlay.Name = "buttonDrawClearOverlay";
+            this.buttonDrawClearOverlay.Size = new System.Drawing.Size(82, 25);
+            this.buttonDrawClearOverlay.TabIndex = 92;
+            this.buttonDrawClearOverlay.Text = "Clear Overlay";
+            this.buttonDrawClearOverlay.UseVisualStyleBackColor = true;
+            this.buttonDrawClearOverlay.Click += new System.EventHandler(this.buttonDrawClearOverlay_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1977,6 +2961,7 @@
             this.ClientSize = new System.Drawing.Size(987, 548);
             this.Controls.Add(this.tabControlMainFrm);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.Location = new System.Drawing.Point(0, 0);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MinimumSize = new System.Drawing.Size(1003, 587);
@@ -1984,34 +2969,49 @@
             this.Text = "Walnut: Remote Robotic Manipulator Control";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyUp);
             this.tabControlMainFrm.ResumeLayout(false);
             this.tabPageMain.ResumeLayout(false);
             this.tabPageMain.PerformLayout();
             this.tabControl2.ResumeLayout(false);
             this.tabPageRecordingActions.ResumeLayout(false);
             this.tabPageRecordingActions.PerformLayout();
-            this.tabPageEx008.ResumeLayout(false);
-            this.groupBox8.ResumeLayout(false);
-            this.groupBox8.PerformLayout();
+            this.tabPageDetect.ResumeLayout(false);
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
+            this.groupBoxLineDetect_Vert.ResumeLayout(false);
+            this.groupBoxLineDetect_Vert.PerformLayout();
+            this.groupBoxLineDetect_Horiz.ResumeLayout(false);
+            this.groupBoxLineDetect_Horiz.PerformLayout();
             this.tabPageDraw.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBoxDrawGreenCircle.ResumeLayout(false);
             this.groupBoxDrawGreenCircle.PerformLayout();
-            this.tabPageUtils1.ResumeLayout(false);
+            this.tabPageCalibration.ResumeLayout(false);
+            this.groupBox10.ResumeLayout(false);
+            this.groupBox10.PerformLayout();
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            this.tabPageUtils2.ResumeLayout(false);
+            this.tabPageStep.ResumeLayout(false);
+            this.groupBox11.ResumeLayout(false);
+            this.groupBox11.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.tabPageEx.ResumeLayout(false);
+            this.groupBox17.ResumeLayout(false);
+            this.groupBox17.PerformLayout();
+            this.groupBox8.ResumeLayout(false);
+            this.groupBox8.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             this.tabPageOld.ResumeLayout(false);
             this.tabPageOld.PerformLayout();
             this.groupBoxStepperTest.ResumeLayout(false);
@@ -2024,6 +3024,15 @@
             this.groupBox1.PerformLayout();
             this.tabPageSetup.ResumeLayout(false);
             this.tabPageSetup.PerformLayout();
+            this.groupBox12.ResumeLayout(false);
+            this.groupBox16.ResumeLayout(false);
+            this.groupBox16.PerformLayout();
+            this.groupBox15.ResumeLayout(false);
+            this.groupBox15.PerformLayout();
+            this.groupBox14.ResumeLayout(false);
+            this.groupBox14.PerformLayout();
+            this.groupBox13.ResumeLayout(false);
+            this.groupBox13.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.tabPageTransporter.ResumeLayout(false);
@@ -2061,7 +3070,7 @@
         private System.Windows.Forms.Button buttonRecordingOnOff;
         private System.Windows.Forms.TabPage tabPageDraw;
         private System.Windows.Forms.CheckBox checkBoxRemoteConnectionState;
-        private System.Windows.Forms.TabPage tabPageUtils1;
+        private System.Windows.Forms.TabPage tabPageCalibration;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label15;
@@ -2096,40 +3105,28 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label labelOutputFileName;
         private System.Windows.Forms.GroupBox groupBoxDrawGreenCircle;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox textBoxGreenCircleRadius;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBoxDrawGreenCircleXY;
         private System.Windows.Forms.Button buttonDrawGreenCircleAtPoint;
         private System.Windows.Forms.Button buttonDrawGreenCircleAtClicks;
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label31;
-        private System.Windows.Forms.TextBox textBoxGreenCircleDrawMouseClicks;
-        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox textBoxDrawGreenCircleDrawMouseClicks;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.RadioButton radioButtonDrawRedLineVert;
         private System.Windows.Forms.RadioButton radioButtonDrawRedLineHoriz;
         private System.Windows.Forms.Label label33;
         private System.Windows.Forms.Label label34;
-        private System.Windows.Forms.TextBox textBoxRedLineWidth;
+        private System.Windows.Forms.TextBox textBoxDrawRedLineWidth;
         private System.Windows.Forms.Label label35;
         private System.Windows.Forms.TextBox textBoxDrawRedLineXY;
         private System.Windows.Forms.Button buttonDrawRedLineThroughPoint;
-        private System.Windows.Forms.Button buttonDrawClearOverlay;
         private System.Windows.Forms.Button buttonDrawRedLineAtClicks;
         private System.Windows.Forms.Label label36;
         private System.Windows.Forms.Label label37;
-        private System.Windows.Forms.TextBox textBoxRedLineDrawMouseClicks;
-        private System.Windows.Forms.TabPage tabPageEx008;
+        private System.Windows.Forms.TextBox textBoxDrawRedLineDrawMouseClicks;
+        private System.Windows.Forms.TabPage tabPageDetect;
         private System.Windows.Forms.GroupBox groupBox7;
-        private System.Windows.Forms.Label label40;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectVertBot;
-        private System.Windows.Forms.Label label41;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectVertTop;
-        private System.Windows.Forms.Label label39;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectHorizBot;
-        private System.Windows.Forms.Label label38;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectHorizTop;
         private System.Windows.Forms.TabPage tabPageOld;
         private System.Windows.Forms.GroupBox groupBoxStepperTest;
         private System.Windows.Forms.RadioButton radioButtonStepper0TestCCW;
@@ -2146,7 +3143,7 @@
         private System.Windows.Forms.RadioButton radioButtonLoc1;
         private System.Windows.Forms.GroupBox groupBoxAction;
         private System.Windows.Forms.RadioButton radioButtonPathFollow;
-        private System.Windows.Forms.RadioButton radioButtonRedToGreen;
+        private System.Windows.Forms.RadioButton radioButtonRedToTarget;
         private System.Windows.Forms.CheckBox checkBoxActivate;
         private System.Windows.Forms.Button buttonTest;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -2156,19 +3153,7 @@
         private System.Windows.Forms.CheckBox checkBoxPWMADir;
         private System.Windows.Forms.TextBox textBoxPWMASpeed;
         private System.Windows.Forms.CheckBox checkBoxPWMAEnable;
-        private System.Windows.Forms.Button buttonEx008ColorDetectSet;
-        private System.Windows.Forms.Label label42;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectMinPixelsHoriz;
-        private System.Windows.Forms.Label label43;
-        private System.Windows.Forms.TextBox textBoxEx008ColorDetectMinPixelsVert;
-        private System.Windows.Forms.GroupBox groupBox8;
-        private System.Windows.Forms.CheckBox checkBoxActions008ShowVertLine;
-        private System.Windows.Forms.CheckBox checkBoxActions008ShowHorizLine;
-        private System.Windows.Forms.CheckBox checkBoxActions008DrawCircleOnIntersection;
-        private System.Windows.Forms.Label label44;
-        private System.Windows.Forms.TextBox textBoxActions008RedCircleRadius;
-        private System.Windows.Forms.CheckBox checkBoxActions008MoveRedOntoGreen;
-        private System.Windows.Forms.CheckBox checkBoxActions008ClearRedEveryFrame;
+        private System.Windows.Forms.Button buttonColorDetectColorDetectSet;
         private System.Windows.Forms.GroupBox groupBox9;
         private System.Windows.Forms.Label label45;
         private System.Windows.Forms.Button buttonScaleSet;
@@ -2190,18 +3175,127 @@
         private System.Windows.Forms.Label labelDistanceInMicronsHoriz;
         private System.Windows.Forms.TextBox textBoxDistanceInMicronsHoriz;
         private System.Windows.Forms.Button buttonScaleClear;
-        private System.Windows.Forms.TabPage tabPageUtils2;
+        private System.Windows.Forms.TabPage tabPageStep;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.RadioButton radioButtonStepperControlUtilsDirCW;
-        private System.Windows.Forms.RadioButton radioButtonStepperControlUtilsDirCCW;
-        private System.Windows.Forms.Button buttonStepperControlUtilsStop;
-        private System.Windows.Forms.Button buttonStepperControlUtilsRun;
+        private System.Windows.Forms.RadioButton radioButtonStepperControlDirCW;
+        private System.Windows.Forms.RadioButton radioButtonStepperControlDirCCW;
+        private System.Windows.Forms.Button buttonStepperControlRunStop;
+        private System.Windows.Forms.Button buttonStepperControlRun;
         private System.Windows.Forms.Button buttonStepperControlUtilsNudge1;
         private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.TextBox textBoxStepperControlUtilsStepsPerSecond;
+        private System.Windows.Forms.TextBox textBoxStepperControlStepsPerSecond;
         private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.TextBox textBoxStepperControlUtilsNumSteps;
+        private System.Windows.Forms.TextBox textBoxStepperControlNumSteps;
+        private System.Windows.Forms.GroupBox groupBox11;
+        private System.Windows.Forms.CheckBox checkBoxStepCtrlWASDEnabled;
+        private System.Windows.Forms.Label label54;
+        private System.Windows.Forms.TextBox textBoxStepCtrlSpeed_Y;
+        private System.Windows.Forms.Label label53;
+        private System.Windows.Forms.TextBox textBoxStepCtrlSpeed_X;
+        private System.Windows.Forms.Label label55;
+        private System.Windows.Forms.TextBox textBoxStepCtrlSpeed_Z;
+        private System.Windows.Forms.GroupBox groupBox10;
+        private System.Windows.Forms.Label label52;
+        private System.Windows.Forms.TextBox textBoxUtilsGridSpacingMicrons;
+        private System.Windows.Forms.Label label51;
+        private System.Windows.Forms.TextBox textBoxUtilsGridColor;
+        private System.Windows.Forms.CheckBox checkBoxUtilsGridEnabled;
+        private System.Windows.Forms.Label label50;
+        private System.Windows.Forms.Label label48;
+        private System.Windows.Forms.TextBox textBoxUtilsGridBarSizeY;
+        private System.Windows.Forms.Label label49;
+        private System.Windows.Forms.TextBox textBoxUtilsGridBarSizeX;
+        private System.Windows.Forms.Label label24;
+        private System.Windows.Forms.Label label46;
+        private System.Windows.Forms.TextBox textBoxUtilsGridSizeY;
+        private System.Windows.Forms.Label label47;
+        private System.Windows.Forms.TextBox textBoxUtilsGridSizeX;
+        private System.Windows.Forms.CheckBox checkBoxColorDetectClearRedEveryFrame;
+        private System.Windows.Forms.Label labelLineDetectDrawCircleOnIntersectionPixels;
+        private System.Windows.Forms.TextBox textBoxColorDetectRedCircleRadius;
+        private System.Windows.Forms.CheckBox checkBoxColorDetectDrawCircleOnIntersection;
+        private System.Windows.Forms.CheckBox checkBoxColorDetectShowHorizLine;
+        private System.Windows.Forms.CheckBox checkBoxColorDetectShowVertLine;
+        private System.Windows.Forms.Label label56;
+        private System.Windows.Forms.GroupBox groupBoxLineDetect_Horiz;
+        private System.Windows.Forms.RadioButton radioButtonLineDetectHoriz_MaxCount;
+        private System.Windows.Forms.RadioButton radioButtonLineDetectHoriz_DropOff;
+        private System.Windows.Forms.TextBox textBoxLineDetectHoriz_Floor;
+        private System.Windows.Forms.Label labelLineDetectHoriz_PreDropCount;
+        private System.Windows.Forms.TextBox textBoxLineDetectHoriz_PreDrop;
+        private System.Windows.Forms.Label labelLineDetectHoriz_PostDropCount;
+        private System.Windows.Forms.TextBox textBoxLineDetectHoriz_PostDrop;
+        private System.Windows.Forms.Label labelLineDetectHoriz_FloorCount;
+        private System.Windows.Forms.Label labelLineDetectHoriz_PreDrop;
+        private System.Windows.Forms.Label labelLineDetectHoriz_PostDrop;
+        private System.Windows.Forms.Label labelLineDetectHoriz_Floor;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.TextBox textBoxColorDetectHorizBot;
+        private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.TextBox textBoxColorDetectHorizTop;
+        private System.Windows.Forms.GroupBox groupBoxLineDetect_Vert;
+        private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.TextBox textBoxColorDetectMinPixelsVert;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.TextBox textBoxColorDetectVertBot;
+        private System.Windows.Forms.Label label41;
+        private System.Windows.Forms.TextBox textBoxColorDetectVertTop;
+        private System.Windows.Forms.RadioButton radioButtonLineDetectVert_MaxCount;
+        private System.Windows.Forms.CheckBox checkBoxLineDetect_Enable;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox textBoxDrawGreenCircleRadius;
+        private System.Windows.Forms.Label labelDrawGreenCircleLineWidthPixels;
+        private System.Windows.Forms.Label labelDrawGreenCircleLineWidth;
+        private System.Windows.Forms.TextBox textBoxDrawGreenCircle_LineWidth;
+        private System.Windows.Forms.RadioButton radioButtonDrawGreenCircle_Outline;
+        private System.Windows.Forms.RadioButton radioButtonDrawGreenCircle_Solid;
+        private System.Windows.Forms.Label label42;
+        private System.Windows.Forms.TextBox textBoxColorDetectMinPixelsHoriz;
+        private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.TextBox textBoxLineDetectHoriz_Offset;
+        private System.Windows.Forms.Label label57;
+        private System.Windows.Forms.TextBox textBoxLineDetectVert_Offset;
+        private System.Windows.Forms.TabPage tabPageEx;
+        private System.Windows.Forms.GroupBox groupBox8;
+        private System.Windows.Forms.CheckBox checkBoxMoveRedOntoTarget;
+        private System.Windows.Forms.Button buttonStopAllWaldos;
+        private System.Windows.Forms.Label labelMoveRedToTarget_YStepSec;
+        private System.Windows.Forms.TextBox textBoxMoveRedOntoTarget_YStepsSec;
+        private System.Windows.Forms.Label labelMoveRedToTarget_XStepSec;
+        private System.Windows.Forms.TextBox textBoxMoveRedOntoTarget_XStepsSec;
+        private System.Windows.Forms.GroupBox groupBox12;
+        private System.Windows.Forms.GroupBox groupBox13;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs1_Motor0;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs0_Motor0;
+        private System.Windows.Forms.GroupBox groupBox16;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs1_Motor3;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs0_Motor3;
+        private System.Windows.Forms.GroupBox groupBox15;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs1_Motor1;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs0_Motor1;
+        private System.Windows.Forms.GroupBox groupBox14;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs1_Motor2;
+        private System.Windows.Forms.RadioButton radioButtonPositiveDirIs0_Motor2;
+        private System.Windows.Forms.GroupBox groupBox17;
+        private System.Windows.Forms.CheckBox checkBoxTrackerShowTracker;
+        private System.Windows.Forms.CheckBox checkBoxTrackerTrackRed;
+        private System.Windows.Forms.RadioButton radioButtonMoveRedOntoTargetFindNearest;
+        private System.Windows.Forms.RadioButton radioButtonMoveRedOntoTargetViaLastClick;
+        private System.Windows.Forms.Label labelMoveRedToTarget_Speeds;
+        private System.Windows.Forms.Label label58;
+        private System.Windows.Forms.Label label59;
+        private System.Windows.Forms.TextBox textBoxTrackerCircleRadius;
+        private System.Windows.Forms.Label label61;
+        private System.Windows.Forms.TextBox textBoxMoveRedOntoTargetClearanceRadius;
+        private System.Windows.Forms.CheckBox checkBoxMoveRedOntoTargetUseClearanceRadius;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.RadioButton radioButtonMoveRedOntoTargetFindNearestGreenColor;
+        private System.Windows.Forms.RadioButton radioButtonMoveRedOntoTargetFindNearestTrackerColor;
+        private System.Windows.Forms.Button buttonTrackerCopyTrackerOntoOverlay;
+        private System.Windows.Forms.Button buttonTrackerClearTracker;
+        private System.Windows.Forms.Button buttonDrawClearOverlay;
     }
 }
 

@@ -27,74 +27,121 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// This class encapsulates the configuration (speed, dir etc) for a single
-    /// stepper
-    /// 
     /// A class to contain the data sent between the server and client. Note
     /// that the [SerializableAttribute] decoration must be present and any 
     /// user written classes contained within this class must also implement it.
     /// </summary>
     [SerializableAttribute]
-    public class SCData_StepperConfig
+    public class SCData_SrcTgt
     {
+        private Point srcPoint = new Point();
+        private Point tgtPoint = new Point();
 
-        // the enable, direction and step speed values are each is treated as a 4
-        // byte uint. This makes it easy for the client to dig it out
-        // and give it to the PRU
-        private uint stepper_Enable = 0;
-        private uint stepper_DirState = 0;
-        private uint stepper_StepSpeed = 0;
-        private StepperIDEnum stepper_ID = StepperIDEnum.STEPPER_None;
+        // the maximum speeds in the X and Y directions
+        private int maxSpeed_X = 0;
+        private int maxSpeed_Y = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        public SCData_StepperConfig()
+        public SCData_SrcTgt()
         {
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="stepper_IDIn">the ID of the stepper</param>
-        public SCData_StepperConfig(StepperIDEnum stepper_IDIn)
-        {
-            Stepper_ID = stepper_IDIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="stepperIDIn">the ID of the stepper</param>
-        /// <param name="dirState">the direction 0 or 1</param>
-        /// <param name="enableState">the enabled state 0 or 1</param>
-        /// <param name="stepSpeed">the stepper speed in Hz</param>
-        public SCData_StepperConfig(StepperIDEnum stepperIDIn, uint enableState, uint dirState, uint stepSpeed)
+        /// <param name="srcPointIn">the source point</param>
+        /// <param name="tgtPointIn">the target point</param>
+        public SCData_SrcTgt(Point srcPointIn, Point tgtPointIn)
         {
-            // set the values
-            Stepper_ID = stepperIDIn;
-            Stepper_Enable = enableState;
-            Stepper_DirState = dirState;
-            Stepper_StepSpeed = stepSpeed;
+            SrcPoint = srcPointIn;
+            TgtPoint = tgtPointIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Get the current state as a string
+        /// Constructor
         /// </summary>
-        public virtual void GetState(StringBuilder sb)
+        /// <param name="srcRectIn">the source Rect</param>
+        /// <param name="tgtRectIn">the target Rect</param>
+        public SCData_SrcTgt(ColoredRotatedObject srcRectIn, ColoredRotatedObject tgtRectIn)
         {
-            if (sb == null) return;
-
-            sb.Append(", StepperID=" + Stepper_ID.ToString() + ", Stepper_Enable=" + Stepper_Enable.ToString() + ", Stepper_StepSpeed=" + Stepper_StepSpeed.ToString() + ", Stepper_DirState=" + Stepper_DirState.ToString());
+            if(srcRectIn!=null) SrcPoint = srcRectIn.CenterPoint;
+            if(tgtRectIn!=null) TgtPoint = tgtRectIn.CenterPoint;
         }
 
-        public uint Stepper_Enable { get => stepper_Enable; set => stepper_Enable = value; }
-        public uint Stepper_DirState { get => stepper_DirState; set => stepper_DirState = value; }
-        public uint Stepper_StepSpeed { get => stepper_StepSpeed; set => stepper_StepSpeed = value; }
-        public StepperIDEnum Stepper_ID { get => stepper_ID; set => stepper_ID = value; }
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if the src data is populated
+        /// </summary>
+        /// <returns>true - is populated, false is not</returns>
+        public bool SrcIsPopulated()
+        {
+            if (float.IsNaN(SrcPoint.X) == true) return false;
+            if (float.IsNaN(SrcPoint.Y) == true) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if the tgt data is populated
+        /// </summary>
+        /// <returns>true - is populated, false is not</returns>
+        public bool TgtIsPopulated()
+        {
+            if (float.IsNaN(TgtPoint.X) == true) return false;
+            if (float.IsNaN(TgtPoint.Y) == true) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if the class is populated
+        /// </summary>
+        /// <returns>true - is populated, false is not</returns>
+        public bool IsFullyPopulated()
+        {
+            if (SrcIsPopulated() == false) return false;
+            if (TgtIsPopulated() == false) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if the class has at least one of the coords populated
+        /// </summary>
+        /// <returns>true - is populated, false is not</returns>
+        public bool IsMinimallyPopulated()
+        {
+            // we have to have one
+            if ((SrcIsPopulated() == false) && (TgtIsPopulated() == false)) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get/Set the SrcPoint
+        /// </summary>
+        public Point SrcPoint
+        {
+            get { return srcPoint; }
+            set { srcPoint = value; }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get/Set the TgtPoint
+        /// </summary>
+        public Point TgtPoint
+        {
+            get { return tgtPoint; }
+            set { tgtPoint = value; }
+        }
+
+        public int MaxSpeed_X { get => maxSpeed_X; set => maxSpeed_X = value; }
+        public int MaxSpeed_Y { get => maxSpeed_Y; set => maxSpeed_Y = value; }
     }
 }

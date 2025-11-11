@@ -27,25 +27,26 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// This class inherits from SCData_StepperBase and adds more control data
-    /// 
     /// A class to contain the data sent between the server and client. Note
     /// that the [SerializableAttribute] decoration must be present and any 
     /// user written classes contained within this class must also implement it.
     /// </summary>
     [SerializableAttribute]
-    public class SCData_StepperControl : SCData_StepperBase
+    public class SCData_PWMControl
     {
-        public const uint INFINITE_STEPS = 0xFFFFFFFF;
+        private PWMIDEnum pwmID = PWMIDEnum.PWM_None;
 
-        // the number of steps
-        private uint num_Steps = 0;
+        // there is an enable, direction flag for the PWM and also a percent value
+        // the percent can be between 0 and 100. Values over 100 are considered to be 100
+        private uint pwm_Enable = 0;
+        private uint pwm_DirState = 0;
+        private uint pwm_PWMPercent = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        public SCData_StepperControl()
+        public SCData_PWMControl()
         {
         }
 
@@ -53,38 +54,89 @@ namespace WalnutCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="stepper_IDIn">the ID of the stepper</param>
-        public SCData_StepperControl(StepperIDEnum stepper_IDIn) : base(stepper_IDIn)
+        /// <param name="pwmIDIn">the id of the PWM motor</param>
+        public SCData_PWMControl(PWMIDEnum pwmIDIn)
         {
+            PWMID = pwmIDIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="stepperIDIn">the ID of the stepper</param>
-        /// <param name="dirState">the direction 0 or 1</param>
-        /// <param name="enableState">the enabled state 0 or 1</param>
-        /// <param name="stepSpeed">the stepper speed in Hz</param>
-        /// <param name="numSteps">the number of steps to take</param>
-        public SCData_StepperControl(StepperIDEnum stepperIDIn, uint enableState, uint dirState, uint stepSpeed, uint numSteps) : base(stepperIDIn, enableState, dirState, stepSpeed)
+        /// <param name="pwmIDIn">the id of the PWM motor</param>
+        /// <param name="pwm_DirStateIn">the direction state 0 or 1</param>
+        /// <param name="pwm_EnableIn"> the enable state 0 or 1</param>
+        /// <param name="pwm_PWMPercentIn">the percentage speed 0 to 100</param>
+        public SCData_PWMControl(PWMIDEnum pwmIDIn, uint pwm_EnableIn, uint pwm_DirStateIn, uint pwm_PWMPercentIn)
         {
-            Num_Steps = numSteps;
+            PWMID = pwmIDIn;
+            pwm_Enable = pwm_EnableIn;
+            pwm_DirState = pwm_DirStateIn;
+            pwm_PWMPercent = pwm_PWMPercentIn;
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwm_Enable data value. 
+        /// </summary>
+        public uint PWM_Enable
+        {
+            get
+            {
+                return pwm_Enable;
+            }
+            set
+            {
+                pwm_Enable = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwm_DirState data value. 
+        /// </summary>
+        public uint PWM_DirState
+        {
+            get
+            {
+                return pwm_DirState;
+            }
+            set
+            {
+                pwm_DirState = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the pwm_PWMPercent data value. 
+        /// </summary>
+        public uint PWM_PWMPercent
+        {
+            get
+            {
+                if (pwm_PWMPercent > 100) return 100;
+                return pwm_PWMPercent;
+            }
+            set
+            {
+                pwm_PWMPercent = value;
+            }
+        }
+
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Get the current state as a string
         /// </summary>
-        public override void GetState(StringBuilder sb)
+        public virtual void GetState(StringBuilder sb)
         {
             if (sb == null) return;
-            // call the base class
-            base.GetState(sb);  
-            // now our class specific info
-            sb.Append(", Num_Steps=" + Num_Steps.ToString());
-        }
 
-        public uint Num_Steps { get => num_Steps; set => num_Steps = value; }
+            sb.Append(", PWM_ID=" + PWMID.ToString() + ", PWM_Enable=" + PWM_Enable.ToString() + ", PWMA_PWMPercent=" + PWM_PWMPercent.ToString() + ", PWMA_DirState=" + PWM_DirState.ToString());
+        }
+        public PWMIDEnum PWMID { get => pwmID; set => pwmID = value; }
+
     }
 }

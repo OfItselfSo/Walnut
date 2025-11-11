@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -84,7 +85,6 @@ namespace Walnut
         private int m_imageHeightInPixels;
         private int m_cbImageSize;              // Image size, in bytes.
         private int m_lStrideIfContiguous;
-        private int m_FrameCount;               // only used to have something to write on the screen
 
         // this list of the guids of the media subtypes we support. The input format must be the same
         // as the output format 
@@ -101,6 +101,18 @@ namespace Walnut
         protected Graphics overlayGraphicsObj = null;
         protected Graphics trackerGraphicsObj = null;
 
+        private bool displayTrackerOnImage = false;
+
+        // grid stuff
+        private Color? lastGridColor = null;
+        private bool gridEnabled=false;
+        private Color gridColor = Color.Yellow;
+        private int gridCountX = 2;
+        private int gridCountY = 2;
+        private int gridBarSizeX = 10;
+        private int gridBarSizeY = 10;
+        private int gridSpacingPixels = 50;
+
         // this is the region at the bottom of the screen we do not do object recognition in
         // it is the area of chyron text - so there is no point
         private int bottomOfScreenSkipHeight = 0;
@@ -114,9 +126,6 @@ namespace Walnut
         /// </summary>
         public MFTOverlayImage_Base() : base()
         {
-            // init this now
-            m_FrameCount = 0;
-
             // create some default overlay bitmaps, these can be overridden later
             SetOverlayImage(null,null);
             // DebugMessage("MFTOverlayImage_Base Constructor");
@@ -515,9 +524,6 @@ namespace Walnut
                     destIs2D = true;
                 }
 
-                // count this now. We only use this to write it on the screen
-                m_FrameCount++;
-
                 // We could eventually offer the ability to write on other formats depending on the 
                 // current media type. We have this hardcoded to ARGB for now
                 DrawOverlayImageOnFrame(destRawDataPtr,
@@ -569,12 +575,6 @@ namespace Walnut
             {
                 using (Graphics g = Graphics.FromImage(v))
                 {
-                    //if (sampleRectagle != null)
-                    //{
-                    //    // draw our rectangle, the rect for this was figured out earlier
-                    //    g.FillRectangle(Brushes.Green, sampleRectagle);
-                    //}
-
                     // if we have a overlay image draw it on the frame
                     if (overlayImage != null)
                     {
@@ -584,7 +584,7 @@ namespace Walnut
                         g.DrawImage(overlayImage.Bitmap, 0, 0);
 
                         // if we have a tracker image draw it as well
-                        if (trackerImage != null)
+                        if ((displayTrackerOnImage==true) && (trackerImage != null))
                         {
                             g.DrawImage(trackerImage.Bitmap, 0, 0);
                         }
@@ -680,6 +680,14 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the last grid color
+        /// </summary>
+        protected Color? LastGridColor { get => lastGridColor; set => lastGridColor = value; }
+        public bool GridEnabled { get => gridEnabled; set => gridEnabled = value; }
+        public bool DisplayTrackerOnImage { get => displayTrackerOnImage; set => displayTrackerOnImage = value; }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Draws a line on the overlay bitmap between two points. 
         ///  
         ///  Mostly for diagnostics because they do not get erased
@@ -694,6 +702,42 @@ namespace Walnut
             if (overlayGraphicsObj == null) return;
             // draw the line with the default pen
             overlayGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line on the overlay bitmap between two points. 
+        ///  
+        ///  Mostly for diagnostics because they do not get erased
+        ///  
+        /// </summary>
+        /// <param name="endPoint">the end point</param>
+        /// <param name="startPoint">the start point</param>
+        /// <param name="workingPen">pen to use</param>
+        public void DrawLineAtCenterPointOnOverlay(Pen workingPen, Point centerPoint, int lineLen, bool wantVert)
+        {
+            Point? startPoint = null;
+            Point? endPoint = null;
+            if (overlayImage == null) return;
+            if (overlayGraphicsObj == null) return;
+            if (lineLen <= 0) return;
+
+            // calc the start and end points
+            if (wantVert == false)
+            {
+                // we want horizontal line
+                startPoint = new Point(centerPoint.X - (lineLen/2), centerPoint.Y);
+                endPoint = new Point(centerPoint.X + (lineLen / 2), centerPoint.Y);
+            }
+            else
+            {
+                // we want vertical
+                startPoint = new Point(centerPoint.X, centerPoint.Y - (lineLen / 2));
+                endPoint = new Point(centerPoint.X , centerPoint.Y + (lineLen / 2));
+            }
+
+            // draw the line with the pen
+            overlayGraphicsObj.DrawLine(workingPen, (Point)startPoint, (Point)endPoint);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -890,6 +934,7 @@ namespace Walnut
         public void ClearColorFromOverlay(Color color)
         {
             if (overlayImage == null) return;
+            if (color == null) return;
             overlayImage.ConvertColorToColor(color, transparentColor);
         }
 
@@ -931,10 +976,10 @@ namespace Walnut
         ///  
         /// </summary>
         /// <param name="originPoint">the origin we start from</param>
-        /// <param name="colorAsToArgb">the .ToArgb() value of the color being looked for</param
+        /// <param name="colorWithAlphaChannel">the value of the color being looked for with a 255 alpha channel</param
         /// <param name="minConsecutivePointsNeeded">the minimum number of consecutive points needed in order to consider a returned point valid</param>
         /// <returns>the nearest colored point or an empty point for fail</returns>
-        public Point GetNearestColorPointFromOrigin(Point originPoint, int colorAsToArgb, int minConsecutivePointsNeeded)
+        public Point GetNearestColorPointFromOrigin(Point originPoint, Color colorWithAlphaChannel, int minConsecutivePointsNeeded)
         {
             if (originPoint.IsEmpty == true) return new Point();
             if (overlayImage == null) return new Point();
@@ -945,10 +990,11 @@ namespace Walnut
                 IEnumerable<Point> pixels = Utils.GetSpiralGrid(originPoint, new Size(overlayImage.Width - 1, overlayImage.Height - 1));
                 foreach (Point i in pixels)
                 {
+
                     // get the pixel. not very efficient
                     Color pixelColor = overlayImage.GetPixelInvertedY(i.X, i.Y);
-                    // is it the proper color
-                    if (pixelColor.ToArgb().Equals(colorAsToArgb))
+                    // believe it or not this is actually one of the more efficent ways of comparing colors
+                    if (pixelColor == colorWithAlphaChannel)
                     {
                         Point foundPoint = new Point(i.X, i.Y);
                         return foundPoint;
@@ -960,27 +1006,120 @@ namespace Walnut
             return new Point();
         }
 
-        ///// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        ///// <summary>
-        /////  Sets the virtual rectangle which appears on the screen. The size is
-        /////  hardcoded, the location is not
-        /////  
-        ///// </summary>
-        ///// <param name="ulPoint">the upper left point of the rectangle</param>
-        //public void SetRectangle(Point ulPoint)
-        //{
-        //    // if the x or y is less than zero treat it as a signal to remove the sample rectangle
-        //    if ((ulPoint.X < 0) || (ulPoint.Y < 0))
-        //    {
-        //        sampleRectagle = new Rectangle();
-        //        return;
-        //    }
-        //    // now set the rectangle, since this is just for a test we do not do 
-        //    // bounds checking
-        //    sampleRectagle = new Rectangle(new Point(ulPoint.X, ulPoint.Y), new Size(SAMPLE_RECTANGLE_WIDTH, SAMPLE_RECTANGLE_HEIGHT));
-        //}
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Clears the grid from the image overlay. Uses the last known grid color to 
+        /// do so.
+        /// </summary>
+        public void ClearGrid()
+        {
+            if (LastGridColor == null) return;
 
+            // just clear it
+            ClearColorFromOverlay((Color)LastGridColor);
+            LastGridColor = null;
+        }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the grid on the overlay. All parameters are supposed to have been checked
+        /// before we get them. The grid will not draw if these are not right
+        /// </summary>
+        /// <param name="gridEnabledIn">the grid is enabled</param>
+        /// <param name="gridBarSizeXIn">the size in pixels of the x bar of the grid</param>
+        /// <param name="gridBarSizeYIn">the size in pixels of the y bar of the grid</param>
+        /// <param name="gridColorIn">the color we draw the grid in</param>
+        /// <param name="gridCountXIn">the number of grid points in the X direction</param>
+        /// <param name="gridCountYIn">the number of grid points in the Y direction</param>
+        /// <param name="gridSpacingPixelIn">the number of pixels between the grid point spacing</param>
+        public void SetGrid(bool gridEnabledIn, Color gridColorIn, int gridCountXIn, int gridCountYIn, int gridBarSizeXIn, int gridBarSizeYIn, int gridSpacingPixelsIn)
+        {
+            gridColor = gridColorIn;
+            gridCountX = gridCountXIn;
+            gridCountY = gridCountYIn;
+            gridBarSizeX = gridBarSizeXIn;
+            gridBarSizeY = gridBarSizeYIn;
+            gridSpacingPixels = gridSpacingPixelsIn;
+            GridEnabled = gridEnabledIn;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws the grid on the overlay. All parameters are supposed to have been checked
+        /// before we get them. If we find something we don't like we just leave. We also 
+        /// do not clear the old grid. Note this is a symmetric grid. The spacing in the X
+        /// direction is the same as in the Y direction.
+        /// </summary>
+        public void DrawGrid()
+        {
+            int lowerLeftXOrigin = 0;
+            int lowerLeftYOrigin = 0;
+
+            // sanity checks
+            if (gridEnabled == false) return;   // any existing grid must be cleared elsewhere
+
+            if (gridBarSizeX <=0) return;
+            if (gridBarSizeY <=0) return;
+            if (gridBarSizeX <= 0) return;
+            if (gridBarSizeY <= 0) return;
+            if (gridSpacingPixels <= 0) return;
+            if (gridCountX <= 0) return; 
+            if (gridCountY <= 0) return; 
+            if (gridColor == null) return;
+            if (m_imageWidthInPixels<=0) return;
+            if (m_imageHeightInPixels<=0) return;
+
+            // set up our empty grid
+            Point[,] gridArray = new Point[gridCountX, gridCountY];
+
+            // now figure out our start point X and Y. This differs if the X or Y is even or odd
+            if(gridCountX%2==0)
+            {
+                // we are even, LLX is ...
+                lowerLeftXOrigin = (m_imageWidthInPixels/2) - (((gridCountX / 2) * gridSpacingPixels) - (gridSpacingPixels / 2));
+            }
+            else
+            {
+                // we are odd, LLX is ....
+                lowerLeftXOrigin = (m_imageWidthInPixels/2) - (((gridCountX / 2) * gridSpacingPixels));
+            }
+            if (gridCountY % 2 == 0)
+            {
+                // we are even, LLY is ...
+                lowerLeftYOrigin = (m_imageHeightInPixels/2) - (((gridCountY / 2) * gridSpacingPixels) - (gridSpacingPixels / 2));
+            }
+            else
+            {
+                // we are odd, LLY is ....
+                lowerLeftYOrigin = (m_imageHeightInPixels/2) - (((gridCountY / 2) * gridSpacingPixels));
+            }
+
+            // now we have our LowerLeft start point in both X and Y we can just roll through the array and 
+            // set each grid center point appropriately
+            for (int col = 0; col < gridArray.GetLength(0); col++)
+            {
+                for (int row = 0; row < gridArray.GetLength(1); row++)
+                {
+                    gridArray[col, row] = new Point(((col* gridSpacingPixels)+ lowerLeftXOrigin), ((row * gridSpacingPixels) + lowerLeftYOrigin));
+                }
+            }
+
+            // now we draw the grid bars
+            using (Pen workingPen = new Pen(gridColor))
+            {
+                for (int col = 0; col < gridArray.GetLength(0); col++)
+                {
+                    for (int row = 0; row < gridArray.GetLength(1); row++)
+                    {
+                        DrawLineAtCenterPointOnOverlay(workingPen, gridArray[col, row], gridBarSizeX, false);
+                        DrawLineAtCenterPointOnOverlay(workingPen, gridArray[col, row], gridBarSizeY, true);
+                    }
+                }
+            }
+
+            // remember to set this
+            LastGridColor = gridColor;
+        }
 
     }
 

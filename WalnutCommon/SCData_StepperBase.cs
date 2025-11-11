@@ -27,115 +27,74 @@ namespace WalnutCommon
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
+    /// This class encapsulates the configuration (speed, dir etc) for a single
+    /// stepper
+    /// 
     /// A class to contain the data sent between the server and client. Note
     /// that the [SerializableAttribute] decoration must be present and any 
     /// user written classes contained within this class must also implement it.
     /// </summary>
     [SerializableAttribute]
-    public class SrcTgtData
+    public class SCData_StepperBase
     {
-        private Point srcPoint = new Point();
-        private Point tgtPoint = new Point();
+
+        // the enable, direction and step speed values are each is treated as a 4
+        // byte uint. This makes it easy for the client to dig it out
+        // and give it to the PRU
+        private uint stepper_Enable = 0;
+        private uint stepper_DirState = 0;
+        private uint stepper_StepSpeed = 0;
+        private StepperIDEnum stepper_ID = StepperIDEnum.STEPPER_None;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        public SrcTgtData()
+        public SCData_StepperBase()
         {
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="srcPointIn">the source point</param>
-        /// <param name="tgtPointIn">the target point</param>
-        public SrcTgtData(Point srcPointIn, Point tgtPointIn)
-        {
-            SrcPoint = srcPointIn;
-            TgtPoint = tgtPointIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="srcRectIn">the source Rect</param>
-        /// <param name="tgtRectIn">the target Rect</param>
-        public SrcTgtData(ColoredRotatedObject srcRectIn, ColoredRotatedObject tgtRectIn)
+        /// <param name="stepper_IDIn">the ID of the stepper</param>
+        public SCData_StepperBase(StepperIDEnum stepper_IDIn)
         {
-            if(srcRectIn!=null) SrcPoint = srcRectIn.CenterPoint;
-            if(tgtRectIn!=null) TgtPoint = tgtRectIn.CenterPoint;
+            Stepper_ID = stepper_IDIn;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detects if the src data is populated
+        /// Constructor
         /// </summary>
-        /// <returns>true - is populated, false is not</returns>
-        public bool SrcIsPopulated()
+        /// <param name="stepperIDIn">the ID of the stepper</param>
+        /// <param name="dirState">the direction 0 or 1</param>
+        /// <param name="enableState">the enabled state 0 or 1</param>
+        /// <param name="stepSpeed">the stepper speed in Hz</param>
+        public SCData_StepperBase(StepperIDEnum stepperIDIn, uint enableState, uint dirState, uint stepSpeed)
         {
-            if (float.IsNaN(SrcPoint.X) == true) return false;
-            if (float.IsNaN(SrcPoint.Y) == true) return false;
-            return true;
+            // set the values
+            Stepper_ID = stepperIDIn;
+            Stepper_Enable = enableState;
+            Stepper_DirState = dirState;
+            Stepper_StepSpeed = stepSpeed;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Detects if the tgt data is populated
+        /// Get the current state as a string
         /// </summary>
-        /// <returns>true - is populated, false is not</returns>
-        public bool TgtIsPopulated()
+        public virtual void GetState(StringBuilder sb)
         {
-            if (float.IsNaN(TgtPoint.X) == true) return false;
-            if (float.IsNaN(TgtPoint.Y) == true) return false;
-            return true;
+            if (sb == null) return;
+
+            sb.Append(", StepperID=" + Stepper_ID.ToString() + ", Stepper_Enable=" + Stepper_Enable.ToString() + ", Stepper_StepSpeed=" + Stepper_StepSpeed.ToString() + ", Stepper_DirState=" + Stepper_DirState.ToString());
         }
 
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Detects if the class is populated
-        /// </summary>
-        /// <returns>true - is populated, false is not</returns>
-        public bool IsFullyPopulated()
-        {
-            if (SrcIsPopulated() == false) return false;
-            if (TgtIsPopulated() == false) return false;
-            return true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Detects if the class has at least one of the coords populated
-        /// </summary>
-        /// <returns>true - is populated, false is not</returns>
-        public bool IsMinimallyPopulated()
-        {
-            // we have to have one
-            if ((SrcIsPopulated() == false) && (TgtIsPopulated() == false)) return false;
-            return true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Get/Set the SrcPoint
-        /// </summary>
-        public Point SrcPoint
-        {
-            get { return srcPoint; }
-            set { srcPoint = value; }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Get/Set the TgtPoint
-        /// </summary>
-        public Point TgtPoint
-        {
-            get { return tgtPoint; }
-            set { tgtPoint = value; }
-        }
-
+        public uint Stepper_Enable { get => stepper_Enable; set => stepper_Enable = value; }
+        public uint Stepper_DirState { get => stepper_DirState; set => stepper_DirState = value; }
+        public uint Stepper_StepSpeed { get => stepper_StepSpeed; set => stepper_StepSpeed = value; }
+        public StepperIDEnum Stepper_ID { get => stepper_ID; set => stepper_ID = value; }
     }
 }

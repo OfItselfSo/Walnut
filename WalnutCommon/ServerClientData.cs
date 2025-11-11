@@ -51,23 +51,12 @@ namespace WalnutCommon
 
         private List<SCData_StepperControl> stepperControlList = null;
 
-        private List<ColoredRotatedObject> rectList = null;
+        private List<SCData_PWMControl> pwmControlList = null;
 
-        private List<SrcTgtData> srcTgtList = null;
+     //   private List<ColoredRotatedObject> rectList = null;
 
-        // NOTE: normally the decision of which steppers to run is at the 
-        // discretion of the code in the WalnutClient. However the server 
-        // can force a stepper on or off it it wishes
+        private List<SCData_SrcTgt> srcTgtList = null;
 
-        // there is an enable, direction flag for each PWM and also a percent value
-        // the percent can be between 0 and 100. Values over 100 are considered to be 100
-        private uint pwmA_Enable = 0;
-        private uint pwmA_DirState = 0;
-        private uint pwmA_PWMPercent= 0;
-
-        private uint pwmB_Enable = 0;
-        private uint pwmB_DirState = 0;
-        private uint pwmB_PWMPercent = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -153,7 +142,7 @@ namespace WalnutCommon
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the user data flag. This is the flag data as opposed
-        /// to what the whole class means (DataContent). Only valid if DataContent == USER_FLAG
+        /// to what the whole class means (DataContent). Only valid if DataContent == FLAG_DATA
         /// 
         /// Note: you are dealing with [Flags]
         /// </summary>
@@ -169,39 +158,39 @@ namespace WalnutCommon
             }
         }
 
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the rectList data value. Will never return null 
-        /// </summary>
-        public List<ColoredRotatedObject> RectList
-        {
-            get
-            {
-                if (rectList == null) rectList = new List<ColoredRotatedObject>();
-                return rectList;
-            }
-            set
-            {
-                rectList = value;
-                if (rectList == null) rectList = new List<ColoredRotatedObject>();
-            }
-        }
+        ///// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        ///// <summary>
+        ///// Gets/Sets the rectList data value. Will never return null 
+        ///// </summary>
+        //public List<ColoredRotatedObject> RectList
+        //{
+        //    get
+        //    {
+        //        if (rectList == null) rectList = new List<ColoredRotatedObject>();
+        //        return rectList;
+        //    }
+        //    set
+        //    {
+        //        rectList = value;
+        //        if (rectList == null) rectList = new List<ColoredRotatedObject>();
+        //    }
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the srcTgtList data value. Will never return null 
         /// </summary>
-        public List<SrcTgtData> SrcTgtList
+        public List<SCData_SrcTgt> SrcTgtList
         {
             get
             {
-                if (srcTgtList == null) srcTgtList = new List<SrcTgtData>();
+                if (srcTgtList == null) srcTgtList = new List<SCData_SrcTgt>();
                 return srcTgtList;
             }
             set
             {
                 srcTgtList = value;
-                if (srcTgtList == null) srcTgtList = new List<SrcTgtData>();
+                if (srcTgtList == null) srcTgtList = new List<SCData_SrcTgt>();
             }
         }
 
@@ -225,6 +214,24 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the pwmControlList data value. Will never return null 
+        /// </summary>
+        public List<SCData_PWMControl> PWMControlList
+        {
+            get
+            {
+                if (pwmControlList == null) pwmControlList = new List<SCData_PWMControl>();
+                return pwmControlList;
+            }
+            set
+            {
+                pwmControlList = value;
+                if (pwmControlList == null) pwmControlList = new List<SCData_PWMControl>();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the waldo_Enable data value. 
         /// </summary>
         public uint Waldo_Enable
@@ -236,104 +243,6 @@ namespace WalnutCommon
             set
             {
                 waldo_Enable = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmA_Enable data value. 
-        /// </summary>
-        public uint PWMA_Enable
-        {
-            get
-            {
-                return pwmA_Enable;
-            }
-            set
-            {
-                pwmA_Enable = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmA_DirState data value. 
-        /// </summary>
-        public uint PWMA_DirState
-        {
-            get
-            {
-                return pwmA_DirState;
-            }
-            set
-            {
-                pwmA_DirState = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmA_PWMPercent data value. 
-        /// </summary>
-        public uint PWMA_PWMPercent
-        {
-            get
-            {
-                if (pwmA_PWMPercent > 100) return 100;
-                return pwmA_PWMPercent;
-            }
-            set
-            {
-                pwmA_PWMPercent = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmB_Enable data value. 
-        /// </summary>
-        public uint PWMB_Enable
-        {
-            get
-            {
-                return pwmB_Enable;
-            }
-            set
-            {
-                pwmB_Enable = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmB_DirState data value. 
-        /// </summary>
-        public uint PWMB_DirState
-        {
-            get
-            {
-                return pwmB_DirState;
-            }
-            set
-            {
-                pwmB_DirState = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pwmB_PWMPercent data value. 
-        /// </summary>
-        public uint PWMB_PWMPercent
-        {
-            get
-            {
-                if (pwmB_PWMPercent > 100) return 100;
-                return pwmB_PWMPercent;
-            }
-            set
-            {
-                pwmB_PWMPercent = value;
             }
         }
 
@@ -362,14 +271,14 @@ namespace WalnutCommon
                         sb.Append("\r\n");
                     }
                 }
-                if (UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
+                if (UserDataContent.HasFlag(UserDataContentEnum.PWM_CONTROL))
                 {
-                    sb.Append(", PWMA_Enable=" + PWMA_Enable.ToString() + ", PWMA_PWMPercent=" + PWMA_PWMPercent.ToString() + ", PWMA_DirState=" + PWMA_DirState.ToString());
-                }
-                if (UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
-                {
-                    if (RectList == null) sb.Append(", RectList=null");
-                    else sb.Append(", RectCount=" + RectList.Count.ToString());
+                    sb.Append("\r\n");
+                    foreach (SCData_PWMControl pwmControlObj in PWMControlList)
+                    {
+                        pwmControlObj.GetState(sb);
+                        sb.Append("\r\n");
+                    }                   
                 }
                 if (UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
                 {

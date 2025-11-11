@@ -61,12 +61,14 @@
     <Compile Include="OctantEnum.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuadrantEnum.cs" />
+    <Compile Include="SCData_PWMControl.cs" />
+    <Compile Include="SCData_SrcTgt.cs" />
     <Compile Include="SCData_StepperStatus.cs" />
     <Compile Include="SCData_StepperControl.cs" />
     <Compile Include="ServerClientData.cs" />
-    <Compile Include="SCData_StepperConfig.cs" />
+    <Compile Include="SCData_StepperBase.cs" />
+    <Compile Include="PWMIDEnum.cs" />
     <Compile Include="StepperIDEnum.cs" />
-    <Compile Include="SrcTgtData.cs" />
     <Compile Include="UserDataFlagEnum.cs" />
     <Compile Include="UserDataContentEnum.cs" />
     <Compile Include="ServerClientDataContentEnum.cs" />

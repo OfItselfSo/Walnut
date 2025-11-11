@@ -513,7 +513,7 @@ namespace WalnutCommon
                 // get the draw point out of the brackets
                 string[] rgbColors = bracketText.Replace("(", "").Replace(")", "").Split(',');
                 if (rgbColors.Length != 3) return null;
-                Color workingColor = Color.FromArgb(Convert.ToInt32(rgbColors[0].Replace(" ", "")), Convert.ToInt32(rgbColors[1].Replace(" ", "")), Convert.ToInt32(rgbColors[2].Replace(" ", "")));
+                Color workingColor = Color.FromArgb(255, Convert.ToInt32(rgbColors[0].Replace(" ", "")), Convert.ToInt32(rgbColors[1].Replace(" ", "")), Convert.ToInt32(rgbColors[2].Replace(" ", "")));
                 return workingColor;
             }
             catch
@@ -522,5 +522,16 @@ namespace WalnutCommon
             }
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts a color to (R,G,B) text Any problems and we return ""
+        /// </summary>
+        /// <param name="color">the color to convert</param>
+        /// <returns>the color as text or "" for fail</returns>
+        public static string ConvertColorToRGBBracketText(Color color)
+        {
+            if (color == null) return "";
+            return "(" + color.R.ToString() + "," + color.G.ToString() + "," + color.B.ToString() + ")";
+        }
     }
 }

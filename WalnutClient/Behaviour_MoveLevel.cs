@@ -52,8 +52,8 @@ namespace WalnutClient
         // the min and max output we can send. This is an arbitrary value and the 
         // output will be clamped within the range min/max. It does not need to 
         // correlate to steps/sec but it can
-        private uint outputMax = 0;
-        private uint outputMin = 0;
+        private uint outputSpeedMax = 0;
+        private uint outputSpeedMin = 0;
 
         // this queue is the distance queue, in other words the differences in 
         // distances of the two points. This queue can change size during 
@@ -88,12 +88,12 @@ namespace WalnutClient
         /// Constructor
         /// 
         /// </summary>
-        /// <param name="outputMaxIn">the maximum output</param>
+        /// <param name="outputSpeedMaxIn">the maximum output</param>
         /// <param name="operatingAxisIn">the axis we are using</param>
-        public Behaviour_MoveLevel(AxisEnum operatingAxisIn, uint outputMaxIn)
+        public Behaviour_MoveLevel(AxisEnum operatingAxisIn, uint outputSpeedMaxIn)
         {
             // set these values
-            OutputMax = outputMaxIn;
+            OutputSpeedMax = outputSpeedMaxIn;
             OperatingAxis = operatingAxisIn;
 
             // reset the object
@@ -168,7 +168,7 @@ namespace WalnutClient
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Calculates the speed adjustor from a given slope. This algorythim is 
+        /// Calculates the speed adjustor on the max speed. This algorythim is 
         /// arbitrary and is based on what seems to work.
         /// </summary>
         /// <param name="slopeIn">the slope to test</param>
@@ -179,12 +179,19 @@ namespace WalnutClient
 
             // the current motors are so geared down and slow 
             // we can just hit full speed nearly to the end
-            if (distance > 10) return 100;
-            if (distance > 8) return 100;
-            if (distance > 6) return 100;
-            if (distance > 4) return 100;
-            if (distance > 2) return 80;
-            if (distance > 1) return 50;
+            //if (distance > 10) return OutputSpeedMax*1.0;
+            //if (distance > 8) return OutputSpeedMax * 0.5;
+            //if (distance > 6) return OutputSpeedMax * 0.5;
+            //if (distance > 4) return OutputSpeedMax * 0.5;
+            //if (distance > 2) return OutputSpeedMax * 0.5;
+            //if (distance > 1) return OutputSpeedMax * 0.5;
+            if (distance > 10) return OutputSpeedMax * 1.0;
+            if (distance > 8) return OutputSpeedMax * 1.0;
+            if (distance > 6) return OutputSpeedMax * 1.0;
+            if (distance > 4) return OutputSpeedMax * 1.0;
+            if (distance > 2) return OutputSpeedMax * 1.0;
+            if (distance > 1) return OutputSpeedMax * 1.0;
+
             return 0;
         }
 
@@ -283,15 +290,15 @@ namespace WalnutClient
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Limit a variable to the set OutputMax and OutputMin properties
+        /// Limit a variable to the set OutputSpeedMax and OutputSpeedMin properties
         /// </summary>
         /// <returns>
-        /// A value that is between the OutputMax and OutputMin properties
+        /// A value that is between the OutputSpeedMax and OutputSpeedMin properties
         /// </returns>
         private uint Clamp(uint variableToClamp)
         {
-            if (variableToClamp <= OutputMin) { return OutputMin; }
-            if (variableToClamp >= OutputMax) { return OutputMax; }
+            if (variableToClamp <= OutputSpeedMin) { return OutputSpeedMin; }
+            if (variableToClamp >= OutputSpeedMax) { return OutputSpeedMax; }
             return variableToClamp;
         }
 
@@ -354,15 +361,15 @@ namespace WalnutClient
         /// <summary>
         /// The max output value the control device can accept.
         /// </summary>
-        public uint OutputMax
+        public uint OutputSpeedMax
         {
             get 
             {
-                return outputMax;
+                return outputSpeedMax;
             }
-            private set
+            set
             { 
-                outputMax = value; 
+                outputSpeedMax = value; 
             }
         }
 
@@ -370,15 +377,15 @@ namespace WalnutClient
         /// <summary>
         /// The minimum ouput value the control device can accept.
         /// </summary>
-        public uint OutputMin 
+        public uint OutputSpeedMin 
         {
             get
             {
-                return outputMin;
+                return outputSpeedMin;
             }
             set
             {
-                outputMin = value;
+                outputSpeedMin = value;
             }
         }
 

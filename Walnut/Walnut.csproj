@@ -85,6 +85,7 @@
     <Compile Include="MFTDetectColoredCircles_Sync.cs" />
     <Compile Include="MFTOverlayImage_Base.cs" />
     <Compile Include="MFTOverlayImage_GS.cs" />
+    <Compile Include="LineRecognitionModeEnum.cs" />
     <Compile Include="SystemActionEnum.cs" />
     <Compile Include="ApplicationImplicitSettings.cs" />
     <Compile Include="frmMain.cs">
