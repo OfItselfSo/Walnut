@@ -15,6 +15,11 @@ The home page for the Walnut software can be found at: [http://www.OfItselfSo.co
 The Walnut code is released as open source under the MIT License.
 
 ## The Walnut Application Versions
+- **00.02.12** Commit ID: 3cab1cf
+   - This code is designed to support FPath Experiment 012. This experiment documents how embedded commands can be used with Graphical Stigmergy techniques to initiate complex actions. Also added is an implementation of a distributed Subsumption Control Architecture.
+   See the FPath_Ex012 web page for more details: 
+    [http://www.ofitselfso.com/FPath/FPath_Ex012_EmbeddedCommands.php](http://www.ofitselfso.com/FPath/FPath_Ex012_EmbeddedCommands.php).
+    
 - **00.02.11** Commit ID: 345621e
    - This code is designed to support FPath Experiment 010. This experiment is intended to demonstrate how closed loop feedback can manually and automatically control a stepper driven 2D stage with movements as fine as 10 microns.
    See the FPath_Ex010 web page for more details: 
