@@ -176,10 +176,18 @@ namespace Walnut
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
-        public int LastRunNumber
+        public int LastRecNumber
         {
-            get { return (int)this["LastRunNumber"]; }
-            set { this["LastRunNumber"] = value; }
+            get { return (int)this["LastRecNumber"]; }
+            set { this["LastRecNumber"] = value; }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute(null)]
+        public String LastShotDescriptor
+        {
+            get { return (String)this["LastShotDescriptor"]; }
+            set { this["LastShotDescriptor"] = value; }
         }
 
         [UserScopedSettingAttribute()]
@@ -390,38 +398,6 @@ namespace Walnut
             set { this["LineDetectHoriz_PostDrop"] = value; }
         }
 
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
-        public int MoveRedOntoTargetSpeedX
-        {
-            get { return (int)this["MoveRedOntoTargetSpeedX"]; }
-            set { this["MoveRedOntoTargetSpeedX"] = value; }
-        }
-
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
-        public int MoveRedOntoTargetSpeedY
-        {
-            get { return (int)this["MoveRedOntoTargetSpeedY"]; }
-            set { this["MoveRedOntoTargetSpeedY"] = value; }
-        }
-
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
-        public int MoveRedOntoTargetClearanceRadius
-        {
-            get { return (int)this["MoveRedOntoTargetClearanceRadius"]; }
-            set { this["MoveRedOntoTargetClearanceRadius"] = value; }
-        }
-
-        [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute(null)]
-        public Color MoveRedToTargetColor
-        {
-            get { return (Color)this["MoveRedToTargetColor"]; }
-            set { this["MoveRedToTargetColor"] = value; }
-        }
-        
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute(null)]
         public uint Motor0GlobalPositiveDir

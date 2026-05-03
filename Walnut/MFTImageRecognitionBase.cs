@@ -61,22 +61,22 @@ namespace Walnut
 
         // anybody who is interested can pick this up and use it. It is always set to the lastest 
         // known value. The update rate is the framerate of the video - 10-30 fps
-        private List<ColoredRotatedObject> identifiedObjects = null;
+        private List<ColoredObject_Base> identifiedObjects = null;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the identified objects, will never get/set null
-        public List<ColoredRotatedObject> IdentifiedObjects
+        public List<ColoredObject_Base> IdentifiedObjects
         {
             get
             {
-                if (identifiedObjects == null) identifiedObjects = new List<ColoredRotatedObject>();
+                if (identifiedObjects == null) identifiedObjects = new List<ColoredObject_Base>();
                 return identifiedObjects;
             }
             set
             {
                 identifiedObjects = value;
-                if (identifiedObjects == null) identifiedObjects = new List<ColoredRotatedObject>();
+                if (identifiedObjects == null) identifiedObjects = new List<ColoredObject_Base>();
             }
         }
 

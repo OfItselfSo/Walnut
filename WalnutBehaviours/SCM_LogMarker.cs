@@ -1,0 +1,90 @@
+﻿using System;
+using System.Text;
+using System.Collections.Generic;
+
+/// +------------------------------------------------------------------------------------------------------------------------------+
+/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
+/// +------------------------------------------------------------------------------------------------------------------------------¦
+/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
+/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
+/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
+/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
+/// ¦                                                                                                                              ¦
+/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
+/// ¦                                                                                                                              ¦
+/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
+/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
+/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
+/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// +------------------------------------------------------------------------------------------------------------------------------+
+
+/// NOTE: this class and the entire WalnutCommon project is shared with the client which runs on the Beaglebone Black. If your primary
+/// interest is in working out how a Typed object is sent between a Server and Client (and back) to transmit complex data you should
+/// have a look at the RemCon demonstrator project at http://www.OfItselfSo.com/RemCon which is devoted to that topic. This class 
+/// is directly derived from that project. If your primary interest is in seeing how a C# program running on Windows can control 
+/// stepper motors see the Tilo project - it is specifically set up to demo that. http://www.OfItselfSo.com/Tilo
+
+namespace WalnutBehaviours
+{
+    /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+    /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+    /// <summary>
+    /// A class to contain the data sent between the server and client. Note
+    /// that the [SerializableAttribute] decoration must be present and any 
+    /// user written classes contained within this class must also implement it.
+    /// 
+    /// This class signals a put a marker in the log action
+    /// 
+    /// </summary>
+    [SerializableAttribute]
+    public class SCM_LogMarker : SCM_Base
+    {
+        private string logMarkerText = "";
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public SCM_LogMarker()
+        {
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="logMarkerTextIn">some marker text for the log, can be empty</param>
+        public SCM_LogMarker(string logMarkerTextIn)
+        {
+            LogMarkerText = logMarkerTextIn;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the log marker text. Will never get/set null
+        /// </summary>
+        public string LogMarkerText
+        {
+            get
+            {
+                if (logMarkerText == null) logMarkerText = "";
+                return logMarkerText;
+            }
+            set
+            {
+                logMarkerText = value;
+                if (logMarkerText == null) logMarkerText = "";
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get the current state
+        /// </summary>
+        public override string GetState()
+        {
+            return "LOG_MARK" + LogMarkerText;
+        }
+
+    }
+}

@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Drawing.Text;
+using WalnutBehaviours;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                                   TERMS OF USE: MIT License                                                  ¦
@@ -82,6 +83,13 @@ using System.Drawing.Text;
 /// http://www.ofitselfso.com/BeagleNotes/Disabling_The_EMMC_Memory_On_The_Beaglebone_Black.php
 /// 
 
+/// COMPILATION NOTE: In order to get solution wide conditional complilation defines across multiple projects 
+/// even though some projects are used in multiple solutions we use a SolutionDefines.targets file
+/// as discussed here: https://stackoverflow.com/questions/5149351/solution-wide-define
+/// This means that WALNUT_CLIENT is defined in the projects only if we are in the Walnut Client
+/// solution
+
+
 namespace WalnutClient
 {
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -90,10 +98,13 @@ namespace WalnutClient
     /// The main class for the application
     /// </summary>
     public class MainClass : OISObjBase
+        , IBehaviour_ProcessStepperControlList
+        , IBehaviour_WaldosAllStop
+        , IBehaviour_TransmitGlobalStack
     {
         private const string DEFAULTLOGDIR = @"/home/devuser/Dump/ProjectLogs";
         private const string APPLICATION_NAME = "WalnutClient";
-        private const string APPLICATION_VERSION = "00.02.11";
+        private const string APPLICATION_VERSION = "00.02.12";
 
         // this handles the data transport to and from the server 
         private TCPDataTransporter dataTransporter = null;
@@ -119,6 +130,11 @@ namespace WalnutClient
         // the pwm port B
         private PWMPortFS pwmPortB = null;
         private OutputPortMM pwmPortBDir = null;
+
+        // input ports, used as position sensors on the toolhead in Ex012
+        InterruptPortMM ipPortGPIO_49 = null;
+        InterruptPortMM ipPortGPIO_50 = null;
+
 
         // ###
         // ### these are the offsets into the data store we pass into the PRU
@@ -203,8 +219,8 @@ namespace WalnutClient
         // this is the level behaviour. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past red and green square coordinate values and
         // the last outputs (speed and dir) it returned and makes decisions based on them
-        private Behaviour_MoveLevel behaviourMoveLevelX = null;
-        private Behaviour_MoveLevel behaviourMoveLevelY = null;
+        private Behaviour_MoveLevelX behaviourMoveLevelX = null;
+        private Behaviour_MoveLevelX behaviourMoveLevelY = null;
 
         private const uint DEFAULT_STEPPER_SPEED = 50;
         private const uint MAX_STEPPER_SPEED = 200;
@@ -212,14 +228,20 @@ namespace WalnutClient
         // this is a point tracker. It gets instantiated at the class level because it is 
         // NOT stateless. It remembers past N points it is presented with and can detect
         // things like movment etc
-        private Behaviour_TrackTarget behaviourTrackTarget = null;
+        private Behaviour_TrackTargetX behaviourTrackTarget = null;
         private const float DEFAULT_TARGET_MOVED_THRESHOLD = 10;
         private const int DEFAULT_TARGET_QUEUE_SIZE = 5;
 
         // we can skip over missing src points if we wish to do so. This copes with missing
         // data. 
         private const int MAX_MISSING_SRC_POINTS = 5;
-    //    private int numMissingSrcPoints = 0;
+        //    private int numMissingSrcPoints = 0;
+
+        // as of Ex012 we have implemented a Subsumption Architecture to control the 
+        // various behaviours
+        private Behaviour_StateMachine globalBehaviourStack = null;
+        // we use this lock object to set and reset the Behaviour stack
+        private object globalBehaviourStackLockObj = new object();
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -284,8 +306,22 @@ namespace WalnutClient
             StartPRUWithDefaults(PRUEnum.PRU_1);
 
             // start the PWM ports
-            StartPWMPortA();
-            StartPWMPortB();
+            // StartPWMPortA();
+            // StartPWMPortB();
+
+            //// start the interrupt ports we use for the sensors on the toolhead
+            //ipPortGPIO_49 = StartInterruptPortMM(GpioEnum.GPIO_49, InterruptMode.InterruptEdgeBoth);
+            //if (ipPortGPIO_49 == null)
+            //{
+            //    Console.WriteLine("Error starting Interrupt Port GPIO_49");
+            //    throw new Exception("Error starting Interrupt Port GPIO_49");
+            //}
+            //ipPortGPIO_50 = StartInterruptPortMM(GpioEnum.GPIO_50, InterruptMode.InterruptEdgeBoth);
+            //if (ipPortGPIO_50 == null)
+            //{
+            //    Console.WriteLine("Error starting Interrupt Port GPIO_50");
+            //    throw new Exception("Error starting Interrupt Port GPIO_50");
+            //}
 
             // we sit and wait for the user to press return. The handler is dealing with the responses
             Console.WriteLine("Press <Return> to quit");
@@ -332,36 +368,37 @@ namespace WalnutClient
         /// <summary>
         /// Handles inbound data events
         /// </summary>
-        /// <param name="scData">the server client data object</param>
-        private void ServerClientDataEventHandler(object sender, ServerClientData scData)
+        /// <param name="scmData">a server client message derived from SCM_Base</param>
+        private void ServerClientDataEventHandler(object sender, SCM_Base scmData)
         {
-            Console.WriteLine("ServerClientDataEventHandler called");
-            LogMessage("ServerClientDataEventHandler, called");
+            //Console.WriteLine("ServerClientDataEventHandler called");
+            //LogMessage("ServerClientDataEventHandler, called");
 
-            if (scData == null)
+            if (scmData == null)
             {
-                LogMessage("ServerClientDataEventHandler scData==null");
-                Console.WriteLine("ServerClientDataEventHandler scData==null");
+          //      LogMessage("ServerClientDataEventHandler scmData==null");
+          //      Console.WriteLine("ServerClientDataEventHandler scmData==null");
                 return;
             }
 
-            LogMessage("ServerClientDataEventHandler: Data=" + scData.ToString());
-            //  Console.WriteLine("inbound data received:  Data=" + scData.ToString());
+            //LogMessage("ServerClientDataEventHandler: Data=" + scmData.ToString());
+            //Console.WriteLine("inbound data received: Data=" + scmData.ToString());
 
             // figure out the class of data and deal with it appropriately
-            if (scData.DataContent == ServerClientDataContentEnum.REMOTE_CONNECT)
+            if((scmData is SCM_RemoteConnect) == true)
             {
                 // the remote side has connected
                 LogMessage("ServerClientDataEventHandler REMOTE_CONNECT");
                 Console.WriteLine("ServerClientDataEventHandler REMOTE_CONNECT");
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.REMOTE_DISCONNECT)
+            else if ((scmData is SCM_RemoteDisConnect) == true)
+
             {
                 // the remote side has disconnected
                 LogMessage("ServerClientDataEventHandler REMOTE_DISCONNECT");
                 Console.WriteLine("ServerClientDataEventHandler REMOTE_DISCONNECT");
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.CONNECTION_TEST)
+            else if ((scmData is SCM_ConnectionTest) == true)
             {
                 // the remote side requested a connection test
                 LogMessage("ServerClientDataEventHandler CONNECTION_TEST");
@@ -376,25 +413,23 @@ namespace WalnutClient
                 }
 
                 // send it
-                ServerClientData ackData = new ServerClientData("ACK from Walnut client");
-                ackData.DataContent = ServerClientDataContentEnum.CONNECTION_TEST_ACK;
-                dataTransporter.SendData(ackData);
+                SCM_ConnectionTestACK ackData = new SCM_ConnectionTestACK();
+                dataTransporter.SendDataMessage(ackData);
                 LogMessage("ServerClientDataEventHandler CONNECTION_TEST -> ACK sent");
                 Console.WriteLine("ServerClientDataEventHandler CONNECTION_TEST -> ACK sent");
-
-                SCData_StepperStatus statusObj = GetStepperStatus();
-                if (statusObj != null)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    statusObj.GetState(sb);
-                    Console.WriteLine("GetStepperStatus" + sb.ToString());
-                }
-
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.USER_DATA)
+            else if ((scmData is SCM_StopAllWaldos) == true)
             {
-                // user data with a disable waldos flag always does this and nothing else
-                if (scData.Waldo_Enable != 1)
+                // A message of this type always always disables waldos and nothing else
+                // just disable them all. Each waldo will need to be individually re-enabled
+                StopAllWaldos();
+                LogMessage("ServerClientDataEventHandler, Waldos are now disabled");
+                Console.WriteLine("ServerClientDataEventHandler, Waldos are now disabled");
+            }
+            else if ((scmData is SCM_StepperRun) == true)
+            {
+                // A message of this type always means run or stop one stepper motor 
+                if ((scmData as SCM_StepperRun).WaldosAreEnabled() != true)
                 {
                     LogMessage("ServerClientDataEventHandler, Waldos are now disabled");
                     // just disable them all. Each waldo will need to be individually re-enabled
@@ -403,27 +438,229 @@ namespace WalnutClient
                 }
 
                 // the call below should be able to figure out what to do
-                SetWaldosFromServerClientData(scData);
+                ProcessStepperControlList((scmData as SCM_StepperRun).StepperControlList);
+                //LogMessage("ServerClientDataEventHandler, Stepper Waldo states now set");
+                //Console.WriteLine("ServerClientDataEventHandler, Stepper Waldo states now set");
             }
-            else if (scData.DataContent == ServerClientDataContentEnum.NO_DATA)
+            else if ((scmData is SCM_PinStateList_Output) == true)
             {
-                // no data with a disable waldos flag always does this and nothing else
-                if (scData.Waldo_Enable != 1)
+                // A message of this type always means look into the message, find a list of
+                // GPIOs and states and set the GPIO to that state. We do NOT check if the
+                // GPIO is used elsewhere as an input. That is entirely up to the caller.
+                foreach (SCData_PinOutputConfig cfgObj in (scmData as SCM_PinStateList_Output).PinStateList)
                 {
-                    LogMessage("ServerClientDataEventHandler, Waldos are now disabled");
-                    // just disable them all. Each waldo will need to be individually re-enabled
-                    StopAllWaldos();
-                    return;
+                    OutputPortMM outputPort = new OutputPortMM(cfgObj.Gpio);
+                    outputPort.Write(cfgObj.PinState);
+                    outputPort.Dispose();
+                    Console.WriteLine("cfgObj.PinState = " + cfgObj.PinState.ToString());
                 }
+                // Console.WriteLine("ServerClientDataEventHandler,Pin states now set");
+            }
 
-                // the call below should be able to figure out what to do
-                SetWaldosFromServerClientData(scData);
+
+
+            
+            else if ((scmData is SCM_LogMarker) == true)
+            {
+                // A message of this type just puts a marker in the logs
+                Console.WriteLine((scmData as SCM_LogMarker).ToString());
+                LogMessage((scmData as SCM_LogMarker).ToString());
+
+                DebugTODO("temporary");
+                lock(globalBehaviourStackLockObj)
+                {
+                    if(globalBehaviourStack != null)
+                    {
+                        Console.WriteLine("MARK, globalBehaviourStack != null");
+                        Console.WriteLine("MARK, SourcePoint=(" + (globalBehaviourStack as BehaviourStack_Ex012).SourcePoint.X.ToString() + "," + (globalBehaviourStack as BehaviourStack_Ex012).SourcePoint.Y.ToString() + ")");
+                        Console.WriteLine("MARK, SourcePointColor=(" + (globalBehaviourStack as BehaviourStack_Ex012).SourcePointColor.ToString() + ")");
+                        Console.WriteLine("MARK, TargetPoint=(" + (globalBehaviourStack as BehaviourStack_Ex012).TargetPoint.X.ToString() + "," + (globalBehaviourStack as BehaviourStack_Ex012).TargetPoint.Y.ToString() + ")");
+                        Console.WriteLine("MARK, TargetPointColor=(" + (globalBehaviourStack as BehaviourStack_Ex012).TargetPointColor.ToString() + ")");
+                        Console.WriteLine("MARK, WaldosEnabled=(" + (globalBehaviourStack as BehaviourStack_Ex012).WaldosEnabledState.ToString() + ")");
+                        Console.WriteLine("MARK, Speed_X=(" + (globalBehaviourStack as BehaviourStack_Ex012).Speed_X.ToString() + ")");
+                        Console.WriteLine("MARK, Speed_Y=(" + (globalBehaviourStack as BehaviourStack_Ex012).Speed_Y.ToString() + ")");
+                    }
+                }
+            }
+            else if ((scmData is SCM_BehaviourStackBuild) == true)
+            {
+                // A message of this type creates the behaviour stack
+                Console.WriteLine((scmData as SCM_BehaviourStackBuild).ToString());
+                LogMessage((scmData as SCM_BehaviourStackBuild).ToString());
+
+                // create and launch the incoming behaviour stack
+                Console.WriteLine("Incoming BehaviourStack of Type: " + (scmData as SCM_BehaviourStackBuild).BehaviourStack.GetType().ToString());
+                Console.WriteLine("Incoming BehaviourStack has: " + (scmData as SCM_BehaviourStackBuild).BehaviourStack.BehaviourList.Count.ToString() + " behaviours");
+                CreateAndLaunchGlobalBehaviourStack((scmData as SCM_BehaviourStackBuild).BehaviourStack);
+
+            }
+            else if ((scmData is SCM_BehaviourStackDrop) == true)
+            {
+                // A message of this type drops the behaviour stack
+                Console.WriteLine((scmData as SCM_BehaviourStackDrop).ToString());
+                LogMessage((scmData as SCM_BehaviourStackDrop).ToString());
+                // just drop the stack
+                DropBehaviourStack();
+            }
+            else if ((scmData is SCM_BehaviourStackUpdate) == true)
+            {
+                // A message of this type updates the global behaviour stack
+                // with variables the client is interested in. 
+                //
+                // NOTE it carries a shallow clone of the behaviour stack on the 
+                //      server. So all of the behaviours themselves are missing
+                // just copy the data in
+                CopyDataToGlobalStack((scmData as SCM_BehaviourStackUpdate).BehaviourStack);
             }
             else
             {
-                LogMessage("ServerClientDataEventHandler unknown DataContent = " + scData.DataContent.ToString());
-                Console.WriteLine("ServerClientDataEventHandler  unknown DataContent = " + scData.DataContent.ToString());
+                LogMessage("ServerClientDataEventHandler unknown DataMessage = " + scmData.GetType().ToString());
+                Console.WriteLine("ServerClientDataEventHandler unknown DataMessage = " + scmData.GetType().ToString());
             }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sends the global behaviour stack data to the walnut server
+        /// </summary>
+        public void TransmitGlobalStackData()
+        {
+
+            if (dataTransporter == null)
+            {
+                LogMessage("TransmitGlobalStackData, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("TransmitGlobalStackData, Not connected");
+                return;
+            }
+
+  //          Console.WriteLine("TransmitGlobalStackData() dirty="+ (globalBehaviourStack as IBehaviour_IsDirtyOnClient).IsDirtyOnClient.ToString());
+
+            SCM_BehaviourStackUpdate scmMessage = null;
+            lock (globalBehaviourStackLockObj)
+            {
+                // create a transfer message object, with the global behaviour stack data only - empty BehaviourList
+                scmMessage = new SCM_BehaviourStackUpdate(globalBehaviourStack);
+            }
+
+            // send it
+            dataTransporter.SendDataMessage(scmMessage);
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Copies the data from a specified behaviour stack to the global behaviour
+        /// stack.
+        /// 
+        /// Note the incoming behaviour stack should be shallow cloned and will have 
+        /// an empty BehaviourList.
+        /// </summary>
+        /// <param name="shallowClonedBehaviourStack">the inbound statemaching behaviourStack</param>
+        private void CopyDataToGlobalStack(Behaviour_StateMachine shallowClonedBehaviourStack)
+        {
+            // lock the global behaviour stack
+            lock (globalBehaviourStackLockObj)
+            {
+                // haven't got one? do nothing
+                if (globalBehaviourStack == null) return;
+                // ok we have one, copy over the appropriate data while in the lock
+                globalBehaviourStack.CopyServerClientData(shallowClonedBehaviourStack, BehaviourLocationEnum.WALNUT_CLIENT);
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Creates and launches the global behaviour stack. 
+        /// 
+        /// Note the behaviour stack will not have been started
+        /// </summary>
+        /// <param name="inboundBehaviourStack">the existing statemaching behaviourStack</param>
+        private void CreateAndLaunchGlobalBehaviourStack(Behaviour_StateMachine inboundBehaviourStack)
+        {
+            LogMessage("CreateAndLaunchGlobalBehaviourStack called");
+
+            // NOTE: the inboundBehaviourStack is received from the server and is a complete instantiated copy
+            //       of the one on the server. Some of the behaviours are intended to run on the client, some
+            //       on the server and some on both platforms. 
+
+            //       Basically what we have to do here is set the incoming stack in the global var
+            //       and start the behaviours that are supposed to run on this platform
+
+            //       We _NEVER_ add or remove behaviours. The stack setup is entirely controlled
+            //       by the server
+
+            // always drop any existing one
+            DropBehaviourStack();
+            
+            // sanity check
+            if (inboundBehaviourStack == null)
+            {
+                LogMessage("CreateAndLaunchGlobalBehaviourStack inboundBehaviourStack == null");
+                Console.WriteLine("CreateAndLaunchGlobalBehaviourStack inboundBehaviourStack == null");
+                return;
+            }
+
+            // lock the global behaviour stack
+            lock (globalBehaviourStackLockObj)
+            {
+                // set it now as the global behaviour stack
+                globalBehaviourStack = inboundBehaviourStack;
+
+                // set the main object
+                globalBehaviourStack.MainObject = this;
+
+                // enable the stateMachine
+                globalBehaviourStack.WorkerThreadsOKToRun = true;
+                // set our current location on each behaviour in the stack
+                globalBehaviourStack.SetCurrentLocation(BehaviourLocationEnum.WALNUT_CLIENT);
+                // run all of the startup actions. This includes the BehaviourStack actor itself
+                globalBehaviourStack.RunStartupActions();
+                // start all behaviour Actors. This includes the BehaviourStack actor itself
+                globalBehaviourStack.StartBehaviourThreads();
+
+                DebugTODO("for testing");
+                if (globalBehaviourStack.MainObject != null) Console.WriteLine(".MainObject != null");
+                else Console.WriteLine(".MainObject == null");
+
+                if (globalBehaviourStack.GlobalDataStore != null) Console.WriteLine(".GlobalDataStore != null");
+                else Console.WriteLine(".GlobalDataStore == null");
+
+
+            }
+
+            LogMessage("CreateAndLaunchGlobalBehaviourStack ends");
+            return;
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Does everything to drop and remove the current behaviour stack
+        /// 
+        /// If we do not have one that is ok.
+        /// </summary>
+        private void DropBehaviourStack()
+        {
+            LogMessage("DropBehaviourStack called");
+
+            // lock the global behaviour stack
+            lock (globalBehaviourStackLockObj)
+            {
+                // do we have a global Behaviour Stack? If so, kill it off
+                if (globalBehaviourStack != null)
+                {
+                    LogMessage("DropBehaviourStack, dropping existing stack");
+                    // yes we do drop it
+                    globalBehaviourStack.WorkerThreadsOKToRun = false;
+                    globalBehaviourStack.StopAllBehaviours();
+                    globalBehaviourStack = null;
+                }
+            }
+            LogMessage("DropBehaviourStack ends");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -433,130 +670,132 @@ namespace WalnutClient
         /// 
         /// </summary>
         /// <param name="scData">the server client data object</param>
-        public void SetWaldosFromServerClientData(ServerClientData scData)
-        {
-            Console.WriteLine("SetWaldosFromServerClientData called");
-            LogMessage("SetWaldosFromServerClientData, called");
+        //public void SetWaldosFromServerClientData(ServerClientData scData)
+        //{
+        //    Console.WriteLine("SetWaldosFromServerClientData called");
+        //    LogMessage("SetWaldosFromServerClientData, called");
 
-            // sanity checks
-            if (pruDriver == null)
-            {
-                Console.WriteLine("SetWaldosFromServerClientData pruDriver==null");
-                LogMessage("SetWaldosFromServerClientData, pruDriver==null");
-                return;
-            }
+        //    // sanity checks
+        //    if (pruDriver == null)
+        //    {
+        //        Console.WriteLine("SetWaldosFromServerClientData pruDriver==null");
+        //        LogMessage("SetWaldosFromServerClientData, pruDriver==null");
+        //        return;
+        //    }
 
-            if (scData == null)
-            {
-                LogMessage("SetWaldosFromServerClientData, scData==null");
-                // we do not permit ill formed commands to be sent to us
-                StopAllWaldos();
-                return;
-            }
+        //    if (scData == null)
+        //    {
+        //        LogMessage("SetWaldosFromServerClientData, scData==null");
+        //        // we do not permit ill formed commands to be sent to us
+        //        StopAllWaldos();
+        //        return;
+        //    }
 
-            //Console.WriteLine("SetWaldosFromServerClientData Message Received");
-        //    Console.WriteLine("SetWaldosFromServerClientData Message Received");
-            LogMessage("SetWaldosFromServerClientData Message Received");
+        //    //Console.WriteLine("SetWaldosFromServerClientData Message Received");
+        ////    Console.WriteLine("SetWaldosFromServerClientData Message Received");
+        //    LogMessage("SetWaldosFromServerClientData Message Received");
 
-            // a disable waldos flag always does this and nothing else
-            if (scData.Waldo_Enable != 1)
-            {
-                LogMessage("SetWaldosFromServerClientData, Waldos are now disabled");
-                // just disable them all. Each waldo will need to be individually re-enabled
-                StopAllWaldos();
-                return;
-            }
+        //    // a disable waldos flag always does this and nothing else
+        //    if (scData.Waldo_Enable != 1)
+        //    {
+        //        LogMessage("SetWaldosFromServerClientData, Waldos are now disabled");
+        //        // just disable them all. Each waldo will need to be individually re-enabled
+        //        StopAllWaldos();
+        //        return;
+        //    }
 
-            // are we dealing with raw request stepper data?
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEPPER_CONTROL))
-            {
-                // NOTE: at the moment we only process the first SCData_StepperControl object in the list
-                ProcessStepperControlList(scData.StepperControlList);
-            }
+        //    // 20260224
+        //    //// are we dealing with raw request stepper data?
+        //    //if (scData.UserDataContent.HasFlag(UserDataContentEnum.STEPPER_CONTROL))
+        //    //{
+        //    //    // NOTE: at the moment we only process the first SCData_StepperControl object in the list
+        //    //    ProcessStepperControlList(scData.StepperControlList);
+        //    //}
 
-            // are we dealing with PWMA data?
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWM_CONTROL))
-     //       if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
-            {
-// disabled now needs to be treated as stepper motors
-                //if (pwmPortA != null)
-                //{
-                //    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString() + ", Dir="+ scData.PWMA_DirState.ToString());
+        //    // are we dealing with PWMA data?
+        //    // 20260224if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWM_CONTROL))
+        //    //       if (scData.UserDataContent.HasFlag(UserDataContentEnum.PWMA_DATA))
+        //    {
+        //        // disabled now needs to be treated as stepper motors
+        //        //if (pwmPortA != null)
+        //        //{
+        //        //    Console.WriteLine("PWMA DATA PWMA_Enable=" + scData.PWMA_Enable.ToString() + ",DutyPercent="+ scData.PWMA_PWMPercent.ToString() + ", Dir="+ scData.PWMA_DirState.ToString());
 
-                //    // set the pwmPercent, the frequency was set to a constant when the port was opened
-                //    pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
-                //    // now enable or disable as appropriate
-                //    if (scData.PWMA_Enable != 0) pwmPortA.RunState = true;
-                //    else pwmPortA.RunState = false;
-                //    // set the direction
-                //    if(scData.PWMA_DirState != 0) pwmPortADir.Write(true);
-                //    else pwmPortADir.Write(false);
-                //}
-            }
+        //        //    // set the pwmPercent, the frequency was set to a constant when the port was opened
+        //        //    pwmPortA.DutyPercent = scData.PWMA_PWMPercent;
+        //        //    // now enable or disable as appropriate
+        //        //    if (scData.PWMA_Enable != 0) pwmPortA.RunState = true;
+        //        //    else pwmPortA.RunState = false;
+        //        //    // set the direction
+        //        //    if(scData.PWMA_DirState != 0) pwmPortADir.Write(true);
+        //        //    else pwmPortADir.Write(false);
+        //        //}
+        //    }
 
-            //// are we dealing with rectangle data, this is data that has come off
-            //// the image recognition algorythm in the Walnut Server
-            //if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
-            //{
-            //    // sanity check
-            //    if (scData.RectList == null)
-            //    {
-            //        Console.WriteLine("Null rectList with content flag RECT_DATA");
-            //        LogMessage("SetWaldosFromServerClientData, Null rectList with content flag RECT_DATA");
-            //        return;
-            //    }
-            //    // this is the action at the moment, we have the centerpoint of the squares and the 
-            //    // known color of the centerpoint. We have to set this information in objects
-            //    // so we can use it
-            //    IdentifySquaresByColor(scData.RectList);
-            //    // now we move the red square to the green square. This is a stated goal
-            //    //MoveRedToGreen();
-            //}
+        //    //// are we dealing with rectangle data, this is data that has come off
+        //    //// the image recognition algorythm in the Walnut Server
+        //    //if (scData.UserDataContent.HasFlag(UserDataContentEnum.RECT_DATA))
+        //    //{
+        //    //    // sanity check
+        //    //    if (scData.RectList == null)
+        //    //    {
+        //    //        Console.WriteLine("Null rectList with content flag RECT_DATA");
+        //    //        LogMessage("SetWaldosFromServerClientData, Null rectList with content flag RECT_DATA");
+        //    //        return;
+        //    //    }
+        //    //    // this is the action at the moment, we have the centerpoint of the squares and the 
+        //    //    // known color of the centerpoint. We have to set this information in objects
+        //    //    // so we can use it
+        //    //    IdentifySquaresByColor(scData.RectList);
+        //    //    // now we move the red square to the green square. This is a stated goal
+        //    //    //MoveRedToGreen();
+        //    //}
 
-            // are we dealing with srcTgt data, this is data that has been
-            // decided on by the Walnut Server
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
-            {
-                // sanity check
-                if (scData.SrcTgtList == null)
-                {
-                    Console.WriteLine("Null srcTgtList with content flag SRCTGT_DATA");
-                    LogMessage("SetWaldosFromServerClientData, Null srcTgtList with content flag SRCTGT_DATA");
-                    return;
-                }
-                if (scData.SrcTgtList.Count == 0)
-                {
-                    Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
-                    LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
-                    // send in a dummy, there is code in the called procedure to handle this
-                    MoveSourceToTarget_Stepper(new SCData_SrcTgt());
-                    return;
-                }
-                else
-                {
-                    // now we move the source to the target with the green square. This is a stated goal
-                    MoveSourceToTarget_Stepper(scData.SrcTgtList[0]);
-                }
-            }
+        //    // are we dealing with srcTgt data, this is data that has been
+        //    // decided on by the Walnut Server
+        //    // 20260224if (scData.UserDataContent.HasFlag(UserDataContentEnum.SRCTGT_DATA))
+        //    {// 20260224
+        //        //// sanity check
+        //        //if (scData.SrcTgtList == null)
+        //        //{
+        //        //    Console.WriteLine("Null srcTgtList with content flag SRCTGT_DATA");
+        //        //    LogMessage("SetWaldosFromServerClientData, Null srcTgtList with content flag SRCTGT_DATA");
+        //        //    return;
+        //        //}
+        //        //if (scData.SrcTgtList.Count == 0)
+        //        //{
+        //        //    Console.WriteLine("zero len srcTgtList with content flag SRCTGT_DATA");
+        //        //    LogMessage("SetWaldosFromServerClientData, zero len srcTgtList with content flag SRCTGT_DATA");
+        //        //    // send in a dummy, there is code in the called procedure to handle this
+        //        //    MoveSourceToTarget_Stepper(new SCData_SrcTgt());
+        //        //    return;
+        //        //}
+        //        //else
+        //        //{
+        //        //    // now we move the source to the target with the green square. This is a stated goal
+        //        //    MoveSourceToTarget_Stepper(scData.SrcTgtList[0]);
+        //        //}
+        //    }
 
-            // are we dealing with a flag
-            if (scData.UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
-            {
-                if (scData.UserFlag.HasFlag(UserDataFlagEnum.MARK_FLAG))
-                {
-                    Console.WriteLine("MARK_FLAG");
-                    LogMessage("SetWaldosFromServerClientData, MARK_FLAG");
-                }
-                if (scData.UserFlag.HasFlag(UserDataFlagEnum.EXIT_FLAG))
-                {
-                    Console.WriteLine("EXIT_FLAG");
-                    LogMessage("SetWaldosFromServerClientData, EXIT_FLAG");
-                    ShutDown();
-                    // force a quit
-                    Environment.Exit(0);
-                }
-            }
-        }
+        //    // are we dealing with a flag
+        //    // 20260224
+        //    //if (scData.UserDataContent.HasFlag(UserDataContentEnum.FLAG_DATA))
+        //    //{
+        //    //    if (scData.UserFlag.HasFlag(UserDataFlagEnum.MARK_FLAG))
+        //    //    {
+        //    //        Console.WriteLine("MARK_FLAG");
+        //    //        LogMessage("SetWaldosFromServerClientData, MARK_FLAG");
+        //    //    }
+        //    //    if (scData.UserFlag.HasFlag(UserDataFlagEnum.EXIT_FLAG))
+        //    //    {
+        //    //        Console.WriteLine("EXIT_FLAG");
+        //    //        LogMessage("SetWaldosFromServerClientData, EXIT_FLAG");
+        //    //        ShutDown();
+        //    //        // force a quit
+        //    //        Environment.Exit(0);
+        //    //    }
+        //    //}
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -566,8 +805,10 @@ namespace WalnutClient
         /// enable of all waldos to turn these back on automatically. If the waldos 
         /// go off they  must be individually re-enabled. 
         /// 
+        /// This is also a IBehaviour_WaldosAllStop implementation
+        /// 
         /// </summary>
-        private void StopAllWaldos()
+        public void StopAllWaldos()
         {
             Console.WriteLine("StopAllWaldos");
             LogMessage("StopAllWaldos");
@@ -601,13 +842,14 @@ namespace WalnutClient
         /// NOTE: at the moment we just process the first item in the list and 
         /// disregard the rest. The full list implemenation is left for the future 
         /// 
+        /// A null stControlList means stop all waldos
+        /// 
+        /// This is also a IBehaviour_ProcessStepperControlList implementation
         /// </summary>
         /// <param name="stControlList">the stepper control list</param>
-        private void ProcessStepperControlList(List<SCData_StepperControl> stControlList)
+        public void ProcessStepperControlList(List<SCData_Stepper> stControlList)
         {
-            Console.WriteLine("ProcessStepperControlList: called");
-
-            // we do not need a behaviour here. We just set the stepper motor parameters right out of the object
+           // Console.WriteLine("ProcessStepperControlList: called");
 
             if (pruDriver == null)
             {
@@ -620,7 +862,7 @@ namespace WalnutClient
             {
                 Console.WriteLine("ProcessStepperControlList: No Control List");
                 LogMessage("ProcessStepperControlList: No Control List");
-                // we do not permit ill formed commands to be sent to us
+                // this is what a null stControlList means
                 StopAllWaldos();
                 return;
             }
@@ -633,7 +875,7 @@ namespace WalnutClient
             // to the pruDriver as a batch. This means that if there are multiple 
             // commands for the same stepper motor in the list then only the last one
             // will be used
-            foreach (SCData_StepperControl stepCtrlObj in stControlList)
+            foreach (SCData_Stepper stepCtrlObj in stControlList)
             {
                 uint stepXFullCountAddress = 0;
                 uint stepXDirStateAddress = 0;
@@ -687,10 +929,11 @@ namespace WalnutClient
                 // write the direction state
                 pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_DirState, stepXDirStateAddress);
                 // write the num pulses
-                pruDriver.WritePRUDataUInt32(stepCtrlObj.Num_Steps, stepXMaxPulsesAddress);
+                pruDriver.WritePRUDataUInt32(stepCtrlObj.NumSteps, stepXMaxPulsesAddress);
                 // set the stepper enabled flag
                 pruDriver.WritePRUDataUInt32(stepCtrlObj.Stepper_Enable, stepXEnabledStateAddress);
-Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper_ID.ToString() + ", stepCtrlObj.Stepper_Enable=" + stepCtrlObj.Stepper_Enable.ToString() + ", stepCtrlObj.Num_Steps=" + stepCtrlObj.Num_Steps.ToString());
+
+                //Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.GetState());
 
             } // bottom of foreach (SCData_StepperControl stepCtrlObj in stControlList)
 
@@ -709,35 +952,36 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// 
         /// </summary>
         /// <returns>the a filled in stepper status object or null for fail</returns>
-        private SCData_StepperStatus GetStepperStatus()
-        {
-            SCData_StepperStatus outStatusObj = new SCData_StepperStatus();
+        /// // 20260224
+        //private SCData_StepperStatus GetStepperStatus()
+        //{
+        //    SCData_StepperStatus outStatusObj = new SCData_StepperStatus();
 
-            if (pruDriver == null)
-            {
-                Console.WriteLine("GetStepperStatus pruDriver==null");
-                LogMessage("GetStepperStatus, pruDriver==null");
-                return null;
-            }
+        //    if (pruDriver == null)
+        //    {
+        //        Console.WriteLine("GetStepperStatus pruDriver==null");
+        //        LogMessage("GetStepperStatus, pruDriver==null");
+        //        return null;
+        //    }
 
-            // the dir register, the bits in here indicate the direction of Step0-3
-            outStatusObj.AllSteppersDirRegister = pruDriver.ReadPRUDataUInt32(STATEFLAG_OFFSET);
+        //    // the dir register, the bits in here indicate the direction of Step0-3
+        //    outStatusObj.AllSteppersDirRegister = pruDriver.ReadPRUDataUInt32(STATEFLAG_OFFSET);
 
-            // the step counts
-            outStatusObj.Step0_StepCount = pruDriver.ReadPRUDataUInt32(STEP0_NUMPULSES_OFFSET);
-            outStatusObj.Step1_StepCount = pruDriver.ReadPRUDataUInt32(STEP1_NUMPULSES_OFFSET);
-            outStatusObj.Step2_StepCount = pruDriver.ReadPRUDataUInt32(STEP2_NUMPULSES_OFFSET);
-            outStatusObj.Step3_StepCount = pruDriver.ReadPRUDataUInt32(STEP3_NUMPULSES_OFFSET);
+        //    // the step counts
+        //    outStatusObj.Step0_StepCount = pruDriver.ReadPRUDataUInt32(STEP0_NUMPULSES_OFFSET);
+        //    outStatusObj.Step1_StepCount = pruDriver.ReadPRUDataUInt32(STEP1_NUMPULSES_OFFSET);
+        //    outStatusObj.Step2_StepCount = pruDriver.ReadPRUDataUInt32(STEP2_NUMPULSES_OFFSET);
+        //    outStatusObj.Step3_StepCount = pruDriver.ReadPRUDataUInt32(STEP3_NUMPULSES_OFFSET);
 
-            // the enabled states
-            outStatusObj.Step0_Enabled = pruDriver.ReadPRUDataUInt32(STEP0_ENASTATE_OFFSET);
-            outStatusObj.Step1_Enabled = pruDriver.ReadPRUDataUInt32(STEP1_ENASTATE_OFFSET);
-            outStatusObj.Step2_Enabled = pruDriver.ReadPRUDataUInt32(STEP2_ENASTATE_OFFSET);
-            outStatusObj.Step3_Enabled = pruDriver.ReadPRUDataUInt32(STEP3_ENASTATE_OFFSET);
+        //    // the enabled states
+        //    outStatusObj.Step0_Enabled = pruDriver.ReadPRUDataUInt32(STEP0_ENASTATE_OFFSET);
+        //    outStatusObj.Step1_Enabled = pruDriver.ReadPRUDataUInt32(STEP1_ENASTATE_OFFSET);
+        //    outStatusObj.Step2_Enabled = pruDriver.ReadPRUDataUInt32(STEP2_ENASTATE_OFFSET);
+        //    outStatusObj.Step3_Enabled = pruDriver.ReadPRUDataUInt32(STEP3_ENASTATE_OFFSET);
 
-            return outStatusObj;
+        //    return outStatusObj;
 
-        }
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -746,7 +990,7 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// 
         /// </summary>
         /// <param name="rectList">The list of rectangles</param>
-// some sort of remnant code back from Ex002-003
+        // some sort of remnant code back from Ex002-003
         //private void IdentifySquaresByColor(List<ColoredRotatedObject> rectList)
         //{
         //    // run through the list to find the first red square
@@ -773,7 +1017,7 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// 
         /// </summary>
         /// 
-// some sort of remnant code back from Ex002-003
+        // some sort of remnant code back from Ex002-003
         //private void MoveRedToGreen()
         //{
         //    uint outSpeed = 0;
@@ -833,162 +1077,163 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// A Waldo action to move the source onto the target. Stepper Version
         /// 
         /// </summary>
-        private void MoveSourceToTarget_Stepper(SCData_SrcTgt stData)
-        {
-            uint outSpeedX = 0;
-            uint outDirectionX = 0;
-            uint outSpeedY = 0;
-            uint outDirectionY = 0;
-            PointF srcCenter = new PointF(float.NaN, float.NaN);
-            PointF tgtCenter = new PointF(float.NaN, float.NaN);
+        //// 20260224
+        //private void MoveSourceToTarget_Stepper(SCData_SrcTgt stData)
+        //{
+        //uint outSpeedX = 0;
+        //uint outDirectionX = 0;
+        //uint outSpeedY = 0;
+        //uint outDirectionY = 0;
+        //PointF srcCenter = new PointF(float.NaN, float.NaN);
+        //PointF tgtCenter = new PointF(float.NaN, float.NaN);
 
-            // form up new StepperControl objects, and a list to contain them
-            SCData_StepperControl stepperObjX = new SCData_StepperControl(StepperIDEnum.STEPPER_0);
-            SCData_StepperControl stepperObjY = new SCData_StepperControl(StepperIDEnum.STEPPER_1);
-            List< SCData_StepperControl >stepperList = new List< SCData_StepperControl >();
-            // add our stepper control modules to the list
-            stepperList.Add(stepperObjX);
-            stepperList.Add(stepperObjY);
+        //// form up new StepperControl objects, and a list to contain them
+        //SCData_StepperControl stepperObjX = new SCData_StepperControl(StepperIDEnum.STEPPER_0);
+        //SCData_StepperControl stepperObjY = new SCData_StepperControl(StepperIDEnum.STEPPER_1);
+        //List< SCData_StepperControl >stepperList = new List< SCData_StepperControl >();
+        //// add our stepper control modules to the list
+        //stepperList.Add(stepperObjX);
+        //stepperList.Add(stepperObjY);
 
-            // set up our behaviours if we need to
-            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, DEFAULT_STEPPER_SPEED);
-            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, DEFAULT_STEPPER_SPEED);
-            // set up our target tracker if we need to
-            int workingTargetMovedThreshold = 5;
-            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
+        //// set up our behaviours if we need to
+        //if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, DEFAULT_STEPPER_SPEED);
+        //if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, DEFAULT_STEPPER_SPEED);
+        //// set up our target tracker if we need to
+        //int workingTargetMovedThreshold = 5;
+        //if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
 
-            if (stData == null)
-            {
-                Console.WriteLine("No stData");
-                // turn off the steppers
-                stepperObjX.Stepper_Enable = 0;
-                stepperObjY.Stepper_Enable = 0;
-                // set it
-                ProcessStepperControlList(stepperList);
-                // and leave
-                return;
-            }
+        //if (stData == null)
+        //{
+        //    Console.WriteLine("No stData");
+        //    // turn off the steppers
+        //    stepperObjX.Stepper_Enable = 0;
+        //    stepperObjY.Stepper_Enable = 0;
+        //    // set it
+        //    ProcessStepperControlList(stepperList);
+        //    // and leave
+        //    return;
+        //}
 
-            Console.WriteLine("**(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
+        //Console.WriteLine("**(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
 
-            if ((stData == null) || (stData.SrcIsPopulated() == false))
-            {
-                // we do not have source data
-                Console.WriteLine("No Src Data");
-                // turn off the steppers
-                stepperObjX.Stepper_Enable = 0;
-                stepperObjY.Stepper_Enable = 0;
-                // set it
-                ProcessStepperControlList(stepperList);
-                // and leave
-                return;
-            }
+        //if ((stData == null) || (stData.SrcIsPopulated() == false))
+        //{
+        //    // we do not have source data
+        //    Console.WriteLine("No Src Data");
+        //    // turn off the steppers
+        //    stepperObjX.Stepper_Enable = 0;
+        //    stepperObjY.Stepper_Enable = 0;
+        //    // set it
+        //    ProcessStepperControlList(stepperList);
+        //    // and leave
+        //    return;
+        //}
 
-            // do we have a target
-            if (stData.TgtIsPopulated() == false)
-            {
-                Console.WriteLine("No incoming Tgt Data");
-                // turn off the steppers
-                stepperObjX.Stepper_Enable = 0;
-                stepperObjY.Stepper_Enable = 0;
-                // set it
-                ProcessStepperControlList(stepperList);
-                // and leave
-                return;
-            }
+        //// do we have a target
+        //if (stData.TgtIsPopulated() == false)
+        //{
+        //    Console.WriteLine("No incoming Tgt Data");
+        //    // turn off the steppers
+        //    stepperObjX.Stepper_Enable = 0;
+        //    stepperObjY.Stepper_Enable = 0;
+        //    // set it
+        //    ProcessStepperControlList(stepperList);
+        //    // and leave
+        //    return;
+        //}
 
-            // collect our source and target
-            srcCenter = stData.SrcPoint;
-            tgtCenter = stData.TgtPoint;
-            // feed our target tracker with the static point. We want to be able to see if it has moved
-            behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
+        //// collect our source and target
+        //srcCenter = stData.SrcPoint;
+        //tgtCenter = stData.TgtPoint;
+        //// feed our target tracker with the static point. We want to be able to see if it has moved
+        //behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
 
-            // CanStop disabled for Ex010
-            //if (behaviourTrackTarget.HasMoved() == true)
-            if (true)
-            {
-                // reset the MoveLevel behaviour
-                behaviourMoveLevelX.Reset();
-                behaviourMoveLevelY.Reset();
-                // reset the target point tracker
-                behaviourTrackTarget.Reset();
-                behaviourTrackTarget.SetTargetPoint(tgtCenter);
-            }
+        //// CanStop disabled for Ex010
+        ////if (behaviourTrackTarget.HasMoved() == true)
+        //if (true)
+        //{
+        //    // reset the MoveLevel behaviour
+        //    behaviourMoveLevelX.Reset();
+        //    behaviourMoveLevelY.Reset();
+        //    // reset the target point tracker
+        //    behaviourTrackTarget.Reset();
+        //    behaviourTrackTarget.SetTargetPoint(tgtCenter);
+        //}
 
-            // Process X, have we already reached a point where we can stop?
-            if (behaviourMoveLevelX.CanStop() == true)
-            {
-                // turn off the stepper
-                stepperObjX.Stepper_Enable = 0;
-            }
-            else
-            {
-                // can't stop, process this input, set the speed
-                behaviourMoveLevelX.OutputSpeedMax = (uint)stData.MaxSpeed_X;
-                // get the result for X direction
-                int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
-                if (retVal != 0)
-                {
-                    // turn off the stepper
-                    stepperObjX.Stepper_Enable = 0;
-                    return;
-                }
-                else
-                {
-                    // set the stepper speed
-                    stepperObjX.Stepper_StepSpeed = outSpeedX;
-                    // give it infinite steps, the server will turn it off
-                    stepperObjX.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+        //// Process X, have we already reached a point where we can stop?
+        //if (behaviourMoveLevelX.CanStop() == true)
+        //{
+        //    // turn off the stepper
+        //    stepperObjX.Stepper_Enable = 0;
+        //}
+        //else
+        //{
+        //    // can't stop, process this input, set the speed
+        //    behaviourMoveLevelX.OutputSpeedMax = (uint)stData.MaxSpeed_X;
+        //    // get the result for X direction
+        //    int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
+        //    if (retVal != 0)
+        //    {
+        //        // turn off the stepper
+        //        stepperObjX.Stepper_Enable = 0;
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        // set the stepper speed
+        //        stepperObjX.Stepper_StepSpeed = outSpeedX;
+        //        // give it infinite steps, the server will turn it off
+        //        stepperObjX.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
 
-                    // set the direction
-                    if (outDirectionX != 0) stepperObjX.Stepper_DirState = 1;
-                    else stepperObjX.Stepper_DirState = 0;
+        //        // set the direction
+        //        if (outDirectionX != 0) stepperObjX.Stepper_DirState = 1;
+        //        else stepperObjX.Stepper_DirState = 0;
 
-                    // turn off the stepper
-                    stepperObjX.Stepper_Enable = 1;
-                }
-            }
+        //        // turn off the stepper
+        //        stepperObjX.Stepper_Enable = 1;
+        //    }
+        //}
 
-            // Process Y, have we already reached a point where we can stop?
-            if (behaviourMoveLevelY.CanStop() == true)
-            {
-                // turn off the stepper
-                stepperObjY.Stepper_Enable = 0;
-            }
-            else
-            {
-                // can't stop, process this input, set the speed
-                behaviourMoveLevelY.OutputSpeedMax = (uint)stData.MaxSpeed_Y;
-                // get the result for Y direction
-                int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
-                if (retVal != 0)
-                {
-                    // turn off the stepper
-                    stepperObjY.Stepper_Enable = 0;
-                    return;
-                }
-                else
-                {
-                    // set the stepper speed
-                    stepperObjY.Stepper_StepSpeed = outSpeedY;
-                    // give it infinite steps, the server will turn it off
-                    stepperObjY.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
+        //// Process Y, have we already reached a point where we can stop?
+        //if (behaviourMoveLevelY.CanStop() == true)
+        //{
+        //    // turn off the stepper
+        //    stepperObjY.Stepper_Enable = 0;
+        //}
+        //else
+        //{
+        //    // can't stop, process this input, set the speed
+        //    behaviourMoveLevelY.OutputSpeedMax = (uint)stData.MaxSpeed_Y;
+        //    // get the result for Y direction
+        //    int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
+        //    if (retVal != 0)
+        //    {
+        //        // turn off the stepper
+        //        stepperObjY.Stepper_Enable = 0;
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        // set the stepper speed
+        //        stepperObjY.Stepper_StepSpeed = outSpeedY;
+        //        // give it infinite steps, the server will turn it off
+        //        stepperObjY.Num_Steps = SCData_StepperControl.INFINITE_STEPS;
 
-                    // set the direction
-                    if (outDirectionY != 0) stepperObjY.Stepper_DirState = 0;
-                    else stepperObjY.Stepper_DirState = 1;
+        //        // set the direction
+        //        if (outDirectionY != 0) stepperObjY.Stepper_DirState = 0;
+        //        else stepperObjY.Stepper_DirState = 1;
 
-                    // turn off the stepper
-                    stepperObjY.Stepper_Enable = 1;
-                }
-            }
+        //        // turn off the stepper
+        //        stepperObjY.Stepper_Enable = 1;
+        //    }
+        //}
 
-            // our stepper control modules have been setup, now set them
-            ProcessStepperControlList(stepperList);
+        //// our stepper control modules have been setup, now set them
+        //ProcessStepperControlList(stepperList);
 
-            // write this out for diagnostics
-            Console.WriteLine("");
-        }
+        //// write this out for diagnostics
+        //Console.WriteLine("");
+        //    }
 
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -996,134 +1241,135 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// A Waldo action to move the source onto the target. PWM Version
         /// 
         /// </summary>
-        private void MoveSourceToTarget_PWM(SCData_SrcTgt stData)
-        {
-            uint outSpeedX = 0;
-            uint outDirectionX = 0;
-            uint outSpeedY = 0;
-            uint outDirectionY = 0;
-            PointF srcCenter = new PointF(float.NaN, float.NaN);
-            PointF tgtCenter = new PointF(float.NaN, float.NaN);
+        ///// // 20260224
+        //private void MoveSourceToTarget_PWM(SCData_SrcTgt stData)
+        //{
+        //    uint outSpeedX = 0;
+        //    uint outDirectionX = 0;
+        //    uint outSpeedY = 0;
+        //    uint outDirectionY = 0;
+        //    PointF srcCenter = new PointF(float.NaN, float.NaN);
+        //    PointF tgtCenter = new PointF(float.NaN, float.NaN);
 
 
-            // set up our behaviours if we need to
-            if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
-            if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
-            // set up our target tracker if we need to
-            int workingTargetMovedThreshold = 5;
-            if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
+        //    // set up our behaviours if we need to
+        //    if (behaviourMoveLevelX == null) behaviourMoveLevelX = new Behaviour_MoveLevel(AxisEnum.AXIS_X, MAX_MOTOR_SPEED);
+        //    if (behaviourMoveLevelY == null) behaviourMoveLevelY = new Behaviour_MoveLevel(AxisEnum.AXIS_Y, MAX_MOTOR_SPEED);
+        //    // set up our target tracker if we need to
+        //    int workingTargetMovedThreshold = 5;
+        //    if (behaviourTrackTarget == null) behaviourTrackTarget = new Behaviour_TrackTarget(workingTargetMovedThreshold, DEFAULT_TARGET_QUEUE_SIZE);
 
-            if (stData == null)
-            {
-                Console.WriteLine("No stData");
-                // turn off the ports
-                pwmPortA.RunState = false;
-                pwmPortB.RunState = false;
-                // and leave
-                return;
-            }
+        //    if (stData == null)
+        //    {
+        //        Console.WriteLine("No stData");
+        //        // turn off the ports
+        //        pwmPortA.RunState = false;
+        //        pwmPortB.RunState = false;
+        //        // and leave
+        //        return;
+        //    }
 
-            Console.WriteLine("*(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
+        //    Console.WriteLine("*(" + stData.SrcPoint.X.ToString() + "," + stData.SrcPoint.Y.ToString() + ")" + " (" + stData.TgtPoint.X.ToString() + "," + stData.TgtPoint.Y.ToString() + ")");
 
-            if ((stData == null) || (stData.SrcIsPopulated() == false))
-            {
-                // we do not have source data
-                Console.WriteLine("No Src Data");
-                // turn off the ports
-                pwmPortA.RunState = false;
-                pwmPortB.RunState = false;
-                // and leave
-                return;
-            }
+        //    if ((stData == null) || (stData.SrcIsPopulated() == false))
+        //    {
+        //        // we do not have source data
+        //        Console.WriteLine("No Src Data");
+        //        // turn off the ports
+        //        pwmPortA.RunState = false;
+        //        pwmPortB.RunState = false;
+        //        // and leave
+        //        return;
+        //    }
 
-            // do we have a target
-            if (stData.TgtIsPopulated() == false)
-            {
-                Console.WriteLine("No incoming Tgt Data");
-                // turn off the ports
-                pwmPortA.RunState = false;
-                pwmPortB.RunState = false;
-                // and leave
-                return;
-            }
-            srcCenter = stData.SrcPoint;
-            tgtCenter = stData.TgtPoint;
-            // feed our target tracker with the static point. We want to be able to see if it has moved
-            behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
+        //    // do we have a target
+        //    if (stData.TgtIsPopulated() == false)
+        //    {
+        //        Console.WriteLine("No incoming Tgt Data");
+        //        // turn off the ports
+        //        pwmPortA.RunState = false;
+        //        pwmPortB.RunState = false;
+        //        // and leave
+        //        return;
+        //    }
+        //    srcCenter = stData.SrcPoint;
+        //    tgtCenter = stData.TgtPoint;
+        //    // feed our target tracker with the static point. We want to be able to see if it has moved
+        //    behaviourTrackTarget.SetTargetPoint(stData.TgtPoint);
 
-        // tmp   if (behaviourTrackTarget.HasMoved() == true)
-            if ( true)
-            {
-                // reset the MoveLevel behaviour
-                behaviourMoveLevelX.Reset();
-                behaviourMoveLevelY.Reset();
-                // reset the target point tracker
-                behaviourTrackTarget.Reset();
-                behaviourTrackTarget.SetTargetPoint(tgtCenter);
-            }
+        //// tmp   if (behaviourTrackTarget.HasMoved() == true)
+        //    if ( true)
+        //    {
+        //        // reset the MoveLevel behaviour
+        //        behaviourMoveLevelX.Reset();
+        //        behaviourMoveLevelY.Reset();
+        //        // reset the target point tracker
+        //        behaviourTrackTarget.Reset();
+        //        behaviourTrackTarget.SetTargetPoint(tgtCenter);
+        //    }
 
-            // Process X, have we already reached a point where we can stop?
-            if (behaviourMoveLevelX.CanStop() == true)
-            {
-                // turn off the port
-                pwmPortA.RunState = false;
-            }
-            else
-            {
-                // can't stop, process this input
-                // get the result for X direction
-                int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
-                if (retVal != 0)
-                {
-                    pwmPortA.RunState = false;
-                    return;
-                }
-                else
-                {
-                    // set the pwmPercent, the frequency was set to a constant when the port was opened
-                    pwmPortA.DutyPercent = (double)outSpeedX;
+        //    // Process X, have we already reached a point where we can stop?
+        //    if (behaviourMoveLevelX.CanStop() == true)
+        //    {
+        //        // turn off the port
+        //        pwmPortA.RunState = false;
+        //    }
+        //    else
+        //    {
+        //        // can't stop, process this input
+        //        // get the result for X direction
+        //        int retVal = behaviourMoveLevelX.GetOutput(tgtCenter, srcCenter, out outSpeedX, out outDirectionX);
+        //        if (retVal != 0)
+        //        {
+        //            pwmPortA.RunState = false;
+        //            return;
+        //        }
+        //        else
+        //        {
+        //            // set the pwmPercent, the frequency was set to a constant when the port was opened
+        //            pwmPortA.DutyPercent = (double)outSpeedX;
 
-                    // set the direction
-                    if (outDirectionX != 0) pwmPortADir.Write(true);
-                    else pwmPortADir.Write(false);
+        //            // set the direction
+        //            if (outDirectionX != 0) pwmPortADir.Write(true);
+        //            else pwmPortADir.Write(false);
 
-                    // now enable the port
-                    pwmPortA.RunState = true;
-                }
-            }
+        //            // now enable the port
+        //            pwmPortA.RunState = true;
+        //        }
+        //    }
 
-            // Process Y, have we already reached a point where we can stop?
-            if (behaviourMoveLevelY.CanStop() == true)
-            {
-                // turn off the port
-                pwmPortB.RunState = false;
-            }
-            else
-            {
-                // can't stop, process this input
-                // get the result for Y direction
-                int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
-                if (retVal != 0)
-                {
-                    pwmPortB.RunState = false;
-                    return;
-                }
-                else
-                {
-                    // set the pwmPercent, the frequency was set to a constant when the port was opened
-                    pwmPortB.DutyPercent = (double)outSpeedY;
+        //    // Process Y, have we already reached a point where we can stop?
+        //    if (behaviourMoveLevelY.CanStop() == true)
+        //    {
+        //        // turn off the port
+        //        pwmPortB.RunState = false;
+        //    }
+        //    else
+        //    {
+        //        // can't stop, process this input
+        //        // get the result for Y direction
+        //        int retVal = behaviourMoveLevelY.GetOutput(tgtCenter, srcCenter, out outSpeedY, out outDirectionY);
+        //        if (retVal != 0)
+        //        {
+        //            pwmPortB.RunState = false;
+        //            return;
+        //        }
+        //        else
+        //        {
+        //            // set the pwmPercent, the frequency was set to a constant when the port was opened
+        //            pwmPortB.DutyPercent = (double)outSpeedY;
 
-                    // set the direction
-                    if (outDirectionY != 0) pwmPortBDir.Write(true);
-                    else pwmPortBDir.Write(false);
+        //            // set the direction
+        //            if (outDirectionY != 0) pwmPortBDir.Write(true);
+        //            else pwmPortBDir.Write(false);
 
-                    // now enable the port
-                    pwmPortB.RunState = true;
-                }
-            }
-            // write this out for diagnostics
-            Console.WriteLine("");
-        }
+        //            // now enable the port
+        //            pwmPortB.RunState = true;
+        //        }
+        //    }
+        //    // write this out for diagnostics
+        //    Console.WriteLine("");
+        //}
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -1186,6 +1432,9 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
         /// </summary>
         public void ShutDown()
         {
+            // always drop any existing behaviour stack
+            DropBehaviourStack();
+
             // shut down the data transporter
             if (dataTransporter != null)
             {
@@ -1232,6 +1481,10 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
                 pwmPortBDir.ClosePort();
                 pwmPortBDir.Dispose();
             }
+
+            // shut down the interrupt ports
+            StopInterruptPortMM(ref ipPortGPIO_49);
+            StopInterruptPortMM(ref ipPortGPIO_50);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1430,5 +1683,170 @@ Console.WriteLine(DateTime.Now.TimeOfDay.ToString() + ", " + stepCtrlObj.Stepper
             outPort.ClosePort();
             outPort.Dispose();
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Creates and monitors an interrupt port.
+        /// </summary>
+        /// 
+        /// NOTE: 
+        ///   This code assumes that the port associated with the gpioID has been 
+        ///   properly configured in the device tree as an input. If it is not
+        ///   then the interrupt may not work correctly. See the associated documentation
+        /// 
+        /// NOTE:
+        ///    Be aware of the BBB max input voltage and pullup/pulldown resistors. 
+        ///    Interrupt or not it the pin is still an input. Be really careful about 
+        ///    the voltage you provide here. In general it is usually a good idea to 
+        ///    run the input through some sort of buffer to cap the max input at the 
+        ///    BBB maximum.
+        /// 
+        /// <param name="eventInterruptModeIn">The interrupt mode</param>
+        /// <param name="gpioIn">The gpio this port represents. </param>
+        public InterruptPortMM StartInterruptPortMM(GpioEnum gpioIn, InterruptMode eventInterruptModeIn)
+        {
+            if (gpioIn == GpioEnum.GPIO_NONE)
+            {
+                Console.WriteLine("Bad interrupt port GpioEnum.GPIO_NONE");
+                throw new Exception("Bad interrupt port GpioEnum.GPIO_NONE");
+            }
+
+            // create an interrupt port.
+            InterruptPortMM ipPortGPIO = new InterruptPortMM(gpioIn, eventInterruptModeIn);
+            // Hook up an event handler to the OnInterrupt event 
+            // the IpPortGPIO_OnInterrupt function will receive the incoming event data
+            ipPortGPIO.OnInterrupt += new InterruptEventHandlerMM(IpPortGPIO_OnInterrupt);
+            // we will not get any data if it is not enabled
+            ipPortGPIO.EnableInterrupt();
+            // return it
+            return ipPortGPIO;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Creates and monitors an interrupt port.
+        /// </summary>
+        /// 
+        /// NOTE: 
+        ///   This code assumes that the port associated with the gpioID has been 
+        ///   properly configured in the device tree as an input. If it is not
+        ///   then the interrupt may not work correctly. See the associated documentation
+        /// 
+        /// NOTE:
+        ///    Be aware of the BBB max input voltage and pullup/pulldown resistors. 
+        ///    Interrupt or not it the pin is still an input. Be really careful about 
+        ///    the voltage you provide here. In general it is usually a good idea to 
+        ///    run the input through some sort of buffer to cap the max input at the 
+        ///    BBB maximum.
+        /// 
+        /// <param name="eventInterruptModeIn">The interrupt mode</param>
+        /// <param name="gpioIn">The gpio this port represents. </param>
+        public void StopInterruptPortMM(ref InterruptPortMM ipPortGPIO)
+        {
+            // have we already done this
+            if (ipPortGPIO == null) return;
+
+            // this just stops all transmissions. The interrupt can be enabled again
+            // NOTE: disabling the interrupt does not release the event resources
+            ipPortGPIO.DisableInterrupt();
+            // close the port
+            ipPortGPIO.ClosePort();
+            // usually a good idea to dispose()
+            ipPortGPIO.Dispose();
+            // we never can use this object again after it is disposed. To use it
+            // again we would have to re-create it
+            ipPortGPIO = null;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// An InterruptPort interrupt event handler. This is where the data from 
+        /// the interrupt arrives. Note the EventData object contains more
+        /// detailed information than the passed in arguments - including a 
+        /// reference to the InterruptPort object which generated the event.
+        ///    
+        /// NOTE:
+        ///    Be aware that this handler method which accepts the data from 
+        ///    an InterruptPort event is executing in the InterruptPort's event 
+        ///    thread - not the main() thread. You have to be careful what you do 
+        ///    in here to avoid the many issues associated with multi-threaded 
+        ///    applications. 
+        /// 
+        /// NOTE: Be Quick. It is not advisable to take to long to process the 
+        ///    incoming event data - you cannot receive another interrupt while 
+        ///    processing the current one and the fact that a lost interrupt
+        ///    happened will not be recorded
+        ///
+        /// </summary>
+        /// <param name="evGpio">The gpio the event is configured on</param>
+        /// <param name="evState">The event state (1 or 0)</param>
+        /// <param name="evTime">The event time</param>
+        /// <param name="evData">The event data structure</param>
+        public void IpPortGPIO_OnInterrupt(GpioEnum evGpio, bool evState, DateTime evTime, EventData evData)
+        {
+            // here we process and take action on the incoming data
+            // in this particular example we just write it out to the 
+            // console
+            if (evData != null)
+            {
+                // this function could receive data from multiple
+                // interrupt ports. To decide what action to take we could
+                // look at the user specified evCode or the GPIO number
+                // down in the evData object. 
+
+                // just output some diagnostics
+                Console.WriteLine(evData.ToString());
+                // send the data to the Server
+                SendInputStateToServer(evData.EvGPIO, evData.EvState);
+
+                // if we have to call ClearInterrupt() on the port 
+                // we can do it this way
+                if (evData.PortObject != null)
+                {
+                    evData.PortObject.ClearInterrupt();
+                }
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if we have a connection to the server. 
+        /// </summary>
+        private bool IsConnected()
+        {
+            if (dataTransporter == null) return false;
+            if (dataTransporter.IsConnected() == false) return false;
+            return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SendInputStateToServer(GpioEnum gpioIn, bool pinState)
+        {
+            LogMessage("SendInputStateToServer");
+
+            if (dataTransporter == null)
+            {
+                LogMessage("SendInputStateToServer, dataTransporter == null");
+                return;
+            }
+            if (IsConnected() == false)
+            {
+                LogMessage("SendInputStateToServer, Not connected");
+                return;
+            }
+
+            // create the message container
+            SCM_PinStateList_Input scmMessage = new SCM_PinStateList_Input();
+            // create the data container
+            SCData_PinInputConfig scData = new SCData_PinInputConfig(gpioIn, pinState);
+            scmMessage.PinStatusList.Add(scData);
+            //send it
+            dataTransporter.SendDataMessage(scmMessage);
+
+        }
+
     }
 }

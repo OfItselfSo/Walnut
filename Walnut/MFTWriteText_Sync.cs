@@ -99,7 +99,6 @@ namespace Walnut
 
         // The strings to display in the chyron at the bottom of the image
         private string runInfoStr = "Sample Run";
-        private string versionInfoStr = "Walnut";
 
         private int chyronHeight = 0;
 
@@ -136,6 +135,31 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the image width in pixels. There is no set this is set by the WMF code
+        /// </summary>
+        public int ImageWidthInPixels
+        {
+            get
+            {
+                return m_imageWidthInPixels;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the image height in pixels. There is no set this is set by the WMF code
+        /// </summary>
+        public int ImageHeightInPixels
+        {
+            get
+            {
+                return m_imageHeightInPixels;
+            }
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Get/Set the runInfoStr - will never get/set null
         /// </summary>
         public string RunInfoStr
@@ -151,25 +175,6 @@ namespace Walnut
                 if (runInfoStr == null) runInfoStr = "";
             }
         }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Get/Set the versionInfoStr - will never get/set null
-        /// </summary>
-        public string VersionInfoStr
-        {
-            get
-            {
-                if (versionInfoStr == null) versionInfoStr = "";
-                return versionInfoStr;
-            }
-            set
-            {
-                versionInfoStr = value;
-                if (versionInfoStr == null) versionInfoStr = "";
-            }
-        }
-
 
 
         // ########################################################################
@@ -677,7 +682,7 @@ namespace Walnut
                     }
 
                     // Add a user run informational string, Walnut version number and a frame number to the right hand side cause it looks cool and might be useful
-                    string rightMarginString = RunInfoStr+ " " + VersionInfoStr + " " + m_FrameCount.ToString();
+                    string rightMarginString = RunInfoStr+ " " + m_FrameCount.ToString();
                     fontSize = g.MeasureString(rightMarginString, m_fontOverlay);
                     sTop = (m_imageHeightInPixels - fontSize.Height);
                     //sLeft = (m_imageWidthInPixels - fontSize.Width) - DEFAULT_FONT_HORIZ_MARGIN;
@@ -801,6 +806,15 @@ namespace Walnut
             if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
             {
                 calibrationBarText = " 500µm";
+                calibrationBarLengthInPixels = (int)workingLineLen;
+                return;
+            }
+
+            // see if we are suitable for a 500 micron scale
+            workingLineLen = numMicronsPerPixel * 600;
+            if ((workingLineLen > MIN_CALIBRATION_BAR_LEN) && (workingLineLen <= MAX_CALIBRATION_BAR_LEN))
+            {
+                calibrationBarText = " 600µm";
                 calibrationBarLengthInPixels = (int)workingLineLen;
                 return;
             }

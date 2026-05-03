@@ -49,8 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Behaviour_TrackTarget.cs" />
-    <Compile Include="Behaviour_MoveLevel.cs" />
+    <Compile Include="Behaviour_TrackTargetX.cs" />
+    <Compile Include="Behaviour_MoveLevelX.cs" />
     <Compile Include="Behaviour_MoveClose.cs" />
     <Compile Include="MainClass.cs" />
     <Compile Include="MarkedObject.cs" />
@@ -63,12 +63,17 @@
     <None Include="PRU1_Waldo_IO.p" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WalnutBehaviours\WalnutBehaviours.csproj">
+      <Project>{21741f99-4ecb-4bcb-820f-d6fcf4fb6efc}</Project>
+      <Name>WalnutBehaviours</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WalnutCommon\WalnutCommon.csproj">
       <Project>{b75a6c94-200f-443f-bbca-945adeb5dac4}</Project>
       <Name>WalnutCommon</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)SolutionDefines.targets" Condition="exists('$(SolutionDir)SolutionDefines.targets')" />
   <PropertyGroup>
     <PostBuildEvent>REM this command executes in the output dir and so no 
 REM copy command is needed

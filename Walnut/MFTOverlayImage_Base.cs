@@ -101,7 +101,12 @@ namespace Walnut
         protected Graphics overlayGraphicsObj = null;
         protected Graphics trackerGraphicsObj = null;
 
-        private bool displayTrackerOnImage = false;
+        private bool displayTrackerOnImage = true;
+        private bool displayOnlyOverlayOnImage = false;
+
+        // when we mask off areas we record the lowest alpha value we have seen. 
+        // this can be useful for some algorythms
+        private byte lowestAlphaFoundOnMask = 255;
 
         // grid stuff
         private Color? lastGridColor = null;
@@ -127,7 +132,7 @@ namespace Walnut
         public MFTOverlayImage_Base() : base()
         {
             // create some default overlay bitmaps, these can be overridden later
-            SetOverlayImage(null,null);
+            InitOverlayAndTrackerImages();
             // DebugMessage("MFTOverlayImage_Base Constructor");
         }
 
@@ -571,7 +576,8 @@ namespace Walnut
 
 
             // A wrapper around the video data.
-            using (Bitmap v = new Bitmap(m_imageWidthInPixels, m_imageHeightInPixels, m_lStrideIfContiguous, PixelFormat.Format32bppRgb, pDest))
+            //using (Bitmap v = new Bitmap(m_imageWidthInPixels, m_imageHeightInPixels, m_lStrideIfContiguous, PixelFormat.Format32bppRgb, pDest))
+            using (Bitmap v = new Bitmap(m_imageWidthInPixels, m_imageHeightInPixels, m_lStrideIfContiguous, PixelFormat.Format32bppPArgb, pDest))
             {
                 using (Graphics g = Graphics.FromImage(v))
                 {
@@ -580,16 +586,22 @@ namespace Walnut
                     {
                         // image overlay compositing is really quite simple. See
                         // https://chrisbitting.com/2013/11/08/overlaying-compositing-images-using-c-system-drawing/
-                        g.CompositingMode = CompositingMode.SourceOver;
-                        g.DrawImage(overlayImage.Bitmap, 0, 0);
-
-                        // if we have a tracker image draw it as well
-                        if ((displayTrackerOnImage==true) && (trackerImage != null))
+                        if (DisplayOnlyOverlayOnImage == true)
                         {
-                            g.DrawImage(trackerImage.Bitmap, 0, 0);
+                            g.CompositingMode = CompositingMode.SourceCopy;
+                            g.DrawImage(overlayImage.Bitmap, 0, 0);
+                        }
+                        else
+                        {
+                            g.CompositingMode = CompositingMode.SourceOver;
+                            g.DrawImage(overlayImage.Bitmap, 0, 0);
+                            // if we have a tracker image draw it as well
+                            if ((displayTrackerOnImage == true) && (trackerImage != null))
+                            {
+                                g.DrawImage(trackerImage.Bitmap, 0, 0);
+                            }
                         }
                     }
-
                 }
             }
         }
@@ -608,12 +620,10 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        ///  Sets the overlay image.
+        ///  Creates the base overlay and tracker bitmaps 
         ///  
         /// </summary>
-        /// <param name="imageDirAndFilename">image filename</param>
-        /// <param name="trackerImageDirAndFilename">if not null we use this image as a tracker backing store</param>
-        public void SetOverlayImage(string imageDirAndFilename, string trackerImageDirAndFilename)
+        public void InitOverlayAndTrackerImages()
         {
             // reset this
             overlayImage = null;
@@ -633,42 +643,66 @@ namespace Walnut
                 trackerGraphicsObj = null;
             }
 
-            if ((imageDirAndFilename == null) || (imageDirAndFilename.Length == 0))
-            {
-                // just build a default 640x480 transparent bitmap and use that
-                overlayImage = new DirectBitmap(640, 480);
-            }
-            else
-            {
-                // create a bitmap from the specified file
-                overlayImage = new DirectBitmap(imageDirAndFilename);
-            }
-
+            // just build a default 640x480 transparent bitmap and use that
+            overlayImage = new DirectBitmap(640, 480);
             overlayGraphicsObj = Graphics.FromImage(overlayImage.Bitmap);
             overlayGraphicsObj.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
             // we have to flip the Y axis or the graphics draw calls will be inverted
             overlayGraphicsObj.ScaleTransform(1.0F, -1.0F);
             overlayGraphicsObj.TranslateTransform(0.0F, -(float)overlayImage.Height);
 
-            // now for the tracker image
-            if ((trackerImageDirAndFilename == null) || (trackerImageDirAndFilename.Length == 0))
-            {
-                // just build a default 640x480 transparent bitmap and use that
-                trackerImage = new DirectBitmap(640, 480);
-
-            }
-            else
-            {
-                // create a bitmap from the specified file
-                trackerImage = new DirectBitmap(trackerImageDirAndFilename);
-            }
-
-
+            // just build a default 640x480 transparent bitmap and use that
+            trackerImage = new DirectBitmap(640, 480);
             trackerGraphicsObj = Graphics.FromImage(trackerImage.Bitmap);
             trackerGraphicsObj.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
             // we have to flip the Y axis or the graphics draw calls will be inverted
             trackerGraphicsObj.ScaleTransform(1.0F, -1.0F);
             trackerGraphicsObj.TranslateTransform(0.0F, -(float)trackerImage.Height);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///    Saves the overlay image to disk as a PNG. We do not check if already 
+        ///    exists. These sort of checks should be already done
+        ///  
+        /// </summary>
+        /// <param name="overlayImagePathAndFilename">the path and filename</param>
+        public void SaveOverlayImageAsPNG(string overlayImagePathAndFilename)
+        {
+            if((overlayImagePathAndFilename==null) || (overlayImagePathAndFilename.Length<10)) throw new Exception("Invalid overlay path and filename");
+            if (overlayImage == null) throw new Exception("Overlay image is null");
+            // just do it
+            overlayImage.SaveAsPNG(overlayImagePathAndFilename);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///    Saves the overlay image to disk as a binary file. We do not check if already 
+        ///    exists. These sort of checks should be already done
+        ///  
+        /// </summary>
+        /// <param name="overlayImagePathAndFilename">the path and filename</param>
+        public void SaveOverlayImageAsBinary(string overlayImagePathAndFilename)
+        {
+            if ((overlayImagePathAndFilename == null) || (overlayImagePathAndFilename.Length < 10)) throw new Exception("Invalid overlay path and filename");
+            if (overlayImage == null) throw new Exception("Overlay image is null");
+            // just do it
+            overlayImage.SaveAsBinary(overlayImagePathAndFilename);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///    Load the overlay image from disk as a binary file. This file should
+        ///    have been written by SaveOverlayImageAsBinary
+        ///  
+        /// </summary>
+        /// <param name="overlayImagePathAndFilename">the path and filename</param>
+        public void LoadOverlayImageAsBinary(string overlayImagePathAndFilename)
+        {
+            if ((overlayImagePathAndFilename == null) || (overlayImagePathAndFilename.Length < 10)) throw new Exception("Invalid overlay path and filename");
+            if (overlayImage == null) throw new Exception("Overlay image is null");
+            // just do it
+            overlayImage.LoadAsBinary(overlayImagePathAndFilename);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -685,6 +719,7 @@ namespace Walnut
         protected Color? LastGridColor { get => lastGridColor; set => lastGridColor = value; }
         public bool GridEnabled { get => gridEnabled; set => gridEnabled = value; }
         public bool DisplayTrackerOnImage { get => displayTrackerOnImage; set => displayTrackerOnImage = value; }
+        public bool DisplayOnlyOverlayOnImage { get => displayOnlyOverlayOnImage; set => displayOnlyOverlayOnImage = value; }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -750,12 +785,63 @@ namespace Walnut
         /// <param name="endPoint">the end point</param>
         /// <param name="startPoint">the start point</param>
         /// <param name="workingPen">pen to use</param>
+        public void DrawLineAtCenterPointOnTracker(Pen workingPen, Point centerPoint, int lineLen, bool wantVert)
+        {
+            Point? startPoint = null;
+            Point? endPoint = null;
+            if (trackerImage == null) return;
+            if (trackerGraphicsObj == null) return;
+            if (lineLen <= 0) return;
+
+            // calc the start and end points
+            if (wantVert == false)
+            {
+                // we want horizontal line
+                startPoint = new Point(centerPoint.X - (lineLen / 2), centerPoint.Y);
+                endPoint = new Point(centerPoint.X + (lineLen / 2), centerPoint.Y);
+            }
+            else
+            {
+                // we want vertical
+                startPoint = new Point(centerPoint.X, centerPoint.Y - (lineLen / 2));
+                endPoint = new Point(centerPoint.X, centerPoint.Y + (lineLen / 2));
+            }
+
+            // draw the line with the pen
+            trackerGraphicsObj.DrawLine(workingPen, (Point)startPoint, (Point)endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line on the tracker bitmap between two points. 
+        ///  
+        ///  Mostly for diagnostics because they do not get erased
+        ///  
+        /// </summary>
+        /// <param name="endPoint">the end point</param>
+        /// <param name="startPoint">the start point</param>
+        /// <param name="workingPen">pen to use</param>
         public void DrawLineBetweenPointsOnTracker(Pen workingPen, Point startPoint, Point endPoint)
         {
             if (trackerImage == null) return;
             if (trackerGraphicsObj == null) return;
             // draw the line with the default pen
             trackerGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the color of a point on the overlay image
+        ///  
+        /// </summary>
+        /// <param name="pointNonInverted">the point to look at, should be non-inverted</param>
+        public Color GetColorOnOverlayAtPoint(Point pointNonInverted)
+        {
+            if (overlayImage == null) return Color.Empty;
+            if(pointNonInverted == null) return Color.Empty;
+            if(pointNonInverted.IsEmpty) return Color.Empty;
+
+            return overlayImage.GetPixel(pointNonInverted.X, pointNonInverted.Y);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -767,7 +853,7 @@ namespace Walnut
         /// <param name="centerPoint">the centerpoint of the circle</param>
         /// <param name="radius">the radius of the circle</param>
         /// <param name="workingBrush">the brush to use</param>
-        public void DrawCircleOnOverlayAsOutline(SolidBrush workingBrush, Point centerPoint, int radius, int lineThickness)
+        public void DrawCircleOnOverlayAsOutlineOnOverlay(SolidBrush workingBrush, Point centerPoint, int radius, int lineThickness)
         {
             if (overlayImage == null) return;
 
@@ -812,12 +898,12 @@ namespace Walnut
             // some sanity checks
             if (centerPoint.IsEmpty == true) return;
 
-            // Create global grahics object for alteration.
+            // make sure we have a global grahics object for alteration.
             try
             {
                 if (overlayGraphicsObj != null)
                 {
-                    // Transparent fill circle on screen.
+                    // fill circle on screen.
                     overlayGraphicsObj.FillEllipse(workingBrush, centerPoint.X - radius, centerPoint.Y - radius, radius * 2, radius * 2);
                 }
             }
@@ -829,6 +915,133 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        ///  Makes a rectangular part of the overlay image a specified color. If using 
+        ///  a color equivalent to the transparent color, the overlay region will be
+        ///  rendered transparent. If already transparent there will be no change. 
+        ///  
+        /// </summary>
+        /// <param name="rectIn">the rectangle on the overlay we check</param>
+        /// <param name="workingBrush">the brush to use</param>
+        public void FillRectangularRegionOnOverlay(SolidBrush workingBrush, Rectangle rectIn)
+        {
+            if (overlayImage == null) return;
+
+            // some sanity checks
+            if (rectIn == null) return;
+            if (rectIn.Width == 0) return;
+            if (rectIn.Height == 0) return;
+
+            try
+            {
+                if (overlayGraphicsObj != null)
+                {
+                    // Transparent fill circle on screen.
+                    overlayGraphicsObj.FillRectangle(workingBrush, rectIn);
+                }
+            }
+            catch { }
+            finally
+            {
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Sets the alpha value for a specific color in a rectangle on the overlay 
+        ///  
+        /// </summary>
+        /// <param name="color">the color we check</param>
+        /// <param name="alphaValue">should be between 0-255 only the bottom 8 bits will be used</param>
+        /// <param name="rectIn">the rectangle on the overlay we check (inverted coordinates)</param>
+        public void SetAlphaValueForColorInRectOnOverlay(Color color, int alphaValue, Rectangle rectIn)
+        {
+            if (overlayImage == null) return;
+
+            // some sanity checks
+            if (rectIn == null) return;
+            if (rectIn.Width == 0) return;
+            if (rectIn.Height == 0) return;
+            if (m_imageHeightInPixels <= 0) return;
+
+            // Make the call into the direct bitmap.
+            try
+            {
+                // convert the rectangle to nonInverted. The call below needs it this way
+                Rectangle invertedRect = Utils.ConvertRectangleToInvertedRectangle(rectIn, m_imageHeightInPixels);
+                // set the alpha channel now
+                overlayImage.SetAlphaValueForColorInRect(color, alphaValue, invertedRect);
+            }
+            catch { }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the min effective screen width of the overlay. This is the min width we can draw on
+        ///   
+        ///  Will return -ve for fail
+        /// 
+        /// </summary>
+        public int GetMinEffectiveScreenWidth
+        {
+            get
+            {
+                if (overlayImage == null) return -1;
+                return 0;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the min effective screen height of the overlay. This is the min height we can draw on
+        ///   
+        ///  Will return -ve for fail
+        /// 
+        /// </summary>
+        public int GetMinEffectiveScreenHeight
+        {
+            get
+            {
+                if (overlayImage == null) return -1;
+                return BottomOfScreenSkipHeight;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the max effective screen width of the overlay. This is the max width we can draw on
+        ///   
+        ///  Will return -ve for fail
+        /// 
+        /// </summary>
+        public int GetMaxEffectiveScreenWidth
+        {
+            get
+            {
+                if (overlayImage == null) return -1;
+                return overlayImage.Width;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Gets the max effective screen height of the overlay. This is the max height we can draw on
+        ///   
+        ///  Will return -ve for fail
+        /// 
+        /// </summary>
+        public int GetMaxEffectiveScreenHeight
+        {
+            get
+            {
+                if (overlayImage == null) return -1;
+                return overlayImage.Height;
+            }
+        }
+
+        public byte LowestAlphaFoundOnMask { get => lowestAlphaFoundOnMask; set => lowestAlphaFoundOnMask = value; }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Draws a line on the overlay bitmap through a point. Always does full
         ///  width or height
         ///  
@@ -837,7 +1050,7 @@ namespace Walnut
         /// <param name="workingPen">pen to use, contains the width</param>
         /// <param name="wantVert">if true we draw a vertical line, otherwise horiz.</param>
         /// 
-        public void DrawLineThroughPointOnOnOverlay(Pen workingPen, Point throughPoint, bool wantVert)
+        public void DrawLineThroughPointOnOverlay(Pen workingPen, Point throughPoint, bool wantVert)
         {
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
@@ -868,6 +1081,157 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        ///  Draws a line on the tracker bitmap through a point. Always does full
+        ///  width or height
+        ///  
+        /// </summary>
+        /// <param name="throughPoint">the through point</param>
+        /// <param name="workingPen">pen to use, contains the width</param>
+        /// <param name="wantVert">if true we draw a vertical line, otherwise horiz.</param>
+        /// 
+        public void DrawLineThroughPointOnTracker(Pen workingPen, Point throughPoint, bool wantVert)
+        {
+            Point startPoint = new Point(0, 0);
+            Point endPoint = new Point(0, 0);
+
+            if (trackerImage == null) return;
+            if (trackerGraphicsObj == null) return;
+            if (wantVert == true)
+            {
+                // we want vertical line, full width, set up our points
+                startPoint.X = throughPoint.X;
+                endPoint.X = throughPoint.X;
+                startPoint.Y = bottomOfScreenSkipHeight;
+                endPoint.Y = m_imageHeightInPixels - 1;
+
+            }
+            else
+            {
+                // we want horizontal line, full width, set up our points
+                startPoint.Y = throughPoint.Y;
+                endPoint.Y = throughPoint.Y;
+                startPoint.X = 0;
+                endPoint.X = m_imageWidthInPixels - 1;
+            }
+
+            // draw the line with the default pen
+            trackerGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line of specified length on the overlay bitmap through a point. 
+        ///  We always center the line on the point. We will not exceed the boundarys
+        ///  
+        /// </summary>
+        /// <param name="throughPoint">the through point</param>
+        /// <param name="workingPen">pen to use, contains the width</param>
+        /// <param name="wantVert">if true we draw a vertical line, otherwise horiz.</param>
+        /// <param name="length">the length of the line to draw, -ve means full width or height</param>
+        /// 
+        public void DrawLineThroughPointOnOverlay(Pen workingPen, Point throughPoint, int length, bool wantVert)
+        {
+            Point startPoint = new Point(0, 0);
+            Point endPoint = new Point(0, 0);
+
+            if (overlayImage == null) return;
+            if (overlayGraphicsObj == null) return;
+            if (length < 0)
+            {
+                // just draw full width or height
+                DrawLineThroughPointOnOverlay(workingPen, throughPoint, wantVert);
+                return;
+            }
+
+            // if we get here we are only drawing a specific length
+
+            // calc the half length
+            int halfLength = length / 2;
+            if (halfLength <= 0) return;
+
+            if (wantVert == true)
+            {
+                // we want vertical line, never more than full height, set up our points
+                startPoint.X = throughPoint.X;
+                endPoint.X = throughPoint.X;
+                startPoint.Y = throughPoint.Y - halfLength;
+                endPoint.Y = throughPoint.Y + halfLength;
+                if (endPoint.Y < bottomOfScreenSkipHeight) endPoint.Y = bottomOfScreenSkipHeight;
+                if (endPoint.Y > m_imageHeightInPixels - 1) endPoint.Y = m_imageHeightInPixels - 1;
+            }
+            else
+            {
+                // we want horizontal line, never more than full width, set up our points
+                startPoint.Y = throughPoint.Y;
+                endPoint.Y = throughPoint.Y;
+                startPoint.X = throughPoint.X - halfLength;
+                endPoint.X = throughPoint.X + halfLength;
+                if (endPoint.X < 0) endPoint.X = 0;
+                if (endPoint.X > m_imageWidthInPixels - 1) endPoint.X = m_imageWidthInPixels - 1;
+            }
+
+            // draw the line with the default pen
+            overlayGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Draws a line of specified length on the tracker bitmap through a point. 
+        ///  We always center the line on the point. We will not exceed the boundarys
+        ///  
+        /// </summary>
+        /// <param name="throughPoint">the through point</param>
+        /// <param name="workingPen">pen to use, contains the width</param>
+        /// <param name="wantVert">if true we draw a vertical line, otherwise horiz.</param>
+        /// <param name="length">the length of the line to draw, -ve means full width or height</param>
+        /// 
+        public void DrawLineThroughPointOnTracker(Pen workingPen, Point throughPoint, int length, bool wantVert)
+        {
+            Point startPoint = new Point(0, 0);
+            Point endPoint = new Point(0, 0);
+
+            if (trackerImage == null) return;
+            if (trackerGraphicsObj == null) return;
+            if (length < 0)
+            {
+                // just draw full width or height
+                DrawLineThroughPointOnTracker(workingPen, throughPoint, wantVert);
+                return;
+            }
+
+            // if we get here we are only drawing a specific length
+
+            // calc the half length
+            int halfLength = length / 2;
+            if (halfLength <= 0) return;
+
+            if (wantVert == true)
+            {
+                // we want vertical line, never more than full height, set up our points
+                startPoint.X = throughPoint.X;
+                endPoint.X = throughPoint.X;
+                startPoint.Y = throughPoint.Y - halfLength;
+                endPoint.Y = throughPoint.Y + halfLength;
+                if (endPoint.Y < bottomOfScreenSkipHeight) endPoint.Y = bottomOfScreenSkipHeight;
+                if (endPoint.Y > m_imageHeightInPixels - 1) endPoint.Y = m_imageHeightInPixels - 1;
+            }
+            else
+            {
+                // we want horizontal line, never more than full width, set up our points
+                startPoint.Y = throughPoint.Y;
+                endPoint.Y = throughPoint.Y;
+                startPoint.X = throughPoint.X - halfLength;
+                endPoint.X = throughPoint.X + halfLength;
+                if (endPoint.X < 0) endPoint.X = 0;
+                if (endPoint.X > m_imageWidthInPixels - 1) endPoint.X = m_imageWidthInPixels - 1;
+            }
+
+            // draw the line with the default pen
+            trackerGraphicsObj.DrawLine(workingPen, startPoint, endPoint);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Makes a circular part of the tracker image a specified color. If using 
         ///  a color equivalent to the transparent color, the tracker region will be
         ///  rendered transparent. If already transparent there will be no change. 
@@ -883,12 +1247,12 @@ namespace Walnut
             // some sanity checks
             if (centerPoint.IsEmpty == true) return;
 
-            // Create global graphics object for alteration.
+            // make sure we have a global grahics object for alteration.
             try
             {
                 if (trackerGraphicsObj != null)
                 {
-                    // Transparent fill circle on screen.
+                    // fill circle on screen.
                     trackerGraphicsObj.FillEllipse(workingBrush, centerPoint.X - radius, centerPoint.Y - radius, radius * 2, radius * 2);
                 }
             }
@@ -925,6 +1289,33 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        ///  Converts a color in a rect on the Overlay to another color
+        ///  
+        /// </summary>
+        /// <param name="rectIn">the rect in which we draw</param>
+        /// <param name="color">the source color</param>
+        /// <param name="preserveAlpha">if true we ignore alpha when comparing and preserve it over the change</param>
+        /// <param name="toColor">the color to convert to</param>
+        public void ConvertColorToColorInRectOnOverlay(Color color, Color toColor, Rectangle rectIn, bool preserveAlpha)
+        {
+            // some sanity checks
+            if (rectIn == null) return;
+            if (rectIn.Width == 0) return;
+            if (rectIn.Height == 0) return;
+            if (m_imageHeightInPixels <= 0) return;
+            if (overlayImage == null) return;
+
+            try
+            {
+                // convert the rectangle to nonInverted. The call below needs it this way
+                Rectangle invertedRect = Utils.ConvertRectangleToInvertedRectangle(rectIn, m_imageHeightInPixels);
+                lowestAlphaFoundOnMask = overlayImage.ConvertColorToColorInRect(color, toColor, invertedRect, preserveAlpha);
+            }
+            catch { }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         ///  Finds all occurances of a specific color and erases them (makes them
         ///  transparent)
         ///  
@@ -936,6 +1327,21 @@ namespace Walnut
             if (overlayImage == null) return;
             if (color == null) return;
             overlayImage.ConvertColorToColor(color, transparentColor);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        ///  Finds all occurances of a specific color and erases them (makes them
+        ///  transparent)
+        ///  
+        /// </summary>
+        /// <param name="color">the color to remove</param>
+        /// <param name="toColor">the color to convert to</param>
+        public void ClearColorFromTracker(Color color)
+        {
+            if (trackerImage == null) return;
+            if (color == null) return;
+            trackerImage.ConvertColorToColor(color, transparentColor);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -976,10 +1382,10 @@ namespace Walnut
         ///  
         /// </summary>
         /// <param name="originPoint">the origin we start from</param>
-        /// <param name="colorWithAlphaChannel">the value of the color being looked for with a 255 alpha channel</param
+        /// <param name="colorIgnoreAlphaChannel">the value of the color being looked for - we ignore the alpha channel</param
         /// <param name="minConsecutivePointsNeeded">the minimum number of consecutive points needed in order to consider a returned point valid</param>
         /// <returns>the nearest colored point or an empty point for fail</returns>
-        public Point GetNearestColorPointFromOrigin(Point originPoint, Color colorWithAlphaChannel, int minConsecutivePointsNeeded)
+        public Point GetNearestColorPointFromOrigin(Point originPoint, Color colorIgnoreAlphaChannel, int minConsecutivePointsNeeded)
         {
             if (originPoint.IsEmpty == true) return new Point();
             if (overlayImage == null) return new Point();
@@ -994,7 +1400,7 @@ namespace Walnut
                     // get the pixel. not very efficient
                     Color pixelColor = overlayImage.GetPixelInvertedY(i.X, i.Y);
                     // believe it or not this is actually one of the more efficent ways of comparing colors
-                    if (pixelColor == colorWithAlphaChannel)
+                    if ((pixelColor.R == colorIgnoreAlphaChannel.R) && (pixelColor.G == colorIgnoreAlphaChannel.G) && (pixelColor.B == colorIgnoreAlphaChannel.B))
                     {
                         Point foundPoint = new Point(i.X, i.Y);
                         return foundPoint;
@@ -1045,12 +1451,12 @@ namespace Walnut
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Draws the grid on the overlay. All parameters are supposed to have been checked
+        /// Draws the grid on the tracker. All parameters are supposed to have been checked
         /// before we get them. If we find something we don't like we just leave. We also 
         /// do not clear the old grid. Note this is a symmetric grid. The spacing in the X
         /// direction is the same as in the Y direction.
         /// </summary>
-        public void DrawGrid()
+        public void DrawGridOnTracker()
         {
             int lowerLeftXOrigin = 0;
             int lowerLeftYOrigin = 0;
@@ -1111,8 +1517,8 @@ namespace Walnut
                 {
                     for (int row = 0; row < gridArray.GetLength(1); row++)
                     {
-                        DrawLineAtCenterPointOnOverlay(workingPen, gridArray[col, row], gridBarSizeX, false);
-                        DrawLineAtCenterPointOnOverlay(workingPen, gridArray[col, row], gridBarSizeY, true);
+                        DrawLineAtCenterPointOnTracker(workingPen, gridArray[col, row], gridBarSizeX, false);
+                        DrawLineAtCenterPointOnTracker(workingPen, gridArray[col, row], gridBarSizeY, true);
                     }
                 }
             }

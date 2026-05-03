@@ -524,6 +524,46 @@ namespace WalnutCommon
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Converts a rectangle to an inverted rectangle Any problems and we return null
+        /// </summary>
+        /// <param name="rect">the rectangle to convert</param>
+        /// <param name="screenHeight">the screen height</param>
+        /// <returns>the converted rectangle or a rect.IsEmpty for fail</returns>
+        public static Rectangle ConvertRectangleToInvertedRectangle(Rectangle rect, int screenHeight)
+        {
+            if (rect.IsEmpty == true) return new Rectangle();
+            if (screenHeight <= 0) return new Rectangle();
+            if((rect.Y + rect.Height) > screenHeight) return new Rectangle();
+            // create the new rectangle
+            return new Rectangle(rect.X, screenHeight-rect.Y-rect.Height, rect.Width, rect.Height);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the alpha channel from a color and returns it as a byte
+        /// </summary>
+        /// <param name="color">the color to look at</param>
+        /// <returns>the alpha channel or 0 for fail</returns>
+        public static byte GetAlphaChannelFromColor(Color color)
+        {
+            if (color == null) return 0;
+            return color.A;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the alpha channel from an ARGB uint and returns it as a byte
+        /// </summary>
+        /// <param name="color32BitARGB">the color to look at</param>
+        /// <returns>the alpha channel</returns>
+        public static byte GetAlphaChannelFromARGB(uint color32BitARGB)
+        {
+            // mask off everything but the alpha and return the top byte only
+            return (byte)((color32BitARGB&0xFF000000)>>24);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Converts a color to (R,G,B) text Any problems and we return ""
         /// </summary>
         /// <param name="color">the color to convert</param>
@@ -533,5 +573,87 @@ namespace WalnutCommon
             if (color == null) return "";
             return "(" + color.R.ToString() + "," + color.G.ToString() + "," + color.B.ToString() + ")";
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts two points into a properly sized rectangle irregardless of which
+        /// one is UL, UR, LR, LL
+        /// 
+        /// Credit: https://stackoverflow.com/questions/45907904/how-do-i-create-a-rectangle-from-two-points
+        /// </summary>
+        /// <param name="p1">Point 1</param>
+        /// <param name="p2">Point 2</param>
+        /// <returns>rectangle. might have 0 width or height</returns>
+        public static Rectangle GetRectangleFromTwoPoints(Point p1, Point p2)
+        {
+            int left = Math.Min(p1.X, p2.X);
+            int right = Math.Max(p1.X, p2.X);
+            int top = Math.Min(p1.Y, p2.Y);
+            int bottom = Math.Max(p1.Y, p2.Y);
+            int width = right - left;
+            int height = bottom - top;
+            return new Rectangle(left, top, width, height);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Returns a rectangle based around a center point of a specified width and height
+        /// 
+        /// Will never let it be less than zero and will adjust to ensure it does not exceed a maximum
+        /// 
+        /// </summary>
+        /// <param name="centerPoint">the center point</param>
+        /// <param name="width">the width of the rectangle, cannot be 0 or -ve</param>
+        /// <param name="height">the height of the rectangle, cannot be 0 or -ve</param>
+        /// <param name="minX">the minimum X value we can never go below</param>
+        /// <param name="minY">the minimum Y value we can never go below</param>
+        /// <param name="maxX">the maximum X value we can never meet or exceed</param>
+        /// <param name="maxY">the maximum Y value we can never meet or exceed</param>
+        /// <returns>rectangle</returns>
+        public static Rectangle GetRectangleFromCenterPoint(Point centerPoint, int width, int height, int minX, int minY, int maxX, int maxY)
+        {
+            if (centerPoint == null) return new Rectangle();
+            if (centerPoint.X < 0) return new Rectangle();
+            if (centerPoint.Y < 0) return new Rectangle();
+            if (width <= 0 || height <= 0) return new Rectangle();
+            if (maxX < 0) return new Rectangle();
+            if (maxY < 0) return new Rectangle();
+            if (minX < 0) return new Rectangle();
+            if (minY < 0) return new Rectangle();
+            if (width >= maxX) return new Rectangle();
+            if (height >= maxY) return new Rectangle();
+
+            int llCornerPointX = centerPoint.X - (width / 2);
+            int llCornerPointY = centerPoint.Y - (height / 2);
+            int newWidth = width;
+            int newHeight = height;
+
+            if (llCornerPointX < minX)
+            {
+                // cannot be negative, reduce the width and reset the coord
+                newWidth = newWidth + llCornerPointX;
+                llCornerPointX = minX;
+            }
+            if (llCornerPointY < minY)
+            {
+                // cannot be negative, reduce the height and reset the coord
+                newHeight = newHeight + llCornerPointY;
+                llCornerPointY = minY;
+            }
+
+            if (llCornerPointX >= maxX)
+            {
+                // cannot exceed or equal, reduce the width
+                newWidth = width - maxX;
+            }
+            if (llCornerPointY >= maxY)
+            {
+                // cannot exceed or equal, reduce the height
+                newHeight = height - maxY;
+            }
+            return new Rectangle(llCornerPointX, llCornerPointY, newWidth, newHeight);
+        }
+
+
     }
 }
